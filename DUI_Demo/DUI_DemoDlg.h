@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include "Functions.h"
+#include "DUI_Window.h"
 
 // CDUI_DemoDlg ¶Ô»°¿ò
 class CDUI_DemoDlg : public CDialogEx

@@ -92,9 +92,17 @@ BOOL CDUI_DemoApp::InitInstance()
 	{
 		delete pShellManager;
 	}
-
+	GdipStartup();
 	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
 	//  而不是启动应用程序的消息泵。
 	return FALSE;
 }
 
+
+
+int CDUI_DemoApp::ExitInstance()
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	GdipShutdown();
+	return CWinApp::ExitInstance();
+}
