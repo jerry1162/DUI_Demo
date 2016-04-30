@@ -187,6 +187,8 @@
   <ItemGroup>
     <ClInclude Include="DUI_Demo.h" />
     <ClInclude Include="DUI_DemoDlg.h" />
+    <ClInclude Include="DUI_Window.h" />
+    <ClInclude Include="Functions.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -194,6 +196,8 @@
   <ItemGroup>
     <ClCompile Include="DUI_Demo.cpp" />
     <ClCompile Include="DUI_DemoDlg.cpp" />
+    <ClCompile Include="DUI_Window.cpp" />
+    <ClCompile Include="Functions.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -213,4 +217,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="DUI_Demo.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="DUI">
+      <UniqueIdentifier>{568a38c6-15c7-4e69-aaa5-fab782d57c65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -33,6 +36,12 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DUI_Window.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Functions.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DUI_Demo.cpp">
@@ -43,6 +52,12 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Window.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Functions.cpp">
+      <Filter>DUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
