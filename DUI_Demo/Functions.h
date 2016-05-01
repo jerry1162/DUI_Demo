@@ -4,11 +4,12 @@
 void GdipStartup();
 void GdipShutdown();
 
-class MemGraphics : public Gdiplus::Graphics
+class MemDC
 {
 public:
-	MemGraphics(HWND hwnd, BOOL icm = FALSE);
-	~MemGraphics();
+	MemDC(int Width, int Height);
+	MemDC();
+	~MemDC();
 	BOOL Create(int Width, int Height);
 	BOOL Destroy();
 	BOOL BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, int nXSrc,
@@ -17,6 +18,8 @@ public:
 		int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc,
 		BYTE Alpha);
 	HDC GetMemDC();
+
+	Graphics* graphics;
 private:
 	HDC m_MemDC;
 	HBITMAP m_hBitmap;

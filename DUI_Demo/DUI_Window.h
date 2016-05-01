@@ -19,8 +19,8 @@ public:
 	BOOL Destroy();
 private:
 	HWND m_hWnd;
-	MemGraphics m_MemGraphics;
-	Graphics m_Graphics;
+	MemDC m_MemDC;
+	Gdiplus::Graphics* m_Graphics;
 	Gdiplus::RectF m_WndRect;
-	GdipString m_Caption;
+	GdipString* m_Caption;
 };

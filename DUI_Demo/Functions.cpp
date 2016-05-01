@@ -14,17 +14,22 @@ void GdipShutdown()
 	GdiplusShutdown(gdiplusToken);
 }
 
-MemGraphics::MemGraphics(HWND hwnd, BOOL icm)
+MemDC::MemDC(int Width, int Height)
 {
-	
+	Create(Width, Height);
 }
 
-MemGraphics::~MemGraphics()
+MemDC::MemDC()
+{
+
+}
+
+MemDC::~MemDC()
 {
 	Destroy();
 }
 
-BOOL MemGraphics::Create(int Width, int Height)
+BOOL MemDC::Create(int Width, int Height)
 {
 	m_MemDC = CreateCompatibleDC(0);
 	if (0==m_MemDC)
@@ -46,7 +51,8 @@ BOOL MemGraphics::Create(int Width, int Height)
 	}
 	m_hOldBitmap = (HBITMAP)SelectObject(m_MemDC, m_hBitmap);
 
-	if (FromHDC(m_MemDC) != 0)
+	graphics = Graphics::FromHDC(m_MemDC);
+	if (graphics == NULL)
 	{
 		SelectObject(m_MemDC, m_hOldBitmap);
 		DeleteObject(m_hBitmap);
@@ -58,7 +64,7 @@ BOOL MemGraphics::Create(int Width, int Height)
 	return TRUE;
 }
 
-BOOL MemGraphics::Destroy()
+BOOL MemDC::Destroy()
 {
 	if (m_MemDC==0)
 	{
@@ -67,11 +73,11 @@ BOOL MemGraphics::Destroy()
 	SelectObject(m_MemDC, m_hOldBitmap);
 	DeleteObject(m_hBitmap);
 	DeleteDC(m_MemDC);
-	m_Graphics.~Graphics();
+	delete graphics;
 	return 0;
 }
 
-BOOL MemGraphics::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, int nXSrc,
+BOOL MemDC::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, int nXSrc,
 	int nYSrc, DWORD dwRop)
 {
 	int ret;
@@ -79,7 +85,7 @@ BOOL MemGraphics::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDe
 	return (ret==0?FALSE:TRUE);
 }
 
-BOOL MemGraphics::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest,
+BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest,
 	int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc,
 	BYTE Alpha = 255)
 {
@@ -94,7 +100,7 @@ BOOL MemGraphics::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, in
 	return (ret == 0 ? FALSE : TRUE);
 }
 
-HDC MemGraphics::GetMemDC()
+HDC MemDC::GetMemDC()
 {
 	return m_MemDC;
 }
