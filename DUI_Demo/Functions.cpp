@@ -14,6 +14,11 @@ void GdipShutdown()
 	GdiplusShutdown(gdiplusToken);
 }
 
+MemGraphics::MemGraphics(HWND hwnd, BOOL icm)
+{
+	
+}
+
 MemGraphics::~MemGraphics()
 {
 	Destroy();
@@ -40,7 +45,8 @@ BOOL MemGraphics::Create(int Width, int Height)
 		return FALSE;
 	}
 	m_hOldBitmap = (HBITMAP)SelectObject(m_MemDC, m_hBitmap);
-	if (m_Graphics.FromHDC(m_MemDC) != 0)
+
+	if (FromHDC(m_MemDC) != 0)
 	{
 		SelectObject(m_MemDC, m_hOldBitmap);
 		DeleteObject(m_hBitmap);
@@ -73,9 +79,9 @@ BOOL MemGraphics::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDe
 	return (ret==0?FALSE:TRUE);
 }
 
-BOOL MemGraphics::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest,
-	int nWidthDest, int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc,
-	int nHeightSrc, BYTE Alpha = 255)
+BOOL MemGraphics::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest,
+	int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc,
+	BYTE Alpha = 255)
 {
 	int ret;
 	BLENDFUNCTION blendFunction;
