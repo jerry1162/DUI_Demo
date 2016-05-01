@@ -12,7 +12,7 @@ class CDUI_DemoDlg : public CDialogEx
 // 构造
 public:
 	CDUI_DemoDlg(CWnd* pParent = NULL);	// 标准构造函数
-
+	DUI_Window m_Window;
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DUI_DEMO_DIALOG };

@@ -99,6 +99,11 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	GdipStartup();
+	if (!m_Window.Create(m_hWnd))
+	{
+		MessageBox(L"创建失败");
+	}
 	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }

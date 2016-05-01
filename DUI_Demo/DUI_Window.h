@@ -4,9 +4,9 @@
 
 struct GdipString
 {
-	CString string;
-	Gdiplus::Font font;
-	StringFormat format;
+	CString* string;
+	Gdiplus::Font* font;
+	StringFormat* format;
 };
 
 
