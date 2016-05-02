@@ -14,6 +14,201 @@ void GdipShutdown()
 	GdiplusShutdown(gdiplusToken);
 }
 
+BOOL PtInRect(RectF * rect, Point * pt)
+{
+	if (pt->X >= rect->GetLeft() && pt->Y >= rect->GetTop() && 
+		pt->X <= rect->GetLeft() + rect->Width&&pt->Y <= rect->GetTop() + rect->Height)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+VOID DrawShadow(Graphics * graphics, RectF * rect, INT diameter)
+{
+	graphics->SetSmoothingMode(SmoothingModeAntiAlias);
+	GraphicsPath* path;
+	path = new GraphicsPath;
+	DrawPathRoundRect(path, rect->GetLeft(), rect->GetTop(), rect->Width, rect->Height, diameter + 4);
+	DrawPathRoundRect(path, rect->GetLeft() - 4, rect->GetTop() - 4, rect->Width + 8, rect->Height + 8, diameter + 4);
+	graphics->SetClip(path);
+	delete path;
+	path = new GraphicsPath;
+	DrawPathRoundRect(path, rect->GetLeft(), rect->GetTop(), rect->Width, rect->Height, diameter + 4);
+	Color* color = new Color(Color::MakeARGB(5, 255, 255, 255));
+
+	Gdiplus::Pen pen(*color, 9);
+	graphics->DrawPath(&pen, path);
+
+	color->SetValue(Color::MakeARGB(10, 255, 255, 255));
+	pen.SetColor(*color);
+	pen.SetWidth(7);
+	graphics->DrawPath(&pen, path);
+
+	color->SetValue(Color::MakeARGB(15, 255, 255, 255));
+	pen.SetColor(*color);
+	pen.SetWidth(5);
+	graphics->DrawPath(&pen, path);
+
+	color->SetValue(Color::MakeARGB(20, 255, 255, 255));
+	pen.SetColor(*color);
+	pen.SetWidth(3);
+	graphics->DrawPath(&pen, path);
+
+	color->SetValue(Color::MakeARGB(25, 255, 255, 255));
+	pen.SetColor(*color);
+	pen.SetWidth(1);
+	graphics->DrawPath(&pen, path);
+
+	delete color;
+	delete path;
+	graphics->ResetClip();
+	graphics->SetSmoothingMode(SmoothingModeDefault);
+}
+
+BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round)
+{
+	path->AddArc(left, top, round, round, 180, 90);
+	path->AddArc(left + width - round, top, round, round, 270, 90);
+	path->AddArc(left + width - round, top + height - round, round, round, 0, 90);
+	path->AddArc(left, top + height - round, round, round, 90, 90);
+	return path->CloseFigure()==0;
+}
+
+BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image *  pImg)
+{
+	HINSTANCE hInst = AfxGetResourceHandle();
+	HRSRC hRsrc = ::FindResource(hInst, MAKEINTRESOURCE(nID), sTR); // type  
+	if (!hRsrc)
+		return FALSE;
+	// load resource into memory  
+	DWORD len = SizeofResource(hInst, hRsrc);
+	BYTE* lpRsrc = (BYTE*)LoadResource(hInst, hRsrc);
+	if (!lpRsrc)
+		return FALSE;
+	// Allocate global memory on which to create stream  
+	HGLOBAL m_hMem = GlobalAlloc(GMEM_FIXED, len);
+	BYTE* pmem = (BYTE*)GlobalLock(m_hMem);
+	memcpy(pmem, lpRsrc, len);
+	IStream* pstm;
+	CreateStreamOnHGlobal(m_hMem, FALSE, &pstm);
+	// load from stream  
+	//pImg = new Image(pstm);
+	pImg = Gdiplus::Image::FromStream(pstm);
+	// free/release stuff  
+	GlobalUnlock(m_hMem);
+	pstm->Release();
+	FreeResource(lpRsrc);
+	return TRUE;
+}
+
+VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB ShadowColor,
+	ARGB BorderColor, REAL TextOffsetX, REAL TextOffsetY, REAL ShadowOffsetX,
+	REAL ShadowOffsetY)
+{
+	if (Rate <= 0)
+	{
+		Rate = 1;
+	}
+	REAL width, height;
+	width = Text->rect->Width / Rate;
+	height = Text->rect->Height / Rate;
+	Gdiplus::Bitmap bitmap1(Text->rect->Width, Text->rect->Height);
+	Graphics* graphics1;
+	graphics1 = new Graphics(&bitmap1);
+	SolidBrush* brush;
+	if (ShadowColor != NULL)
+	{
+		brush = new SolidBrush(ShadowColor);
+		RectF* OffsetRect = new RectF(TextOffsetX + ShadowOffsetX - 1,
+			TextOffsetY + ShadowOffsetY, Text->rect->Width, Text->rect->Height);
+		graphics1->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete OffsetRect;
+
+		OffsetRect = new RectF(TextOffsetX + ShadowOffsetX + 1,
+			TextOffsetY + ShadowOffsetY, Text->rect->Width, Text->rect->Height);
+		graphics1->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete brush;
+		delete OffsetRect;
+
+		OffsetRect = new RectF(TextOffsetX + ShadowOffsetX,
+			TextOffsetY + ShadowOffsetY - 1, Text->rect->Width, Text->rect->Height);
+		delete OffsetRect;
+
+		Gdiplus::Bitmap bitmap2(width, height);
+		Graphics* graphics2;
+		graphics2 = new Graphics(&bitmap2);
+		graphics2->SetSmoothingMode(SmoothingModeAntiAlias);
+		graphics2->SetCompositingQuality(CompositingQualityGammaCorrected);
+		graphics2->SetInterpolationMode(InterpolationModeHighQualityBilinear);
+		graphics2->SetPixelOffsetMode(PixelOffsetModeNone);
+		graphics2->DrawImage(&bitmap1, 0.0, 0.0, width, height);
+		graphics1->Clear(0);
+		graphics1->DrawImage(&bitmap2, 0.0, 0.0, Text->rect->Width, Text->rect->Height);
+		delete graphics2;
+	}
+
+
+	GdipString* string = new GdipString;
+	string->color = Text->color;
+	string->string = Text->string;
+	string->font = Text->font;
+	string->format = Text->format;
+	string->rect = new RectF(TextOffsetX, TextOffsetY, Text->rect->Width,
+		Text->rect->Height);
+	DrawBorderedText(graphics1, string, BorderColor);
+	delete string;
+
+	graphics->DrawImage(&bitmap1, Text->rect->GetLeft(), Text->rect->GetTop());
+	delete graphics1;
+}
+
+VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
+{
+	SolidBrush* brush;
+	if (BorderColor != NULL)
+	{
+		brush = new SolidBrush(BorderColor);
+		RectF* OffsetRect = new RectF(Text->rect->GetLeft() - 1,
+			Text->rect->GetTop(), Text->rect->Width, Text->rect->Height);
+		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete OffsetRect;
+
+		OffsetRect = new RectF(Text->rect->GetLeft() + 1,
+			Text->rect->GetTop(), Text->rect->Width, Text->rect->Height);
+		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete OffsetRect;
+
+		OffsetRect = new RectF(Text->rect->GetLeft(), Text->rect->GetTop() + 1,
+			Text->rect->Width, Text->rect->Height);
+		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete OffsetRect;
+
+		OffsetRect = new RectF(Text->rect->GetLeft(), Text->rect->GetTop() - 1,
+			Text->rect->Width, Text->rect->Height);
+		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+			*OffsetRect, Text->format, brush);
+		delete OffsetRect;
+
+		delete brush;
+	}
+	brush = new SolidBrush(*Text->color);
+	//graphics->SetSmoothingMode(SmoothingModeAntiAlias);
+	graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		*Text->rect, Text->format, brush);
+	delete brush;
+}
+
+
+
 MemDC::MemDC(int Width, int Height)
 {
 	Create(Width, Height);
@@ -74,7 +269,7 @@ BOOL MemDC::Destroy()
 	DeleteObject(m_hBitmap);
 	DeleteDC(m_MemDC);
 	delete graphics;
-	return 0;
+	return TRUE;
 }
 
 BOOL MemDC::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, int nXSrc,
@@ -103,4 +298,10 @@ BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWid
 HDC MemDC::GetMemDC()
 {
 	return m_MemDC;
+}
+
+BOOL MemDC::ReSize(int Width, int Height)
+{
+	Destroy();
+	return Create(Width, Height);
 }

@@ -100,11 +100,11 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	GdipStartup();
-	if (!m_Window.Create(m_hWnd))
+	if (!m_Window.Create(m_hWnd,
+		L"C:\\Users\\ausu123\\Desktop\\My Project\\VC Project\\DUI_Demo\\Image\\BkGrd\\bkg2.jpg"))
 	{
 		MessageBox(L"创建失败");
 	}
-	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
