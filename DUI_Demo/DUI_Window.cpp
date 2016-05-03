@@ -28,39 +28,37 @@ LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
+	case WM_CREATE:
+		m_pThis->DrawWnd();
+		break;
 	case WM_LBUTTONDOWN:
-		//MessageBeep(MB_ICONINFORMATION);
 		m_pThis->OnLButtonDown(wParam, lParam);
 		break;
 	case WM_PAINT:
-		PAINTSTRUCT ps;
-		BeginPaint(hwnd, &ps);
-		m_pThis->DrawWnd();
-		EndPaint(hwnd, &ps);
+		m_pThis->OnPaint(wParam, lParam);
+		break;
 	case WM_MOUSEMOVE:
-		TRACKMOUSEEVENT tme;
-		tme.cbSize = sizeof(tme);
-		tme.dwFlags = TME_HOVER | TME_LEAVE;
-		tme.dwHoverTime = 10;
-		tme.hwndTrack = hwnd;
-		TrackMouseEvent(&tme);
 		m_pThis->OnMouseMove(wParam,lParam);
+		break;
 	case WM_SIZE:
 		m_pThis->OnSize(wParam, lParam);
+	case WM_UPDATE:
+		m_pThis->DrawWnd();
+		break;
 	default:
 		break;
 	}
 
-	return CallWindowProc(WNDPROC(PrevWndProc),hwnd,uMsg,wParam,lParam);
+	return CallWindowProc(WNDPROC(PrevWndProc), hwnd, uMsg, wParam, lParam);
 }
 
 VOID DUI_Window::DrawWnd()
 {
 	//DrawShadow(m_MemDC->graphics, m_ClientRect, 5);
 	SolidBrush Brush(*m_BackColor);
-	if (m_Background != nullptr)
+	if (m_BkgImg != nullptr)
 	{
-		m_MemDC->graphics->DrawImage(m_Background, m_ClientRect->GetLeft(),
+		m_MemDC->graphics->DrawImage(m_BkgImg, m_ClientRect->GetLeft(),
 			m_ClientRect->GetTop(),m_ClientRect->Width,m_WndRect->Height);
 	}
 	else
@@ -89,22 +87,17 @@ VOID DUI_Window::DrawWnd()
 	delete pPath;
 	//画边框结束
 
-	//m_MemDC->graphics->DrawImage(m_Icon, 1, 1, m_Icon->GetWidth(), m_Icon->GetHeight());
+	if (m_Icon != NULL)
+	{
+		m_MemDC->graphics->DrawImage(m_Icon, 3, 3, m_Icon->GetWidth(), m_Icon->GetHeight());
+	}
 
 	Brush.SetColor(*m_Title->color);
-	//LPWSTR str = L"UI DEMO";
-	//m_MemDC->graphics->DrawString(m_Title->string->GetBuffer(), m_Title->string->GetLength(),
-	//	m_Title->font, *m_Title->rect, m_Title->format, &Brush);
-	//	
 	DrawShadowText(m_MemDC->graphics, 5, m_Title, Color::Black, Color::Black);
-	
-
-	HDC hDC = m_Graphics->GetHDC();
-	m_MemDC->BitBlt(hDC,0,0,m_WndRect->Width,m_WndRect->Height,0,0,SRCCOPY);
-	m_Graphics->ReleaseHDC(hDC);
 }
 
-BOOL DUI_Window::Create(HWND hWnd, LPCWSTR Backgrd)
+BOOL DUI_Window::Create(HWND hWnd, LPCWSTR Title, LPCWSTR Icon, LPCWSTR BackgrdPic,
+	BOOL bSizeable)
 {
 	if (hWnd == NULL)
 	{
@@ -118,31 +111,31 @@ BOOL DUI_Window::Create(HWND hWnd, LPCWSTR Backgrd)
 		return FALSE;
 	}
 
-	OnSize(NULL, NULL);
-
 	m_Title = new GdipString;
 	m_Title->string = new CString;
-	m_Title->string->SetString(L"DirectUI");  ///////////////////////////
-	//GetWindowText(hWnd, m_Title->string->, 255);
-
+	m_Title->string->SetString(Title);  ///////////////////////////
 
 	FontFamily fm(L"新宋体");
 	m_Title->font = new Gdiplus::Font(&fm, 10, FontStyleRegular, UnitPoint);
 	m_Title->format = new StringFormat;
 	m_Title->format->GenericDefault();
 	m_Title->color = new Color(Color::White);
-	m_BackColor = new Color(Color::MakeARGB(255, 240, 240, 240));
-	m_Title->rect = new RectF(m_ClientRect->GetLeft() + 20, m_ClientRect->GetTop() + 4
-		, m_ClientRect->Width, TITLEBARHEIGHT);
-
-	//ImageFromIDResource(IDI_ICON_MAIN, RT_GROUP_ICON,m_Icon);
-	//ASSERT(m_Icon != nullptr);
-	
-	if (Backgrd != NULL)
+	//TitleRect的处理在OnSize里;
+	if (Icon != NULL)
 	{
-		m_Background = new Image(Backgrd);
+		m_Icon = new Image(Icon);
+		/*HICON hIcon;
+		hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON_MAIN));
+		Bitmap* icon = new Bitmap(hIcon);
+		icon->GetWidth();*/
+		//ImageFromIDResource(IDI_ICON_MAIN, RT_GROUP_ICON, m_Icon);
 	}
-
+	m_BackColor = new Color(Color::MakeARGB(255, 240, 240, 240));
+	
+	if (BackgrdPic != NULL)
+	{
+		m_BkgImg = new Image(BackgrdPic);
+	}
 	PrevWndProc = SetWindowLong(hWnd, GWL_WNDPROC, LONG(DUI_Window::WndProc));
 	if (PrevWndProc == NULL)
 	{
@@ -150,6 +143,7 @@ BOOL DUI_Window::Create(HWND hWnd, LPCWSTR Backgrd)
 		Destroy();
 		return FALSE;
 	}
+	OnSize(NULL, NULL);
 	return TRUE;
 }
 
@@ -168,9 +162,34 @@ BOOL DUI_Window::Destroy()
 	delete m_BackColor;
 
 	delete m_Icon;
-	delete m_Background;
+	delete m_BkgImg;
+	return TRUE;
+}
 
-	delete m_pThis;
+BOOL DUI_Window::ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg)
+{
+	HINSTANCE hInst = AfxGetResourceHandle();
+	HRSRC hRsrc = ::FindResource(hInst, MAKEINTRESOURCE(nID), sTR); // type
+	if (!hRsrc)
+		return FALSE;
+	// load resource into memory
+	DWORD len = SizeofResource(hInst, hRsrc);
+	BYTE* lpRsrc = (BYTE*)LoadResource(hInst, hRsrc);
+	if (!lpRsrc)
+		return FALSE;
+	// Allocate global memory on which to create stream
+	HGLOBAL m_hMem = GlobalAlloc(GMEM_FIXED, len);
+	BYTE* pmem = (BYTE*)GlobalLock(m_hMem);
+	memcpy(pmem, lpRsrc, len);
+	IStream* pstm;
+	CreateStreamOnHGlobal(m_hMem, FALSE, &pstm);
+	// load from stream
+	pImg = new Image(pstm);
+	// pImg = Gdiplus::Image::FromStream(pstm);
+	// free/release stuff
+	GlobalUnlock(m_hMem);
+	pstm->Release();
+	FreeResource(lpRsrc);
 	return TRUE;
 }
 
@@ -186,9 +205,16 @@ INT DUI_Window::ScreenToClient(Point * pt)
 
 VOID DUI_Window::OnMouseMove(WPARAM wParam, LPARAM lParam)
 {
-	Point pt;
-	pt.X = LOWORD(lParam);
-	pt.Y = HIWORD(lParam);
+	TRACKMOUSEEVENT tme;
+	tme.cbSize = sizeof(tme);
+	tme.dwFlags = TME_HOVER | TME_LEAVE;
+	tme.dwHoverTime = 10;
+	tme.hwndTrack = m_hWnd;
+	TrackMouseEvent(&tme);
+
+	//Point pt;
+	//pt.X = LOWORD(lParam);
+	//pt.Y = HIWORD(lParam);
 }
 
 VOID DUI_Window::OnLButtonDown(WPARAM wParam, LPARAM lParam)
@@ -229,4 +255,27 @@ VOID DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	HRGN hRgn = CreateRoundRectRgn(0, 0, m_WndRect->Width, m_WndRect->Height, 5, 5);
 	SetWindowRgn(m_hWnd, hRgn, FALSE);
 	DeleteObject(hRgn);
+
+	if (m_Icon != nullptr)
+	{
+		m_Title->rect = new RectF(m_ClientRect->GetLeft() + m_Icon->GetWidth() + 4,
+			m_ClientRect->GetTop() + 5, m_ClientRect->Width - m_Icon->GetWidth() - 4, TITLEBARHEIGHT);
+	}
+	else
+	{
+		m_Title->rect = new RectF(m_ClientRect->GetLeft() + 2, m_ClientRect->GetTop() + 4
+			, m_ClientRect->Width, TITLEBARHEIGHT);
+	}
+	SendMessage(m_hWnd, WM_UPDATE, NULL, NULL);
+}
+
+VOID DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+	BeginPaint(m_hWnd, &ps);
+	HDC hDC = m_Graphics->GetHDC();
+	m_MemDC->BitBlt(hDC, 0, 0, m_WndRect->Width, m_WndRect->Height,
+		0, 0, SRCCOPY);
+	m_Graphics->ReleaseHDC(hDC);
+	EndPaint(m_hWnd, &ps);
 }

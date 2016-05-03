@@ -213,9 +213,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Image\BkGrd\bkg2.jpg" />
+    <Image Include="..\Image\Icon.ico" />
     <Image Include="..\Image\UI_图标.ico" />
     <Image Include="res\DUI_Demo.ico" />
-    <Image Include="res\icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -100,8 +100,8 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	GdipStartup();
-	if (!m_Window.Create(m_hWnd,
-		L"C:\\Users\\ausu123\\Desktop\\My Project\\VC Project\\DUI_Demo\\Image\\BkGrd\\bkg2.jpg"))
+	if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\IconDef.ico",
+		L"..\\Image\\BkGrd\\bkg2.jpg", TRUE))
 	{
 		MessageBox(L"创建失败");
 	}

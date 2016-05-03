@@ -74,13 +74,13 @@
     <Image Include="res\DUI_Demo.ico">
       <Filter>资源文件</Filter>
     </Image>
-    <Image Include="res\icon1.ico">
-      <Filter>资源文件</Filter>
-    </Image>
     <Image Include="..\Image\UI_图标.ico">
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="..\Image\BkGrd\bkg2.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\Image\Icon.ico">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

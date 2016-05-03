@@ -78,7 +78,7 @@ BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL
 	return path->CloseFigure()==0;
 }
 
-BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image *  pImg)
+/*BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg)
 {
 	HINSTANCE hInst = AfxGetResourceHandle();
 	HRSRC hRsrc = ::FindResource(hInst, MAKEINTRESOURCE(nID), sTR); // type  
@@ -103,7 +103,9 @@ BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image *  pImg)
 	pstm->Release();
 	FreeResource(lpRsrc);
 	return TRUE;
-}
+}*/
+
+
 
 VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB ShadowColor,
 	ARGB BorderColor, REAL TextOffsetX, REAL TextOffsetY, REAL ShadowOffsetX,
@@ -267,8 +269,9 @@ BOOL MemDC::Destroy()
 	}
 	SelectObject(m_MemDC, m_hOldBitmap);
 	DeleteObject(m_hBitmap);
-	DeleteDC(m_MemDC);
 	delete graphics;
+	DeleteDC(m_MemDC);
+	m_MemDC = NULL;
 	return TRUE;
 }
 
