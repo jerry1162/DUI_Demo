@@ -15,7 +15,7 @@ void GdipShutdown();
 BOOL PtInRect(RectF* rect, Point* pt);
 VOID DrawShadow(Graphics* graphics, RectF* rect, INT diameter);
 BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round);
-BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image *  pImg);
+BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg);
 VOID DrawShadowText(Graphics* graphics, REAL Rate, GdipString* Text,
 	ARGB ShadowColor = NULL, ARGB BorderColor = NULL, REAL TextOffsetX = NULL, REAL TextOffsetY = NULL,
 	REAL ShadowOffsetX = NULL, REAL ShadowOffsetY = NULL);

@@ -7,19 +7,21 @@
 #define ICONSIZE_X 16
 #define ICONSIZE_Y 16
 #define SHADOWWIDTH 0//4 暂时不使用阴影
-#define WM_UPDATE WM_USER + 2
+#define WM_UPDATE WM_USER + 1  //wParam表示是否更新到窗口上
 
 class DUI_Window
 {
 public:
 	DUI_Window();
-	DUI_Window(HWND hWnd);
 	~DUI_Window();
 	BOOL Create(HWND hWnd, LPCWSTR Title = L"", LPCWSTR Icon = NULL,
 		LPCWSTR BackgrdPic = NULL, BOOL bSizeable = FALSE);
+	BOOL Create(HWND hWnd, LPCWSTR Title = L"", LPCWSTR Icon = NULL,
+		ARGB BkgColor = Color::MakeARGB(255, 240, 240, 240), BOOL bSizeable = FALSE);
 	BOOL Destroy();
-	INT ScreenToClient(Point* pt);
-	BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg);
+	
+	BOOL SetBkgPic(LPCWSTR BackgrdPic = NULL);
+	BOOL SetBkgColor(ARGB BackgrdColor = NULL);
 private:
 	static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	VOID DrawWnd();
@@ -32,15 +34,17 @@ private:
 	static DUI_Window* m_pThis;
 	static LONG PrevWndProc;
 
+	BOOL InitDUIWnd(HWND hWnd, LPCWSTR Title = L"");
+	INT ScreenToClient(Point* pt);
 	//MsgProcFuncs
 	VOID OnMouseMove(WPARAM wParam,LPARAM lParam);
 	VOID OnLButtonDown(WPARAM wParam, LPARAM lParam);
 	VOID OnSize(WPARAM wParam, LPARAM lParam);
 	VOID OnPaint(WPARAM wParam, LPARAM lParam);
+	VOID OnUpdate(WPARAM wParam, LPARAM lParam);//wParam表示是否更新到窗口上
 
 	GdipString* m_Title;
-	Color* m_BackColor;
+	Color* m_BkgColor;
 	Image* m_Icon;
 	Image* m_BkgImg;
-
 };
