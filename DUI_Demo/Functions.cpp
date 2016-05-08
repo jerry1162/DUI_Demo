@@ -209,6 +209,27 @@ VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
 	delete brush;
 }
 
+INT NewID()
+{
+	static int id = 0;
+	id += 1;
+	return id;
+}
+
+BOOL IsMouseMsg(UINT uMsg)
+{
+	if (uMsg == WM_MOUSEMOVE || uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP ||
+		uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN ||
+		uMsg == WM_MBUTTONUP || uMsg == WM_MOUSEWHEEL)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
 
 
 MemDC::MemDC(int Width, int Height)

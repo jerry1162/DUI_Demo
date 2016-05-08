@@ -1,6 +1,8 @@
 #pragma once
-#include "stdafx.h"
 #include "Functions.h"
+#include "ControlBase.h"
+#include <vector>
+using std::vector;
 
 //定义窗口基本属性
 #define TITLEBARHEIGHT 20
@@ -14,6 +16,7 @@
 class DUI_Window
 {
 public:
+	friend class ControlBase;
 	DUI_Window();
 	~DUI_Window();
 	BOOL Create(HWND hWnd, LPCWSTR Title = L"", LPCWSTR Icon = NULL,
@@ -38,7 +41,9 @@ private:
 	static LONG PrevWndProc;
 
 	BOOL InitDUIWnd(HWND hWnd, LPCWSTR Title = L"");
+	BOOL OnControl(UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递
 	INT ScreenToClient(Point* pt);
+	BOOL GetCursorPos(Point* pt);
 
 	//MsgProcFuncs
 	BOOL OnMouseMove(WPARAM wParam,Point* ptMouse);
@@ -53,4 +58,7 @@ private:
 	Color* m_BkgColor;
 	Image* m_Icon;
 	Image* m_BkgImg;
+
+	vector<ControlBase*>* m_Controls;
+	INT m_CaptureControlIndex;
 };

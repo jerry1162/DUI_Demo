@@ -9,6 +9,7 @@ DUI_Window::DUI_Window()
 {
 	m_pThis = this;
 	PrevWndProc = NULL;
+	m_CaptureControlIndex = NULL;
 }
 
 DUI_Window::~DUI_Window()
@@ -19,6 +20,7 @@ DUI_Window::~DUI_Window()
 LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Point ptMouse;
+	if (m_pThis->OnControl(uMsg, wParam, lParam)) return TRUE;
 	switch (uMsg)
 	{
 	case WM_CREATE:
@@ -128,7 +130,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPCWSTR Title)
 	{
 		m_BkgColor = new Color(Color::MakeARGB(255, 240, 240, 240));
 	}
-
+	m_Controls = new vector<ControlBase*>;
 	PrevWndProc = SetWindowLong(hWnd, GWL_WNDPROC, LONG(DUI_Window::WndProc));
 	if (PrevWndProc == NULL)
 	{
@@ -249,6 +251,17 @@ INT DUI_Window::ScreenToClient(Point * pt)
 	return 0;
 }
 
+BOOL DUI_Window::GetCursorPos(Point * pt)
+{
+	BOOL ret = FALSE;
+	POINT ptTemp;
+	ret = ::GetCursorPos(&ptTemp);
+	pt->X = ptTemp.x;
+	pt->Y = ptTemp.y;
+	ScreenToClient(pt);
+	return ret;
+}
+
 BOOL DUI_Window::OnMouseMove(WPARAM wParam, Point* ptMouse)
 {
 	TRACKMOUSEEVENT tme;
@@ -346,4 +359,34 @@ BOOL DUI_Window::OnUpdate(RectF* Rect, BOOL bUpdate)
 		m_Graphics->ReleaseHDC(hDC);
 	}
 	return TRUE;
+}
+
+BOOL DUI_Window::OnControl(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (m_Controls->size() == 0)
+	{
+		return FALSE;
+	}
+	Point ptMouse;
+	GetCursorPos(&ptMouse);
+	if (m_CaptureControlIndex != NULL)
+	{
+		if (IsMouseMsg(uMsg))
+		{
+			lParam = MAKELPARAM(ptMouse.X - m_Controls->at(m_CaptureControlIndex)->m_Rect->GetLeft(),
+				ptMouse.Y - m_Controls->at(m_CaptureControlIndex)->m_Rect->GetTop());
+		}
+		return m_Controls->at(m_CaptureControlIndex)->MsgProc(uMsg, wParam, lParam);
+	}
+	for (vector<ControlBase*>::iterator it = m_Controls->begin();it != m_Controls->end(); ++it)
+	{
+		if ((*it)->m_bVisialbe == FALSE) continue;
+		if (IsMouseMsg(uMsg) && PtInRect((*it)->m_Rect, &ptMouse))
+		{
+			lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(),
+			ptMouse.Y - (*it)->m_Rect->GetTop());
+			return (*it)->MsgProc(uMsg, wParam, lParam);
+		}
+	}
+	return FALSE;
 }

@@ -185,6 +185,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControlBase.h" />
     <ClInclude Include="DUI_Demo.h" />
     <ClInclude Include="DUI_DemoDlg.h" />
     <ClInclude Include="DUI_Window.h" />
@@ -194,6 +195,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ControlBase.cpp" />
     <ClCompile Include="DUI_Demo.cpp" />
     <ClCompile Include="DUI_DemoDlg.cpp" />
     <ClCompile Include="DUI_Window.cpp" />

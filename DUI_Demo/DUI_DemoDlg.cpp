@@ -105,6 +105,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	{
 		MessageBox(L"´´½¨Ê§°Ü");
 	}
+	m_Ctrl.Create(&m_Window, 10, 10, 50, 30);
 	//if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
 	//	Color::MakeARGB(255, 80, 140, 200)))
 	//{

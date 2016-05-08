@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 
 struct GdipString
 {
@@ -20,7 +19,8 @@ VOID DrawShadowText(Graphics* graphics, REAL Rate, GdipString* Text,
 	ARGB ShadowColor = NULL, ARGB BorderColor = NULL, REAL TextOffsetX = NULL, REAL TextOffsetY = NULL,
 	REAL ShadowOffsetX = NULL, REAL ShadowOffsetY = NULL);
 VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor);
-
+INT NewID();
+BOOL IsMouseMsg(UINT uMsg);
 class MemDC
 {
 public:
