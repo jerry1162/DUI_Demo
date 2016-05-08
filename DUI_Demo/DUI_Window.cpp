@@ -18,24 +18,34 @@ DUI_Window::~DUI_Window()
 
 LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Point ptMouse;
 	switch (uMsg)
 	{
 	case WM_CREATE:
 		m_pThis->DrawWnd();
 		break;
 	case WM_LBUTTONDOWN:
-		m_pThis->OnLButtonDown(wParam, lParam);
+		ptMouse.X = LOWORD(lParam);
+		ptMouse.Y = HIWORD(lParam);
+		m_pThis->OnLButtonDown(wParam, &ptMouse);
+		break;
+	case WM_LBUTTONUP:
+		ptMouse.X = LOWORD(lParam);
+		ptMouse.Y = HIWORD(lParam);
+		m_pThis->OnLButtonUp(wParam, &ptMouse);
 		break;
 	case WM_PAINT:
 		m_pThis->OnPaint(wParam, lParam);
 		break;
 	case WM_MOUSEMOVE:
-		m_pThis->OnMouseMove(wParam,lParam);
+		ptMouse.X = LOWORD(lParam);
+		ptMouse.Y = HIWORD(lParam);
+		m_pThis->OnMouseMove(wParam,&ptMouse);
 		break;
 	case WM_SIZE:
 		m_pThis->OnSize(wParam, lParam);
 	case WM_UPDATE:
-		m_pThis->OnUpdate(wParam, lParam);
+		m_pThis->OnUpdate((RectF*)wParam, lParam);
 		break;
 	default:
 		break;
@@ -85,7 +95,6 @@ VOID DUI_Window::DrawWnd()
 	}
 
 	Brush.SetColor(*m_Title->color);
-	//DrawShadowText(m_MemDC->graphics, 5, m_Title, Color::Black, Color::Black);
 	DrawShadowText(m_MemDC->graphics, 5, m_Title, Color::Black,
 		Color::MakeARGB(100, 50, 50, 50));
 }
@@ -205,7 +214,7 @@ BOOL DUI_Window::SetBkgPic(LPCWSTR BackgrdPic)
 	}
 	delete m_BkgImg;
 	m_BkgImg = new Image(BackgrdPic);
-	OnUpdate(TRUE, NULL);
+	OnUpdate(NULL, TRUE);
 	return TRUE;
 }
 
@@ -219,10 +228,16 @@ BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 	m_BkgImg = NULL;
 	delete m_BkgColor;
 	m_BkgColor = new Color(BackgrdColor);
-	OnUpdate(TRUE, NULL);
+	OnUpdate(NULL, TRUE);
 	return 0;
 }
 
+BOOL DUI_Window::SetTitle(LPCWSTR Title)
+{
+	m_Title->string->SetString(Title);
+	OnUpdate(m_Title->rect, TRUE);
+	return TRUE;
+}
 
 INT DUI_Window::ScreenToClient(Point * pt)
 {
@@ -234,7 +249,7 @@ INT DUI_Window::ScreenToClient(Point * pt)
 	return 0;
 }
 
-VOID DUI_Window::OnMouseMove(WPARAM wParam, LPARAM lParam)
+BOOL DUI_Window::OnMouseMove(WPARAM wParam, Point* ptMouse)
 {
 	TRACKMOUSEEVENT tme;
 	tme.cbSize = sizeof(tme);
@@ -242,25 +257,24 @@ VOID DUI_Window::OnMouseMove(WPARAM wParam, LPARAM lParam)
 	tme.dwHoverTime = 10;
 	tme.hwndTrack = m_hWnd;
 	TrackMouseEvent(&tme);
-
-	//Point pt;
-	//pt.X = LOWORD(lParam);
-	//pt.Y = HIWORD(lParam);
+	return TRUE;
 }
 
-VOID DUI_Window::OnLButtonDown(WPARAM wParam, LPARAM lParam)
+BOOL DUI_Window::OnLButtonDown(WPARAM wParam, Point* ptMouse)
 {
-	Point pt;
-	pt.X = LOWORD(lParam);
-	pt.Y = HIWORD(lParam);
-
-	if (PtInRect(m_Title->rect, &pt))
+	if (PtInRect(m_Title->rect, ptMouse)) //±êÌâÀ¸ÒÆ¶¯
 	{
 		SendMessage(m_hWnd, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
 	}
+	return TRUE;
 }
 
-VOID DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
+BOOL DUI_Window::OnLButtonUp(WPARAM wParam, Point * ptMouse)
+{
+	return TRUE;
+}
+
+BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 {
 	RECT rect;
 	GetWindowRect(m_hWnd, &rect);
@@ -297,10 +311,11 @@ VOID DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		m_Title->rect = new RectF(m_ClientRect->GetLeft() + 2, m_ClientRect->GetTop() + 4
 			, m_ClientRect->Width, TITLEBARHEIGHT);
 	}
-	SendMessage(m_hWnd, WM_UPDATE, NULL, NULL);
+	OnUpdate();
+	return TRUE;
 }
 
-VOID DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
+BOOL DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	BeginPaint(m_hWnd, &ps);
@@ -309,17 +324,26 @@ VOID DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
 		0, 0, SRCCOPY);
 	m_Graphics->ReleaseHDC(hDC);
 	EndPaint(m_hWnd, &ps);
+	return TRUE;
 }
 
-VOID DUI_Window::OnUpdate(WPARAM wParam, LPARAM lParam)
+BOOL DUI_Window::OnUpdate(RectF* Rect, BOOL bUpdate)
 {
 	DrawWnd();
-	if (wParam == TRUE)
+	if (bUpdate == TRUE)
 	{
 		HDC hDC = m_Graphics->GetHDC();
-		m_MemDC->BitBlt(hDC, 0, 0, m_WndRect->Width, m_WndRect->Height,
-			0, 0, SRCCOPY);
+		if (Rect != NULL)
+		{
+			m_MemDC->BitBlt(hDC, Rect->GetLeft(), Rect->GetTop(), Rect->Width, Rect->Height,
+				Rect->GetLeft(), Rect->GetTop(), SRCCOPY);
+		} 
+		else
+		{
+			m_MemDC->BitBlt(hDC, 0, 0, m_WndRect->Width, m_WndRect->Height,
+				0, 0, SRCCOPY);
+		}
 		m_Graphics->ReleaseHDC(hDC);
 	}
-	return VOID();
+	return TRUE;
 }

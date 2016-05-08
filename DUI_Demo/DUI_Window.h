@@ -7,7 +7,9 @@
 #define ICONSIZE_X 16
 #define ICONSIZE_Y 16
 #define SHADOWWIDTH 0//4 暂时不使用阴影
-#define WM_UPDATE WM_USER + 1  //wParam表示是否更新到窗口上
+
+//自定义消息
+#define WM_UPDATE WM_USER + 1 //wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上
 
 class DUI_Window
 {
@@ -22,6 +24,7 @@ public:
 	
 	BOOL SetBkgPic(LPCWSTR BackgrdPic = NULL);
 	BOOL SetBkgColor(ARGB BackgrdColor = NULL);
+	BOOL SetTitle(LPCWSTR Title);
 private:
 	static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	VOID DrawWnd();
@@ -36,12 +39,15 @@ private:
 
 	BOOL InitDUIWnd(HWND hWnd, LPCWSTR Title = L"");
 	INT ScreenToClient(Point* pt);
+
 	//MsgProcFuncs
-	VOID OnMouseMove(WPARAM wParam,LPARAM lParam);
-	VOID OnLButtonDown(WPARAM wParam, LPARAM lParam);
-	VOID OnSize(WPARAM wParam, LPARAM lParam);
-	VOID OnPaint(WPARAM wParam, LPARAM lParam);
-	VOID OnUpdate(WPARAM wParam, LPARAM lParam);//wParam表示是否更新到窗口上
+	BOOL OnMouseMove(WPARAM wParam,Point* ptMouse);
+	BOOL OnLButtonDown(WPARAM wParam, Point* ptMouse);
+	BOOL OnLButtonUp(WPARAM wParam, Point* ptMouse);
+	BOOL OnSize(WPARAM wParam, LPARAM lParam);
+	BOOL OnPaint(WPARAM wParam, LPARAM lParam);
+	BOOL OnUpdate(RectF* Rect = NULL, BOOL bUpdate = FALSE);//wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上
+
 
 	GdipString* m_Title;
 	Color* m_BkgColor;
