@@ -2,7 +2,13 @@
 #include "DUI_Window.h"
 #include "Functions.h"
 class DUI_Window;
-
+enum State
+{
+	Normal = 1,
+	HighLight,
+	Pushed,
+	Disabled
+};
 class ControlBase
 {
 public:
@@ -11,6 +17,8 @@ public:
 	~ControlBase();
 	virtual BOOL Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, REAL Height,
 		LPCWSTR Text = L"", BOOL bVisiable = TRUE);  //文本矩形默认为控件矩形.
+	INT GetID();
+	VOID SetText(LPCWSTR Text = L"");
 protected:
 	INT m_ID;
 	INT m_Index;
@@ -24,9 +32,9 @@ protected:
 	//控件属性
 	GdipString* m_Text;
 	BOOL m_bVisialbe;
-
+	State m_CurState;
 	//消息响应函数
-	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上
+	BOOL OnUpdate(WPARAM wParam = NULL, LPARAM lParam = NULL);//lParam表示是否更新到窗口上
 
 	
 };
