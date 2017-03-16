@@ -144,7 +144,8 @@ VOID ControlBase::Draw()
 // 
 // 	bkgBrush.SetColor(*m_Text->color);
 // 	m_MemDC->graphics->DrawString(m_Text->string->GetBuffer(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
-
+	//static int i = 0;
+	//TRACE("\nHello - %d\n", ++i);
 	if (m_Parent->m_bDebug)
 	{
 		Pen BorderPen(Color::MakeARGB(255, 100, 100, 100), 1);
@@ -175,24 +176,7 @@ BOOL ControlBase::GetCursorPos(Point * pt)
 BOOL ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 {
 	Draw();
-	RectF offSet(0, 0, 0, 0);
-	//if (m_Rect->X < 0)
-	//{
-	//	offSet.X += 2;
-	//}
-	//if (m_Rect->Y < 0)
-	//{
-	//	offSet.Y = 2;
-	//}
-	//if (m_Rect->GetRight() > m_Parent->m_ClientRect->Width)
-	//{
-	//	offSet.Width = 2;
-	//}
-	//if (m_Rect->GetBottom() > m_Parent->m_ClientRect->Height)
-	//{
-	//	offSet.Height = 2;
-	//}
-	m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft() + offSet.X, (int)m_Rect->GetTop() + offSet.Y, (int)m_Rect->Width + offSet.Width, (int)m_Rect->Height - offSet.Height, offSet.X, offSet.Y, (int)m_Rect->Width + offSet.Width, (int)m_Rect->Height + offSet.Height, m_Alpha);
+	//m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
 
 	//for (vector<ControlBase*>::iterator it = m_Parent->m_Controls->begin(); it != m_Parent->m_Controls->end(); it++)
 	//{
@@ -217,16 +201,16 @@ BOOL ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 		HDC hDC = m_Parent->m_Graphics->GetHDC();
 		if (m_Parent->m_Alpha != 0)
 		{
-			m_Parent->OnUpdate(NULL, TRUE);
-			SIZE szWnd;
-			szWnd = { (INT)m_Parent->m_WndRect->Width, (INT)m_Parent->m_WndRect->Height };
-			POINT ptSrc = { 0,0 };
-			BLENDFUNCTION bf;
-			bf.AlphaFormat = AC_SRC_ALPHA;
-			bf.BlendFlags = 0;
-			bf.BlendOp = 0;
-			bf.SourceConstantAlpha = m_Parent->m_Alpha;
-			UpdateLayeredWindow(m_Parent->m_hWnd, NULL, NULL, &szWnd, m_Parent->m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+			m_Parent->OnUpdate(m_ID, TRUE);
+			//SIZE szWnd;
+			//szWnd = { (INT)m_Parent->m_WndRect->Width, (INT)m_Parent->m_WndRect->Height };
+			//POINT ptSrc = { 0,0 };
+			//BLENDFUNCTION bf;
+			//bf.AlphaFormat = AC_SRC_ALPHA;
+			//bf.BlendFlags = 0;
+			//bf.BlendOp = 0;
+			//bf.SourceConstantAlpha = m_Parent->m_Alpha;
+			//UpdateLayeredWindow(m_Parent->m_hWnd, NULL, NULL, &szWnd, m_Parent->m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
 		}
 		else
 		{
@@ -235,6 +219,10 @@ BOOL ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 		}
 		m_Parent->m_Graphics->ReleaseHDC(hDC);
 
+	}
+	else
+	{
+		m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
 	}
 	return TRUE;
 }

@@ -623,7 +623,36 @@ BOOL DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
 BOOL DUI_Window::OnUpdate(WPARAM wParam, BOOL bUpdate)
 {
 	DrawWnd();
-	OnControl(WM_UPDATE, wParam, FALSE);
+	if (wParam == NULL)
+	{
+		OnControl(WM_UPDATE, wParam, FALSE);
+	}
+	else
+	{
+		INT Index = FindControlByID((INT)wParam);
+		if (Index != INVALID_CONTROLINDEX)
+		{
+			INT i = 0;
+			for (vector<ControlBase*>::iterator it = m_Controls->begin(); it != m_Controls->end(); it++)
+			{
+				i = it - m_Controls->begin();
+				if (i <= Index)
+				{
+					(*it)->m_MemDC->AlphaBlend(m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+					continue;
+				}
+				if ((*it)->m_Rect->IntersectsWith(*m_Controls->at(Index)->m_Rect))
+				{
+					(*it)->OnUpdate(NULL, FALSE);
+					//(*it)->m_MemDC->AlphaBlend(m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+				}
+				else
+				{
+					(*it)->m_MemDC->AlphaBlend(m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+				}
+			}
+		}
+	}
 	if (bUpdate == TRUE)
 	{
 		HDC hDC = m_Graphics->GetHDC();

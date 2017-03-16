@@ -113,10 +113,11 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	//}
 	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
 	//m_Ctrl.Create(&m_Window, 40, 5, 50, 25, _T("View"));
-	m_Button.Create(&m_Window, 65, 10, 70, 25, _T("正常按钮"));
 	m_Lable.Create(&m_Window, 30, 20, 50, 25, _T("Lable1"));
+	m_Button.Create(&m_Window, 65, 10, 60, 25, _T("正常按钮"));
 	
- 	//m_Button.SetAlpha(150);
+ 	m_Button.SetAlpha(200);
+	m_Lable.SetAlpha(200);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

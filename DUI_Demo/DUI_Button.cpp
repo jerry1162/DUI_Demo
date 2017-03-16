@@ -78,8 +78,11 @@ VOID DUI_Button::Draw()
 	m_MemDC->Clear();
 	SolidBrush bkgBrush(Color::MakeARGB(255, 255, 255, 255));
 	LinearGradientBrush brush(PointF(0.0, 0.0), PointF(0.0, m_Rect->Height), Color(255, 229, 236, 226), Color(255, 217, 219, 202));
+	
 	//brush.SetWrapMode(WrapModeTileFlipX);
 	Pen Border(Color::MakeARGB(230, 50, 50, 50), 1);
+
+	GraphicsPath* pPath;
 	switch (m_CurState)
 	{
 	case Normal:
@@ -90,7 +93,9 @@ VOID DUI_Button::Draw()
 		//Border.SetColor(Color::MakeARGB(255, 18, 176, 255));
 		//bkgBrush.SetColor(Color::MakeARGB(255, 160, 200, 255));
 		Border.SetColor(Color::MakeARGB(255, 1, 136, 255));//136
-		brush.SetLinearColors(Color(206, 237, 248), Color(165, 226, 238));
+		//brush.SetLinearColors(Color(206, 237, 248), Color(165, 226, 238));
+		//brush.SetLinearColors(Color(206, 237, 248), Color(165, 226, 238));
+
 		break;
 	case Focus:
 		//Border.SetColor(Color::MakeARGB(200, 0, 0, 230));
@@ -114,27 +119,23 @@ VOID DUI_Button::Draw()
 	}
 	//m_MemDC->graphics->FillRectangle(&bkgBrush, 0.0, 0.0, m_Rect->Width, m_Rect->Height);
 	//m_MemDC->graphics->DrawRectangle(&Border, RectF(0, 0, m_Rect->Width - 1, m_Rect->Height - 1));
-	GraphicsPath* pPath;
 	pPath = new GraphicsPath;
 	DrawPathRoundRect(pPath, 0, 0, m_Rect->Width - 1, m_Rect->Height - 1, 6);
 	m_MemDC->graphics->FillPath(&brush, pPath);
 	m_MemDC->graphics->DrawPath(&Border, pPath);
 	delete pPath;
 
-	//pPath = new GraphicsPath;
-	//Border.SetColor(Color(129, 123, 105));
-	//DrawPathRoundRect(pPath, 1, 1, m_Rect->Width - 3, m_Rect->Height - 3, 3);
-	//m_MemDC->graphics->DrawPath(&Border, pPath);
-	//delete pPath;
-
+	if (m_CurState == HighLight)
+	{
+		pPath = new GraphicsPath;
+		Border.SetColor(Color(171, 236, 254));
+		DrawPathRoundRect(pPath, 1, 1, m_Rect->Width - 3, m_Rect->Height - 3, 3);
+		m_MemDC->graphics->DrawPath(&Border, pPath);
+		delete pPath;
+	}
 
 	bkgBrush.SetColor(*m_Text->color);
 	m_MemDC->graphics->DrawString(m_Text->string->GetBuffer(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
 
 	ControlBase::Draw();
-// 	if (m_Parent->m_bDebug)
-// 	{
-// 		Pen BorderPen(Color::MakeARGB(200, 50, 50, 50), 1);
-// 		m_MemDC->graphics->DrawRectangle(&BorderPen, 0.0, 0.0, m_Rect->Width - 1, m_Rect->Height - 1);
-// 	}
 }
