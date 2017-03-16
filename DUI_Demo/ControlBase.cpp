@@ -6,6 +6,7 @@
 ControlBase::ControlBase()
 {
 	//m_This = this;
+	m_Alpha = 255;
 }
 
 
@@ -42,10 +43,14 @@ BOOL ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, RE
 	//m_Text->format->GenericDefault();
 	m_Text->color = new Color(Color::Black);
 	m_Text->rect = new RectF(0, 0, Width, Height);
-	OnUpdate(NULL, NULL);
+	
 
 	m_Index = Window->m_Controls->size();
 	Window->m_Controls->push_back(this);
+
+	m_CurState = Normal;
+	OnUpdate(NULL, TRUE);
+	//Window->OnUpdate(NULL, TRUE);
 	return TRUE;
 }
 
@@ -73,111 +78,163 @@ VOID ControlBase::SetText(LPCWSTR Text)
 	OnUpdate(NULL, TRUE);
 }
 
+VOID ControlBase::SetAlpha(BYTE Alpha)
+{
+	m_Alpha = Alpha;
+	OnUpdate(NULL, TRUE);
+}
+
 LRESULT ControlBase::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static BOOL bMouseDown = FALSE;
-	static int i = 0;
+	static Point ptMouseDown;
+	static Point ptLable;
+	Point ptMouse;
 	switch (uMsg)
 	{
 	case WM_UPDATE:
 		OnUpdate(wParam, lParam);
 		break;
-	case WM_LBUTTONUP:
-		if (bMouseDown!=FALSE)
-		{
-			bMouseDown = FALSE;
-			m_CurState = HighLight;
-			m_Text->rect->Offset(PointF(-1, -1));
-			OnUpdate(NULL, TRUE);
-		}
-		i += 1;
-		if ((i % 2) == 0)
-		{
-			m_Parent->SetTitle(L"OK");
-			m_Parent->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-			SetText(L"Button");
-		}
-		else
-		{
-			m_Parent->SetTitle(L"Clicked");
-			m_Parent->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-			SetText(L"Clicked");
-		}
-		m_Parent->SetSizeable(!m_Parent->GetSizeable());
-		break;
 	case WM_LBUTTONDOWN:
-		if (bMouseDown != TRUE)
-		{
-			bMouseDown = TRUE;
-			m_CurState = Pushed;
-			m_Text->rect->Offset(PointF(1, 1));
-			OnUpdate(NULL, TRUE);
-		}
+		bMouseDown = TRUE;
+		GetCursorPos(&ptMouse);
+		ptMouseDown.X = ptMouse.X;
+		ptMouseDown.Y = ptMouse.Y;
+		ptLable.X = (INT)m_Rect->X;
+		ptLable.Y = (INT)m_Rect->Y;
+		break;
+	case WM_LBUTTONUP:
+		bMouseDown = FALSE;
+		ptMouseDown.X = 0;
+		ptMouseDown.Y = 0;
+		ptLable.X = 0;
+		ptLable.Y = 0;
 		break;
 	case WM_MOUSEMOVE:
-// 		if (bMouseDown == FALSE && m_CurState != HighLight)
-// 		{
-// 			m_CurState = HighLight;
-// 			//m_Parent->m_HoverControlID = m_ID;
-// 			OnUpdate(NULL, TRUE);
-// 		}
-		break;
-	case WM_MOUSELEAVE:
-// 		if (m_CurState != Normal)
-// 		{
-			m_CurState = Normal;
+		if (bMouseDown)
+		{
+			//TRACE("\nlParam %d  %d\n", LOWORD(lParam), HIWORD(lParam));
+			//TRACE("\nptMouse %d  %d\n", ptMouseDown.X, ptMouseDown.Y);
+			GetCursorPos(&ptMouse);
+			m_Rect->X = (REAL)ptLable.X + ptMouse.X - ptMouseDown.X;
+			m_Rect->Y = (REAL)ptLable.Y + ptMouse.Y - ptMouseDown.Y;
+			ptLable.X = (INT)m_Rect->X;
+			ptLable.Y = (INT)m_Rect->Y;
 			OnUpdate(NULL, TRUE);
-//		}
+		}
 		break;
-	case WM_MOUSEGETIN:
-		m_CurState = HighLight;
-		OnUpdate(NULL, TRUE);
-		break;
+	}
+	if (IsMouseMsg(uMsg))
+	{
+		if (m_CurState == Disabled)
+		{
+			return -1;
+		}
+		return TRUE;
 	}
 	return LRESULT();
 }
 
 VOID ControlBase::Draw()
 {
-	SolidBrush bkgBrush(Color::White);
-	Pen Border(Color::Black, 1);
-	switch (m_CurState)
+// 	SolidBrush bkgBrush(Color::MakeARGB(255, 255, 255, 255));
+// 	Pen Border(Color::MakeARGB(255,0,0,0), 1);
+// 	m_MemDC->graphics->FillRectangle(&bkgBrush, 0.0, 0.0, m_Rect->Width, m_Rect->Height);
+// 	m_MemDC->graphics->DrawRectangle(&Border, RectF(0, 0, m_Rect->Width - 1, m_Rect->Height - 1));
+// 
+// 	bkgBrush.SetColor(*m_Text->color);
+// 	m_MemDC->graphics->DrawString(m_Text->string->GetBuffer(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
+
+	if (m_Parent->m_bDebug)
 	{
-	case Normal:
-		Border.SetColor(Color::Black);
-		bkgBrush.SetColor(Color::White);
-		break;
-	case HighLight:
-		Border.SetColor(Color::Blue);
-		bkgBrush.SetColor(Color::MakeARGB(255, 160, 200, 255));
-		break;
-	case Pushed:
-		Border.SetColor(Color::Red);
-		bkgBrush.SetColor(Color::MakeARGB(255, 150, 180, 200));
-		break;
-	case Disabled:
-		Border.SetColor(Color::Gray);
-		bkgBrush.SetColor(Color::Gray);
-		break;
-	default:
-		break;
+		Pen BorderPen(Color::MakeARGB(255, 100, 100, 100), 1);
+		m_MemDC->graphics->DrawRectangle(&BorderPen, 0.0, 0.0, m_Rect->Width - 1, m_Rect->Height - 1);
 	}
-	m_MemDC->graphics->FillRectangle(&bkgBrush, 0.0, 0.0, m_Rect->Width, m_Rect->Height);
-	m_MemDC->graphics->DrawRectangle(&Border, RectF(0, 0, m_Rect->Width - 1, m_Rect->Height - 1));
-	bkgBrush.SetColor(*m_Text->color);
-	m_MemDC->graphics->DrawString(m_Text->string->GetBuffer(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
+}
+
+VOID ControlBase::ChangeStatus(BTNStatus s)
+{
+	m_CurState = s;
+	OnUpdate(NULL, TRUE);
+}
+
+BTNStatus ControlBase::GetStatus()
+{
+	return m_CurState;
+}
+
+BOOL ControlBase::GetCursorPos(Point * pt)
+{
+	BOOL ret;
+	ret = m_Parent->GetCursorPos(pt);
+	pt->X -= m_Rect->X;
+	pt->Y -= m_Rect->Y;
+	return ret;
 }
 
 BOOL ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 {
 	Draw();
-	m_MemDC->BitBlt(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, SRCCOPY);
+	RectF offSet(0, 0, 0, 0);
+	//if (m_Rect->X < 0)
+	//{
+	//	offSet.X += 2;
+	//}
+	//if (m_Rect->Y < 0)
+	//{
+	//	offSet.Y = 2;
+	//}
+	//if (m_Rect->GetRight() > m_Parent->m_ClientRect->Width)
+	//{
+	//	offSet.Width = 2;
+	//}
+	//if (m_Rect->GetBottom() > m_Parent->m_ClientRect->Height)
+	//{
+	//	offSet.Height = 2;
+	//}
+	m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft() + offSet.X, (int)m_Rect->GetTop() + offSet.Y, (int)m_Rect->Width + offSet.Width, (int)m_Rect->Height - offSet.Height, offSet.X, offSet.Y, (int)m_Rect->Width + offSet.Width, (int)m_Rect->Height + offSet.Height, m_Alpha);
+
+	//for (vector<ControlBase*>::iterator it = m_Parent->m_Controls->begin(); it != m_Parent->m_Controls->end(); it++)
+	//{
+	//	INT i = it - m_Parent->m_Controls->begin();
+	//	if (i <= m_Index)
+	//	{
+	//		continue;
+	//	}
+	//	if (m_Rect->IntersectsWith(*(*it)->m_Rect))
+	//	{
+	//		//(*it)->m_MemDC->Clear();
+	//		//m_Parent->OnUpdate(NULL, FALSE);
+	//		//(*it)->Draw();
+	//		(*it)->OnUpdate();
+	//		//(*it)->m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+	//	}
+	//}
+
+/*	m_MemDC->BitBlt(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, SRCCOPY);*/
 	if (lParam == TRUE)
 	{
 		HDC hDC = m_Parent->m_Graphics->GetHDC();
-		m_Parent->m_MemDC->BitBlt(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), SRCCOPY);
-		//m_Parent->OnUpdate(m_Rect, TRUE);
+		if (m_Parent->m_Alpha != 0)
+		{
+			m_Parent->OnUpdate(NULL, TRUE);
+			SIZE szWnd;
+			szWnd = { (INT)m_Parent->m_WndRect->Width, (INT)m_Parent->m_WndRect->Height };
+			POINT ptSrc = { 0,0 };
+			BLENDFUNCTION bf;
+			bf.AlphaFormat = AC_SRC_ALPHA;
+			bf.BlendFlags = 0;
+			bf.BlendOp = 0;
+			bf.SourceConstantAlpha = m_Parent->m_Alpha;
+			UpdateLayeredWindow(m_Parent->m_hWnd, NULL, NULL, &szWnd, m_Parent->m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+		}
+		else
+		{
+			//m_Parent->m_MemDC->BitBlt(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), SRCCOPY);
+			m_Parent->m_MemDC->AlphaBlend(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
+		}
 		m_Parent->m_Graphics->ReleaseHDC(hDC);
+
 	}
 	return TRUE;
 }

@@ -2,13 +2,7 @@
 #include "DUI_Window.h"
 #include "Functions.h"
 class DUI_Window;
-enum State
-{
-	Normal = 1,
-	HighLight,
-	Pushed,
-	Disabled
-};
+enum BTNStatus;
 class ControlBase
 {
 public:
@@ -19,23 +13,26 @@ public:
 		LPCWSTR Text = L"", BOOL bVisiable = TRUE);  //文本矩形默认为控件矩形.
 	INT GetID();
 	VOID SetText(LPCWSTR Text = L"");
+	VOID SetAlpha(BYTE Alpha);
 protected:
 	INT m_ID;
 	INT m_Index;
 	DUI_Window* m_Parent;
 	RectF* m_Rect;
 	MemDC* m_MemDC;
-	LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	VOID Draw();
+	virtual LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual VOID Draw();
+	VOID ChangeStatus(BTNStatus s);
+	BTNStatus GetStatus();
+	BOOL GetCursorPos(Point* pt);
 	//static ControlBase* m_This;
 	
 	//控件属性
 	GdipString* m_Text;
 	BOOL m_bVisialbe;
-	State m_CurState;
+	BTNStatus m_CurState;
+	BYTE m_Alpha;
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam = NULL, LPARAM lParam = NULL);//lParam表示是否更新到窗口上
-
-	
 };
 

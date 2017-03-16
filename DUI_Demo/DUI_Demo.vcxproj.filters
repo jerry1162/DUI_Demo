@@ -45,6 +45,12 @@
     <ClInclude Include="ControlBase.h">
       <Filter>DUI</Filter>
     </ClInclude>
+    <ClInclude Include="DUI_Lable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_Button.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DUI_Demo.cpp">
@@ -63,6 +69,12 @@
       <Filter>DUI</Filter>
     </ClCompile>
     <ClCompile Include="ControlBase.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Lable.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Button.cpp">
       <Filter>DUI</Filter>
     </ClCompile>
   </ItemGroup>

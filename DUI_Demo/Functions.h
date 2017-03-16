@@ -36,6 +36,7 @@ public:
 		BYTE Alpha);
 	HDC GetMemDC();
 	BOOL ReSize(int Width, int Height);
+	VOID Clear();//Clear with transparent color
 	Graphics* graphics;
 private:
 	HDC m_MemDC;

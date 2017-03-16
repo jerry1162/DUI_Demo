@@ -100,19 +100,23 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	GdipStartup();
+ 	if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
+ 		L"..\\Image\\BkGrd\\bkg2.jpg"))
+ 	{
+ 		MessageBox(L"创建失败");
+ 	}
 	//if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-	//	L"..\\Image\\BkGrd\\bkg2.jpg"))
+	//	Color::MakeARGB(255, 240, 240, 240), FALSE))//80, 140, 200
 	//{
 	//	MessageBox(L"创建失败");
+	//	return TRUE;
 	//}
-	if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-		Color::MakeARGB(255, 80, 140, 200),FALSE))
-	{
-		MessageBox(L"创建失败");
-		return TRUE;
-	}
+	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+	//m_Ctrl.Create(&m_Window, 40, 5, 50, 25, _T("View"));
+	m_Button.Create(&m_Window, 65, 10, 70, 25, _T("正常按钮"));
+	m_Lable.Create(&m_Window, 30, 20, 50, 25, _T("Lable1"));
 	
-	m_Ctrl.Create(&m_Window, 10, 10, 80, 25, _T("Button"));
+ 	//m_Button.SetAlpha(150);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

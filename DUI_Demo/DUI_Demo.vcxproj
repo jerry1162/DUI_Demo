@@ -186,8 +186,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControlBase.h" />
+    <ClInclude Include="DUI_Button.h" />
     <ClInclude Include="DUI_Demo.h" />
     <ClInclude Include="DUI_DemoDlg.h" />
+    <ClInclude Include="DUI_Lable.h" />
     <ClInclude Include="DUI_Window.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="Resource.h" />
@@ -196,8 +198,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ControlBase.cpp" />
+    <ClCompile Include="DUI_Button.cpp" />
     <ClCompile Include="DUI_Demo.cpp" />
     <ClCompile Include="DUI_DemoDlg.cpp" />
+    <ClCompile Include="DUI_Lable.cpp" />
     <ClCompile Include="DUI_Window.cpp" />
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -5,6 +5,8 @@
 #pragma once
 #include "Functions.h"
 #include "DUI_Window.h"
+#include "DUI_Lable.h"
+#include "DUI_Button.h"
 
 // CDUI_DemoDlg 对话框
 class CDUI_DemoDlg : public CDialogEx
@@ -13,7 +15,9 @@ class CDUI_DemoDlg : public CDialogEx
 public:
 	CDUI_DemoDlg(CWnd* pParent = NULL);	// 标准构造函数
 	DUI_Window m_Window;
-	ControlBase m_Ctrl;
+	DUI_Button m_Ctrl;
+	DUI_Lable m_Lable;
+	DUI_Button m_Button;
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DUI_DEMO_DIALOG };
