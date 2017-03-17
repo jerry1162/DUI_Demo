@@ -2,16 +2,60 @@
 #include "DUI_Window.h"
 #include "Resource.h"
 
-DUI_Window* DUI_Window::m_pThis;
-LONG DUI_Window::PrevWndProc;
+//DUI_Window* DUI_Window::m_pThis;
+//LONG DUI_Window::PrevWndProc;
+
+template <typename T>//产生一个代理函数
+WNDPROC  GetCallBackAddr(LPVOID pThis, T MethodAddr)
+{
+	const unsigned char BlockCode[] = {
+		0x8B, 0x44, 0x24, 0x10,			//	mov         eax,dword ptr [esp+10h]
+		0x8B, 0x4C, 0x24, 0x0C,			//	mov         ecx,dword ptr [esp+0Ch]
+		0x8B, 0x54, 0x24, 0x08,			//	mov         edx,dword ptr [esp+8]
+		0x50,							//	push        eax
+		0x8B, 0x44, 0x24, 0x08,			//	mov         eax,dword ptr [esp+8]
+		0x51,							//	push        ecx
+		0xB9, 0x00, 0x00, 0x00, 0x00,	//	mov         ecx,0 （类的this指针）
+		0x52,							//	push        edx
+		0x50,							//	push        eax
+		0x51,							//	push		ecx
+		0xE8, 0x00,0x00,0x00,0x00,	//	call        CWndProc::WndProc
+		0xC2, 0x10, 0x00				//	ret         10h
+	};
+
+	size_t CodeBytes = sizeof(BlockCode);
+	LPVOID  Block = VirtualAlloc(nullptr, 4096, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	memcpy(Block, BlockCode, CodeBytes);
+	unsigned char * bBlock = (unsigned char *)Block;
+	*PLONG32(&bBlock[19]) = LONG32(pThis);
+	unsigned char* p = bBlock + 27;
+	__asm
+	{
+		mov eax, MethodAddr
+		sub eax, 4
+		mov edi, p
+		sub eax, edi
+		mov[edi], eax
+	}
+	return (WNDPROC)Block;
+}
+
+//释放代理函数
+void FreeCallBackAddr(WNDPROC wndProc)
+{
+	VirtualFree(wndProc, 4096, MEM_RELEASE);
+}
 
 DUI_Window::DUI_Window()
 {
-	m_pThis = this;
+	//m_pThis = this;
 	PrevWndProc = NULL;
+	m_WndProc = GetCallBackAddr(this, &DUI_Window::WndProc);
 	m_Alpha = 255;//(SHADOWWIDTH == 0 ? 0 : 255);
 	m_bDebug = FALSE;
+
 	m_CaptureCtrlID = INVALID_CONTROLID;
+	m_FocusCtrlID = INVALID_CONTROLID;
 }
 
 DUI_Window::~DUI_Window()
@@ -19,49 +63,49 @@ DUI_Window::~DUI_Window()
 	Destroy();
 }
 
-LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Point ptMouse;
 	int Res = 0;
-	if (m_pThis->m_CaptureCtrlID != NULL)
+	if (/*m_pThis->*/m_CaptureCtrlID != NULL)
 	{
-		if (m_pThis->OnControl(uMsg, wParam, lParam)) return TRUE;
+		if (/*m_pThis->*/OnControl(uMsg, wParam, lParam)) return TRUE;
 	}
 	switch (uMsg)
 	{
 	case WM_CREATE:
-		m_pThis->DrawWnd();
+		/*m_pThis->*/DrawWnd();
 		break;
 	case WM_LBUTTONDOWN:
 		ptMouse.X = LOWORD(lParam);
 		ptMouse.Y = HIWORD(lParam);
-		Res = m_pThis->OnLButtonDown(wParam, &ptMouse);
+		Res = /*m_pThis->*/OnLButtonDown(wParam, &ptMouse);
 		break;
 	case WM_LBUTTONUP:
 		ptMouse.X = LOWORD(lParam);
 		ptMouse.Y = HIWORD(lParam);
-		Res = m_pThis->OnLButtonUp(wParam, &ptMouse);
+		Res = /*m_pThis->*/OnLButtonUp(wParam, &ptMouse);
 		break;
 	case WM_PAINT:
-		Res = m_pThis->OnPaint(wParam, lParam);
+		Res = /*m_pThis->*/OnPaint(wParam, lParam);
 		break;
 	case WM_MOUSEMOVE:
 		ptMouse.X = LOWORD(lParam);
 		ptMouse.Y = HIWORD(lParam);
-		Res = m_pThis->OnMouseMove(wParam,&ptMouse);
+		Res = /*m_pThis->*/OnMouseMove(wParam,&ptMouse);
 		break;
 	case WM_SIZE:
-		Res = m_pThis->OnSize(wParam, lParam);
+		Res = /*m_pThis->*/OnSize(wParam, lParam);
 	case WM_UPDATE:
-		Res = m_pThis->OnUpdate(wParam, lParam);
+		Res = /*m_pThis->*/OnUpdate(wParam, lParam);
 		break;
 	case WM_SETCURSOR:
-		Res = m_pThis->OnSetCursor(wParam, lParam);
+		Res = /*m_pThis->*/OnSetCursor(wParam, lParam);
 		break;
 	case WM_MOUSELEAVE:
 		ptMouse.X = LOWORD(lParam);
 		ptMouse.Y = HIWORD(lParam);
-		Res = m_pThis->OnMouseLeave(wParam, &ptMouse);
+		Res = /*m_pThis->*/OnMouseLeave(wParam, &ptMouse);
 		break;
 	default:
 		Res = 0;
@@ -224,7 +268,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPCWSTR Title, BOOL bSizable)
 		SetWindowLong(m_hWnd, GWL_EXSTYLE, style);
 	}
 	m_Controls = new vector<ControlBase*>;
-	PrevWndProc = SetWindowLong(hWnd, GWL_WNDPROC, LONG(DUI_Window::WndProc));
+	PrevWndProc = SetWindowLong(hWnd, GWL_WNDPROC, (LONG)m_WndProc);
 	if (PrevWndProc == NULL)
 	{
 		TRACE(L"子类化失败");
@@ -284,6 +328,7 @@ BOOL DUI_Window::Create(HWND hWnd, LPCWSTR Title, LPCWSTR Icon, LPCWSTR BackgrdP
 BOOL DUI_Window::Destroy()
 {
 	SetWindowLong(m_hWnd, GWL_WNDPROC, PrevWndProc);
+	FreeCallBackAddr(m_WndProc);
 	delete m_MemDC;
 	delete m_WndRect;
 	delete m_ClientRect;
@@ -298,7 +343,7 @@ BOOL DUI_Window::Destroy()
 
 	delete m_Icon;
 	delete m_BkgImg;
-	m_pThis = nullptr;
+	//m_pThis = nullptr;
 	m_hWnd = NULL;
 	return TRUE;
 }

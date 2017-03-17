@@ -21,6 +21,12 @@ VOID DrawShadowText(Graphics* graphics, REAL Rate, GdipString* Text,
 VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor);
 INT NewID();
 BOOL IsMouseMsg(UINT uMsg);
+
+//template <typename T>//产生一个代理函数
+//WNDPROC  GetCallBackAddr(LPVOID pThis, T MethodAddr);
+//
+//void FreeCallBackAddr(WNDPROC wndProc);
+
 class MemDC
 {
 public:

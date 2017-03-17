@@ -27,11 +27,11 @@ LRESULT DUI_Lable::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return TRUE;
 	}
 
-	switch (uMsg)
-	{
-	default:
-		break;
-	}
+	//switch (uMsg)
+	//{
+	//default:
+	//	break;
+	//}
 
 	return Ret;
 }

@@ -14,6 +14,12 @@ ControlBase::~ControlBase()
 {
 	delete m_Rect;
 	delete m_MemDC;
+
+	delete m_Text->string;
+	delete m_Text->font;
+	delete m_Text->format;
+	delete m_Text->rect;
+	delete m_Text->color;
 	delete m_Text;
 	//m_This = nullptr;
 	m_ID = NULL;
@@ -30,7 +36,7 @@ BOOL ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, RE
 	m_MemDC->Create((int)m_Rect->Width, (int)m_Rect->Height);
 	m_bVisialbe = bVisiable;
 
-	m_Text = new GdipString;
+	//m_Text = new GdipString;
 	m_Text = new GdipString;
 	m_Text->string = new CString;
 	m_Text->string->SetString(Text);
@@ -115,12 +121,12 @@ LRESULT ControlBase::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			//TRACE("\nlParam %d  %d\n", LOWORD(lParam), HIWORD(lParam));
 			//TRACE("\nptMouse %d  %d\n", ptMouseDown.X, ptMouseDown.Y);
-			GetCursorPos(&ptMouse);
-			m_Rect->X = (REAL)ptLable.X + ptMouse.X - ptMouseDown.X;
-			m_Rect->Y = (REAL)ptLable.Y + ptMouse.Y - ptMouseDown.Y;
-			ptLable.X = (INT)m_Rect->X;
-			ptLable.Y = (INT)m_Rect->Y;
-			OnUpdate(NULL, TRUE);
+			//GetCursorPos(&ptMouse);
+			//m_Rect->X = (REAL)ptLable.X + ptMouse.X - ptMouseDown.X;
+			//m_Rect->Y = (REAL)ptLable.Y + ptMouse.Y - ptMouseDown.Y;
+			//ptLable.X = (INT)m_Rect->X;
+			//ptLable.Y = (INT)m_Rect->Y;
+			//OnUpdate(NULL, TRUE);
 		}
 		break;
 	}

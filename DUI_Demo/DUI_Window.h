@@ -93,7 +93,8 @@ public:
 	INT FindControlByID(INT ID);
 	VOID SetDebugMode(BOOL bDebug);
 private:
-	static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	//static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	VOID DrawWnd();
 
 	HWND m_hWnd;
@@ -102,8 +103,10 @@ private:
 	Gdiplus::RectF* m_WndRect;
 	Gdiplus::RectF* m_ClientRect;
 
-	static DUI_Window* m_pThis;
-	static LONG PrevWndProc;
+	//static DUI_Window* m_pThis;
+	//static LONG PrevWndProc;
+	LONG PrevWndProc;
+	WNDPROC m_WndProc;
 
 	BOOL InitDUIWnd(HWND hWnd, LPCWSTR Title = L"", BOOL bSizable = FALSE);
 	BOOL OnControl(UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递
@@ -137,6 +140,7 @@ private:
 
 	vector<ControlBase*>* m_Controls;
 	INT  m_CaptureCtrlID;
+	INT m_FocusCtrlID;
 	//INT m_HoverControlID;
 	CursorDirection m_CurCDR;
 };
