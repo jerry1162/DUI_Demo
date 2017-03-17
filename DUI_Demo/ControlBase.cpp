@@ -174,8 +174,8 @@ BOOL ControlBase::GetCursorPos(Point * pt)
 {
 	BOOL ret;
 	ret = m_Parent->GetCursorPos(pt);
-	pt->X -= m_Rect->X;
-	pt->Y -= m_Rect->Y;
+	pt->X -= (INT)m_Rect->X;
+	pt->Y -= (INT)m_Rect->Y;
 	return ret;
 }
 

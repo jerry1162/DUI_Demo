@@ -54,7 +54,7 @@ LRESULT DUI_Button::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			OnUpdate(NULL, TRUE);
 		}
 		m_Parent->GetCursorPos(&pt);
-		if (m_Rect->Contains(pt.X, pt.Y))
+		if (m_Rect->Contains((REAL)pt.X, (REAL)pt.Y))
 		{
 			OnClick();
 		}

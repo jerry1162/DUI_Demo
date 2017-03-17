@@ -63,7 +63,7 @@ DUI_Window::~DUI_Window()
 	Destroy();
 }
 
-LRESULT CALLBACK DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Point ptMouse;
 	int Res = 0;
