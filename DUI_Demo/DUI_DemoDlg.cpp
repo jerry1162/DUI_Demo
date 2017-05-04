@@ -55,6 +55,63 @@ CDUI_DemoDlg::CDUI_DemoDlg(CWnd* pParent /*=NULL*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
+CDUI_DemoDlg::~CDUI_DemoDlg()
+{
+	FreeCallBackAddr(m_BtnClick);
+	delete m_Lable;
+	delete m_Button;
+	//delete pImg[0];
+	//delete pImg[1];
+	//delete pImg[2];
+	delete m_ImgBtn;
+	delete m_CheckBox;
+	delete m_Radio1;
+	delete m_Radio2;
+	delete m_RGroup;
+	delete m_SubWindow;
+	delete m_Window;
+	GdipShutdown();
+}
+
+LRESULT CDUI_DemoDlg::MyBtn(HWND hWnd, UINT uMsg, WPARAM ID, LONG Extra)
+{
+	m_Lable->SetVisiable(!m_Lable->GetVisiable());
+	//static int i = 0;
+	//i += 1;
+	//if ((i % 2) == 0)
+	//{
+	//	m_Window->SetTitle(L"OK");
+	//	m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+	//	m_Window->SetDebugMode(FALSE);
+	//	m_Button->SetText(L"Button");
+	//}
+	//else
+	//{
+	//	m_Window->SetTitle(L"Clicked");
+	//	m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+	//	m_Window->SetDebugMode(TRUE);
+	//	m_Button->SetText(L"Clicked");
+	//}
+	//m_Window->SetSizeable(!m_Window->GetSizeable());
+// 	if (m_SubWindow == nullptr)
+// 	{
+// 		m_SubWindow = new DUI_Window;
+// 		m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
+// 		m_SubWindow->DoModel();
+// 		delete m_SubWindow;
+// 		m_SubWindow = nullptr;
+// 	}
+	DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
+	m_RGroup->SelectNext();
+	//if (pSex != nullptr)
+	//{
+	//	CString str = _T("当前选中的性别为：");
+	//	str += pSex->GetText();
+	//	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
+	//}
+	return LRESULT(TRUE);
+}
+
 void CDUI_DemoDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
@@ -99,22 +156,48 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	//SetWindowText(L"Direct UI");
 	GdipStartup();
- 	if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
- 		L"..\\Image\\BkGrd\\bkg2.jpg"))
+	m_SubWindow = nullptr;
+	m_Window = new DUI_Window;
+ 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
+ 		L"..\\Image\\BkGrd\\bkg2.jpg",1))
  	{
  		MessageBox(L"创建失败");
  	}
-	//if (!m_Window.Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
+	//if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
 	//	Color::MakeARGB(255, 240, 240, 240), FALSE))//80, 140, 200
 	//{
 	//	MessageBox(L"创建失败");
 	//	return TRUE;
 	//}
+	//_CrtSetBreakAlloc(3670);
 	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-	//m_Ctrl.Create(&m_Window, 40, 5, 50, 25, _T("View"));
-	m_Lable.Create(&m_Window, 30, 20, 50, 25, _T("Lable1"));
-	m_Button.Create(&m_Window, 65, 10, 60, 25, _T("正常按钮"));
+	//m_Window->SetSizeable(TRUE);
+	//m_Window->SetDebugMode(TRUE);
+	m_Lable = new DUI_Lable;
+	m_Lable->Create(m_Window, 30, 20, 50, 25, _T("Lable1"));
+	m_Button = new DUI_Button;
+	m_Button->Create(m_Window, 65, 10, 76, 26, _T("正常按钮"));
+	m_BtnClick = (CLICKPROC)GetCallBackAddr(this, &CDUI_DemoDlg::MyBtn);
+	m_Button->SetClickEventHandler(m_BtnClick);
+
+	pImg[0] = ImageFromIDResource(IDB_BTN_1, _T("PNG"));
+	pImg[1] = ImageFromIDResource(IDB_BTN_2, _T("PNG"));
+	pImg[2] = ImageFromIDResource(IDB_BTN_3, _T("PNG"));
+	m_ImgBtn = new DUI_ImageButton;
+	m_ImgBtn->Create(m_Window, 60, 50, 76, 26, pImg[0], pImg[1], pImg[2], _T("ImageBtn"));
+
+	m_CheckBox = new DUI_CheckBox;
+	m_CheckBox->Create(m_Window, 150, 20, 75, 15, _T("Box"));
+
+	m_RGroup = new DUI_RadioGroup;
+	m_RGroup->Create(m_Window);
+	m_Radio1 = new DUI_Radio;
+	m_Radio1->Create(m_Window, m_RGroup, 150, 40, 75, 15, _T("男"));
+	m_Radio2 = new DUI_Radio;
+	m_Radio2->Create(m_Window, m_RGroup, 230, 40, 75, 15, _T("女"));
+	//m_Window->SetDebugMode(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

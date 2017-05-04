@@ -42,13 +42,31 @@
     <ClInclude Include="Functions.h">
       <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="ControlBase.h">
+    <ClInclude Include="CallBack.hpp">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_ImageButton.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_Button.h">
       <Filter>DUI</Filter>
     </ClInclude>
     <ClInclude Include="DUI_Lable.h">
-      <Filter>头文件</Filter>
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_Button.h">
+    <ClInclude Include="DUI_ControlBase.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_CheckBox.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_RadioGroup.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_Radio.h">
+      <Filter>DUI</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI_Prompt.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,14 +86,29 @@
     <ClCompile Include="Functions.cpp">
       <Filter>DUI</Filter>
     </ClCompile>
-    <ClCompile Include="ControlBase.cpp">
+    <ClCompile Include="DUI_ImageButton.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Button.cpp">
       <Filter>DUI</Filter>
     </ClCompile>
     <ClCompile Include="DUI_Lable.cpp">
       <Filter>DUI</Filter>
     </ClCompile>
-    <ClCompile Include="DUI_Button.cpp">
+    <ClCompile Include="DUI_ControlBase.cpp">
       <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_CheckBox.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_RadioGroup.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Radio.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI_Prompt.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +132,48 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="..\Image\Icon.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\SysBTN.PNG">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Btn_2.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Btn_3.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Btn_Normal.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Sys.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\Image\控制按钮素材.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\Image\控制按钮.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\CheckBox.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\RadioBox.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Btn_2.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Btn_3.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Btn_Normal.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Sys.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\控制按钮素材.png">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

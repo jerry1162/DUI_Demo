@@ -1,4 +1,21 @@
 #pragma once
+#include "CallBack.hpp"
+#include <wingdi.h>
+#include <wingdi.h>  
+#pragma comment(lib, "MSIMG32.LIB")  
+
+//常量声明  
+//#define   WS_EX_LAYERED                       0x00080000   
+//#define   LWA_COLORKEY                        0x00000001   
+//#define   LWA_ALPHA                           0x00000002   
+
+#include <atlstr.h>
+#include <assert.h>
+
+#define ULONG_PTR ULONG 
+#include <gdiplus.h>
+using namespace Gdiplus;
+#pragma comment(lib, "gdiplus.lib")
 
 struct GdipString
 {
@@ -14,7 +31,7 @@ void GdipShutdown();
 BOOL PtInRect(RectF* rect, Point* pt);
 VOID DrawShadow(Graphics* graphics, RectF* rect, INT diameter);
 BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round);
-BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg);
+Image* ImageFromIDResource(UINT resID, LPCTSTR resType);
 VOID DrawShadowText(Graphics* graphics, REAL Rate, GdipString* Text,
 	ARGB ShadowColor = NULL, ARGB BorderColor = NULL, REAL TextOffsetX = NULL, REAL TextOffsetY = NULL,
 	REAL ShadowOffsetX = NULL, REAL ShadowOffsetY = NULL);
@@ -22,10 +39,14 @@ VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor);
 INT NewID();
 BOOL IsMouseMsg(UINT uMsg);
 
-//template <typename T>//产生一个代理函数
-//WNDPROC  GetCallBackAddr(LPVOID pThis, T MethodAddr);
-//
-//void FreeCallBackAddr(WNDPROC wndProc);
+//释放代理函数
+void FreeCallBackAddr(LPVOID wndProc);
+
+ATOM                MyRegisterClass();
+HWND                InitInstance();
+LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+VOID MessageLoop();
+ATOM GetDefaultWndClass();
 
 class MemDC
 {

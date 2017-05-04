@@ -103,6 +103,5 @@ BOOL CDUI_DemoApp::InitInstance()
 int CDUI_DemoApp::ExitInstance()
 {
 	// TODO: 在此添加专用代码和/或调用基类
-	GdipShutdown();
 	return CWinApp::ExitInstance();
 }

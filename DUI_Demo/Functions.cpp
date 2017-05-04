@@ -84,17 +84,24 @@ BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL
 	return path->CloseFigure()==0;
 }
 
-BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg)
+Image* ImageFromIDResource(UINT resID, LPCTSTR resType)
 {
-	HINSTANCE hInst = AfxGetResourceHandle();
-	HRSRC hRsrc = ::FindResource(hInst, MAKEINTRESOURCE(nID), sTR); // type
+	HINSTANCE hInst = GetModuleHandle(nullptr);//AfxGetResourceHandle();
+	if (resType == RT_ICON)
+	{
+		HICON hIco = (HICON)LoadImage(hInst, MAKEINTRESOURCE(resID), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+		Bitmap* Ico = Bitmap::FromHICON(hIco);
+		//TRACE("\nResult:%d\n", DestroyIcon(hIco));
+		return Ico;
+	}
+	HRSRC hRsrc = ::FindResource(hInst, MAKEINTRESOURCE(resID), resType);
 	if (!hRsrc)
-		return FALSE;
+		return NULL;
 	// load resource into memory
 	DWORD len = SizeofResource(hInst, hRsrc);
 	BYTE* lpRsrc = (BYTE*)LoadResource(hInst, hRsrc);
 	if (!lpRsrc)
-		return FALSE;
+		return NULL;
 	// Allocate global memory on which to create stream
 	HGLOBAL m_hMem = GlobalAlloc(GMEM_FIXED, len);
 	BYTE* pmem = (BYTE*)GlobalLock(m_hMem);
@@ -102,15 +109,14 @@ BOOL ImageFromIDResource(UINT nID, LPCTSTR sTR, Image * &pImg)
 	IStream* pstm;
 	CreateStreamOnHGlobal(m_hMem, FALSE, &pstm);
 	// load from stream
-	pImg = new Image(pstm);
-	// pImg = Gdiplus::Image::FromStream(pstm);
+	Gdiplus::Image* ima = Gdiplus::Image::FromStream(pstm, TRUE);
 	// free/release stuff
 	GlobalUnlock(m_hMem);
 	pstm->Release();
 	FreeResource(lpRsrc);
-	return TRUE;
-}
 
+	return ima;
+}
 
 
 VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB ShadowColor,
@@ -133,13 +139,13 @@ VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB Shado
 		brush = new SolidBrush(ShadowColor);
 		RectF* OffsetRect = new RectF(TextOffsetX + ShadowOffsetX - 1,
 			TextOffsetY + ShadowOffsetY, Text->rect->Width, Text->rect->Height);
-		graphics1->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics1->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete OffsetRect;
 
 		OffsetRect = new RectF(TextOffsetX + ShadowOffsetX + 1,
 			TextOffsetY + ShadowOffsetY, Text->rect->Width, Text->rect->Height);
-		graphics1->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics1->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete brush;
 		delete OffsetRect;
@@ -184,25 +190,25 @@ VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
 		brush = new SolidBrush(BorderColor);
 		RectF* OffsetRect = new RectF(Text->rect->GetLeft() - 1,
 			Text->rect->GetTop(), Text->rect->Width, Text->rect->Height);
-		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete OffsetRect;
 
 		OffsetRect = new RectF(Text->rect->GetLeft() + 1,
 			Text->rect->GetTop(), Text->rect->Width, Text->rect->Height);
-		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete OffsetRect;
 
 		OffsetRect = new RectF(Text->rect->GetLeft(), Text->rect->GetTop() + 1,
 			Text->rect->Width, Text->rect->Height);
-		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete OffsetRect;
 
 		OffsetRect = new RectF(Text->rect->GetLeft(), Text->rect->GetTop() - 1,
 			Text->rect->Width, Text->rect->Height);
-		graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+		graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
 		delete OffsetRect;
 
@@ -210,7 +216,7 @@ VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
 	}
 	brush = new SolidBrush(*Text->color);
 	//graphics->SetSmoothingMode(SmoothingModeAntiAlias);
-	graphics->DrawString(Text->string->GetBuffer(), Text->string->GetLength(), Text->font,
+	graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 		*Text->rect, Text->format, brush);
 	delete brush;
 }
@@ -236,55 +242,98 @@ BOOL IsMouseMsg(UINT uMsg)
 	}
 }
 
-//template <typename T>//产生一个代理函数
-//WNDPROC  GetCallBackAddr(LPVOID pThis, T MethodAddr)
-//{
-//	const unsigned char BlockCode[] = {
-//		0x8B, 0x44, 0x24, 0x10,			//	mov         eax,dword ptr [esp+10h]
-//		0x8B, 0x4C, 0x24, 0x0C,			//	mov         ecx,dword ptr [esp+0Ch]
-//		0x8B, 0x54, 0x24, 0x08,			//	mov         edx,dword ptr [esp+8]
-//		0x50,							//	push        eax
-//		0x8B, 0x44, 0x24, 0x08,			//	mov         eax,dword ptr [esp+8]
-//		0x51,							//	push        ecx
-//		0xB9, 0x00, 0x00, 0x00, 0x00,	//	mov         ecx,0 （类的this指针）
-//		0x52,							//	push        edx
-//		0x50,							//	push        eax
-//		0x51,							//	push		ecx
-//		0xE8, 0x00,0x00,0x00,0x00,	//	call        CWndProc::WndProc
-//		0xC2, 0x10, 0x00				//	ret         10h
-//	};
-//
-//	size_t CodeBytes = sizeof(BlockCode);
-//	LPVOID  Block = VirtualAlloc(nullptr, 4096, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-//	memcpy(Block, BlockCode, CodeBytes);
-//	unsigned char * bBlock = (unsigned char *)Block;
-//	*PLONG32(&bBlock[19]) = LONG32(pThis);
-//	unsigned char* p = bBlock + 27;
-//	__asm
-//	{
-//		mov eax, MethodAddr
-//		sub eax, 4
-//		mov edi, p
-//		sub eax, edi
-//		mov[edi], eax
-//	}
-//	return (WNDPROC)Block;
-//}
-//
-////释放代理函数
-//void FreeCallBackAddr(WNDPROC wndProc)
-//{
-//	VirtualFree(wndProc, 4096, MEM_RELEASE);
-//}
+
+//释放代理函数
+void FreeCallBackAddr(LPVOID wndProc)
+{
+	VirtualFree(wndProc, 4096, MEM_RELEASE);
+}
+
+ATOM MyRegisterClass()
+{
+	WNDCLASSEXW wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+
+	wcex.style = NULL;//CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = GetModuleHandle(NULL);
+	wcex.hIcon = NULL;//LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DUI));
+	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = NULL;//MAKEINTRESOURCEW(IDC_DUI);
+	wcex.lpszClassName = _T("DUI_Wnd");//szWindowClass;
+	wcex.hIconSm = NULL;//LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+	return RegisterClassExW(&wcex);
+}
+
+HWND InitInstance()
+{
+	HWND hWnd = CreateWindowW(_T("DUI_Wnd"), _T("DUI_Wnd"), WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, GetModuleHandle(NULL), nullptr);
+
+	if (!hWnd)
+	{
+		return NULL;
+	}
+
+	ShowWindow(hWnd, SW_SHOW);
+	UpdateWindow(hWnd);
+
+	return hWnd;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+VOID MessageLoop()
+{
+	MSG msg;
+
+	// 主消息循环: 
+	while (GetMessage(&msg, nullptr, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+ATOM GetDefaultWndClass()
+{
+	static ATOM Class = MyRegisterClass();
+	return Class;
+}
 
 MemDC::MemDC(int Width, int Height)
 {
-	Create(Width, Height);
+	m_MemDC = NULL;
+	m_hBitmap = NULL;
+	m_hOldBitmap = NULL;
+	m_Width = m_Height = 0;
+	graphics = nullptr;
+	Create(Width, Height); 
 }
 
 MemDC::MemDC()
 {
-
+	m_MemDC = NULL;
+	m_hBitmap = NULL;
+	m_hOldBitmap = NULL;
+	m_Width = m_Height = 0;
+	graphics = nullptr;
 }
 
 MemDC::~MemDC()
@@ -295,7 +344,7 @@ MemDC::~MemDC()
 BOOL MemDC::Create(int Width, int Height)
 {
 	m_MemDC = CreateCompatibleDC(0);
-	if (0==m_MemDC)
+	if (NULL == m_MemDC)
 	{
 		return TRUE;
 	}
@@ -307,7 +356,7 @@ BOOL MemDC::Create(int Width, int Height)
 	bmpInfo.bmiHeader.biPlanes = 1;
 	bmpInfo.bmiHeader.biCompression = 0;
 	m_hBitmap = CreateDIBSection(m_MemDC, &bmpInfo, 0, 0, 0, 0);
-	if (0 == m_hBitmap)
+	if (NULL == m_hBitmap)
 	{
 		DeleteDC(m_MemDC);
 		return FALSE;
@@ -329,7 +378,7 @@ BOOL MemDC::Create(int Width, int Height)
 
 BOOL MemDC::Destroy()
 {
-	if (m_MemDC==0)
+	if (m_MemDC == NULL)
 	{
 		return FALSE;
 	}

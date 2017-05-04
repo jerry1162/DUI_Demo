@@ -1,25 +1,37 @@
 #pragma once
 #include "Functions.h"
-#include "ControlBase.h"
+#include "DUI_ControlBase.h"
+#include "DUI_Prompt.h"
 #include <vector>
 using std::vector;
 
 //定义窗口基本属性
 #define TITLEBARHEIGHT 20
+#define MINWNDWIDTH 200
 #define ICONSIZE_X 16
 #define ICONSIZE_Y 16
 #define SHADOWWIDTH 0 //暂时不使用阴影
 #define INVALID_CONTROLID -1
-#define INVALID_CONTROLINDEX -1
+//#define INVALID_CONTROLINDEX -1
 #define DEF_BORDERWHIDTH 5
 #define GAP_ICON_TITLE 5
 #define GAP_TITLE_SYSBTN 2
 #define ICONOFFSET_X 3
 #define ICONOFFSET_Y 3
+#define SYSBTN_X 39
+#define SYSBTN_Y 19
 
 //自定义消息
+//说明当窗口接收到hWnd为非有效窗口句柄时，表明此消息为发送给控件的消息，hWnd值为控件ID
 #define WM_UPDATE WM_USER + 1 //对窗口来说，wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上   对控件来说，wParam是指控件ID，lParam相同
 #define WM_MOUSEGETIN WM_USER + 2 //表示鼠标进入控件，注意，此消息与WM_MOUSEMOVE不同，只在鼠标进入控件时发送，鼠标在控件上移动时不会发送此消息
+#define WM_STATECHANGED WM_USER + 3//当控件状态发生变化时，收到此消息，wParam是指控件ID，lParam为上一个状态 返回0表示不需要在ChangeState里调用Update.
+#define CM_CLICKED WM_USER + 4//按钮控件的按下事件 wParam是指控件ID，lParam为Extra信息
+#define CM_SHOW WM_USER + 5//组件显示或隐藏 wParam是指控件ID，lParam表示显示状态
+	#define CS_SHOW 1
+	#define CS_HIDE 0
+typedef LRESULT(CALLBACK *CLICKPROC) (HWND hWnd, UINT uMsg, WPARAM ID, LONG Extra);
+
 enum BorderMode
 {
 	BM_Normal = 1,//普通模式，即矩形边框
@@ -50,66 +62,56 @@ enum CursorDirection
 enum SYSBTNTYPE
 {
 	BT_Close=1,
-	BT_Minimize,
 	BT_Maxmize,
-	BT_Setting,
-	BT_Help,
+	BT_Minimize,
 	BT_None
 };
-enum BTNStatus
-{
-	Normal = 1,
-	Pushed,
-	HighLight,
-	Focus,
-	Disabled
-};
-struct SYSBTN
-{
-	SYSBTNTYPE type;
-	RectF* rect;
-	BTNStatus status;
-};
+
 class DUI_Window
 {
 public:
-	friend class ControlBase;
+	friend class DUI_ControlBase;
 	friend class DUI_Lable;
 	friend class DUI_Button;
+	friend class DUI_ImageButton;
+	friend class DUI_RadioGroup;
 	DUI_Window();
 	~DUI_Window();
-	BOOL Create(HWND hWnd, LPCWSTR Title = L"", LPCWSTR Icon = NULL,
-		LPCWSTR BackgrdPic = NULL, BOOL bSizeable = FALSE);
-	BOOL Create(HWND hWnd, LPCWSTR Title = L"", LPCWSTR Icon = NULL,
+	BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,
+		LPTSTR BackgrdPic = NULL, BOOL bSizeable = FALSE);
+	BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,
 		ARGB BkgColor = Color::MakeARGB(255, 240, 240, 240), BOOL bSizeable = FALSE);
+	BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPTSTR Title = L"", LPTSTR Icon = NULL);//请在用此方法创建窗口后手动调用DoModel()进入消息循环。
+	VOID DoModel();
 	BOOL Destroy();
 	
-	BOOL SetBkgPic(LPCWSTR BackgrdPic = NULL);
+	BOOL SetBkgPic(LPTSTR BackgrdPic = NULL);
 	BOOL SetBkgColor(ARGB BackgrdColor = NULL);
-	BOOL SetTitle(LPCWSTR Title);
+	BOOL SetTitle(LPTSTR Title, BOOL bInner = TRUE);//第二个参数用于区别是否是内部调用，默认为真，用于处理外部程序用消息设置窗口标题的情况
 	BOOL SetBorderStyle(BorderStyle bs);
 	BOOL SetSizeable(BOOL bSizeable);
 	BOOL GetSizeable();
-	INT FindControlByID(INT ID);
+	DUI_ControlBase* FindControlByID(INT ID, _Out_ INT* Index = nullptr);
 	VOID SetDebugMode(BOOL bDebug);
+	VOID Update(BOOL bForce = FALSE);
+	DUI_Prompt* GetWndPrompt();
+	BOOL m_bAutoUpdate;//是否在调用函数改变窗口时自动刷新，默认为真，若需要连续的多次更改则可以设置为假然后手动刷新
+	HWND m_hWnd;
 private:
 	//static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM ID, LPARAM lParam);
 	VOID DrawWnd();
-
-	HWND m_hWnd;
+	DUI_Window* m_Parent;
 	MemDC* m_MemDC;
 	Gdiplus::Graphics* m_Graphics;
 	Gdiplus::RectF* m_WndRect;
 	Gdiplus::RectF* m_ClientRect;
 
-	//static DUI_Window* m_pThis;
-	//static LONG PrevWndProc;
 	LONG PrevWndProc;
 	WNDPROC m_WndProc;
 
-	BOOL InitDUIWnd(HWND hWnd, LPCWSTR Title = L"", BOOL bSizable = FALSE);
-	BOOL OnControl(UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递
+	BOOL InitDUIWnd(HWND hWnd, LPTSTR Title = L"", BOOL bSizable = FALSE);
+	BOOL OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递 ID为INVALID_CONTROLID(-1)则表示此消息被发送给所有控件
 	INT ScreenToClient(Point* pt);
 	BOOL GetCursorPos(Point* pt);
 
@@ -120,8 +122,9 @@ private:
 	BOOL OnMouseLeave(WPARAM wParam, Point* ptMouse);
 	BOOL OnSize(WPARAM wParam, LPARAM lParam);
 	BOOL OnPaint(WPARAM wParam, LPARAM lParam);
-	BOOL OnUpdate(WPARAM wParam=NULL, BOOL bUpdate = TRUE);//wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上  //现已取消局部更新
+	BOOL OnUpdate(WPARAM wParam, BOOL bUpdate);//wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上  //现已取消局部更新
 	BOOL OnSetCursor(WPARAM wParam, LPARAM lParam);
+	BOOL OnGetMinMaxInfo(WPARAM wParam, LPARAM lParam);
 
 	BYTE m_Alpha;
 	GdipString* m_Title;
@@ -129,18 +132,21 @@ private:
 	Image* m_Icon;
 	RectF* m_IconRect;
 	Image* m_BkgImg;
-	Image* m_SysBtn;
+	Image* m_SysBtnPic;
 	BOOL m_Sizeable;
 	BorderStyle m_BorderStyle;
-	SYSBTN m_SysBtn_Close;
-	SYSBTNTYPE m_LastBtn;
+	DUI_ImageButton* m_SysBtn[4];
+	CLICKPROC m_SysBtnClickProcAddr;
+	LRESULT CALLBACK SysBtnClick(HWND hWnd, UINT uMsg, WPARAM ID, LONG Extra);
+	INT m_SysBtnCnt;
+	
 	BOOL m_bMouseDown;
 	BOOL m_bDebug;
 
-
-	vector<ControlBase*>* m_Controls;
+	DUI_Prompt* m_Prompt;
+	vector<DUI_ControlBase*>* m_Controls;
 	INT  m_CaptureCtrlID;
 	INT m_FocusCtrlID;
-	//INT m_HoverControlID;
+	INT m_LastHoverCtrlID;
 	CursorDirection m_CurCDR;
 };
