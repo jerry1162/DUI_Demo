@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Functions.h"
+#include "CommonControls.h"
 
 GdiplusStartupInput gdiplusStartupInput;
 ULONG_PTR gdiplusToken;
@@ -25,12 +26,6 @@ BOOL PtInRect(RectF * rect, Point * pt)
 	{
 		return FALSE;
 	}
-}
-
-BOOL IntersectRectF(RectF * rect1, RectF * rect2)
-{
-	//IntersectRect()
-	return 0;
 }
 
 VOID DrawShadow(Graphics * graphics, RectF * rect, INT diameter)
@@ -115,6 +110,25 @@ Image* ImageFromIDResource(UINT resID, LPCTSTR resType)
 	pstm->Release();
 	FreeResource(lpRsrc);
 
+	return ima;
+}
+
+Image * ImageFromBin(LPVOID lpData, UINT uSize)
+{
+	if (lpData == nullptr || uSize == 0)
+	{
+		return nullptr;
+	}
+	HGLOBAL m_hMem = GlobalAlloc(GMEM_FIXED, uSize);
+	BYTE* pmem = (BYTE*)GlobalLock(m_hMem);
+	memcpy(pmem, lpData, uSize);
+	IStream* pstm;
+	CreateStreamOnHGlobal(m_hMem, FALSE, &pstm);
+	// load from stream
+	Gdiplus::Image* ima = Gdiplus::Image::FromStream(pstm, TRUE);
+	// free/release stuff
+	GlobalUnlock(m_hMem);
+	pstm->Release();
 	return ima;
 }
 
@@ -317,6 +331,210 @@ ATOM GetDefaultWndClass()
 	return Class;
 }
 
+Bitmap* GetBitmapFromHIcon(HICON hIcon, INT Width, INT Height, BOOL bDestroyIcon)
+{
+	if (hIcon == NULL)
+	{
+		return nullptr;
+	}
+
+	ICONINFO icInfo = { 0 };
+	if (!::GetIconInfo(hIcon, &icInfo))
+	{
+		return nullptr;
+	}
+
+	BITMAP bitmap = { 0 };
+	GetObject(icInfo.hbmColor, sizeof(BITMAP), &bitmap);
+
+	Gdiplus::Bitmap* pBitmap = nullptr;
+	Gdiplus::Bitmap* pWrapBitmap = nullptr;
+	Bitmap* bmp = nullptr;
+	if (bitmap.bmBitsPixel != 32)
+	{
+		bmp = Gdiplus::Bitmap::FromHICON(hIcon);
+	}
+	else
+	{
+		pWrapBitmap = Gdiplus::Bitmap::FromHBITMAP(icInfo.hbmColor, NULL);
+		if (!pWrapBitmap)
+			return nullptr;
+
+		BitmapData bitmapData;
+		Rect rcImage(0, 0, pWrapBitmap->GetWidth(), pWrapBitmap->GetHeight());
+		pWrapBitmap->LockBits(&rcImage, ImageLockModeRead, pWrapBitmap->GetPixelFormat(), &bitmapData);
+		pBitmap = new Bitmap(bitmapData.Width, bitmapData.Height, bitmapData.Stride, PixelFormat32bppARGB, (BYTE*)bitmapData.Scan0);
+		pWrapBitmap->UnlockBits(&bitmapData);
+
+		if (Width == -1)
+		{
+			Width = bitmapData.Width;
+		}
+		if (Height == -1)
+		{
+			Height = bitmapData.Height;
+		}
+		bmp= new Bitmap(Width, Height, NULL, PixelFormat32bppARGB, nullptr);
+		Graphics* pGraphics = new Graphics(bmp);
+		pGraphics->DrawImage(pBitmap, 0, 0, Width, Height);
+		delete pGraphics;
+
+	}
+
+	if (pWrapBitmap)
+		delete pWrapBitmap;
+	if (pBitmap)
+	{
+		delete pBitmap;
+	}
+	DeleteObject(icInfo.hbmColor);
+	DeleteObject(icInfo.hbmMask);
+	if (bDestroyIcon)
+	{
+		DestroyIcon(hIcon);
+	}
+	return bmp;
+}
+
+
+//获取文件的图标HICON  
+HICON GetFileIcon(const CString& strFilePath, INT IconSize)
+{
+	SHFILEINFO SHFI;
+	ZeroMemory(&SHFI, sizeof(SHFI));
+	if (IconSize < 0)
+	{
+		return NULL;
+	}
+	else if (IconSize <= IS_NORMAL)
+	{
+		DWORD_PTR ret = ::SHGetFileInfo(strFilePath, FILE_ATTRIBUTE_NORMAL, &SHFI, sizeof(SHFI),
+			SHGFI_ICON | (IconSize == IS_NORMAL ? SHGFI_LARGEICON : SHGFI_SMALLICON));
+		if (ret != 0)
+		{
+			return SHFI.hIcon;
+		}
+	}
+	else if (IconSize <= IS_EXLARGE)
+	{
+		SHFILEINFO sfi;
+		ZeroMemory(&sfi, sizeof(SHFILEINFO));
+		::SHGetFileInfo(strFilePath, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(SHFILEINFO), SHGFI_SYSICONINDEX);
+		HIMAGELIST* imageList = nullptr;
+		//SHIL_EXTRALARGE获取48 * 48的图标， SHIL_JUMBO 获取256 * 256的图标。
+		HRESULT hResult = ::SHGetImageList(IconSize == IS_LARGE ? SHIL_EXTRALARGE : SHIL_JUMBO, IID_IImageList, (void**)&imageList);
+		HICON icon_handle = NULL;
+		if (hResult == S_OK)
+		{
+			hResult = ((IImageList*)imageList)->GetIcon(sfi.iIcon, ILD_NORMAL, &icon_handle);
+			return icon_handle;
+		}
+	}
+	return NULL;
+}
+
+//获取特定图片类型的编码  
+INT GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
+{
+	UINT num = 0, size = 0;
+
+	Gdiplus::GetImageEncodersSize(&num, &size);
+	if (size == 0)
+		return -1;  // Failure  
+
+	Gdiplus::ImageCodecInfo* pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
+
+	Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
+	bool found = false;
+	for (UINT ix = 0; !found && ix < num; ++ix)
+	{
+		if (_wcsicmp(pImageCodecInfo[ix].MimeType, format) == 0)
+		{
+			*pClsid = pImageCodecInfo[ix].Clsid;
+			found = true;
+			break;
+		}
+	}
+
+	free(pImageCodecInfo);
+	return found;
+}
+
+//根据图标HICON保存图片为Png图片  
+Bitmap* SaveHIconToPngFile(HICON hIcon, LPCTSTR lpszPicFileName)
+{
+	if (hIcon == NULL)
+	{
+		return nullptr;
+	}
+
+	ICONINFO icInfo = { 0 };
+	if (!::GetIconInfo(hIcon, &icInfo))
+	{
+		return nullptr;
+	}
+
+	BITMAP bitmap;
+	GetObject(icInfo.hbmColor, sizeof(BITMAP), &bitmap);
+
+	Gdiplus::Bitmap* pBitmap = NULL;
+	Gdiplus::Bitmap* pWrapBitmap = NULL;
+
+	//do
+	//{
+		if (bitmap.bmBitsPixel != 32)
+		{
+			pBitmap = Gdiplus::Bitmap::FromHICON(hIcon);
+		}
+		else
+		{
+			pWrapBitmap = Gdiplus::Bitmap::FromHBITMAP(icInfo.hbmColor, NULL);
+			//if (!pWrapBitmap)
+				//break;
+
+			Gdiplus::BitmapData bitmapData;
+			Gdiplus::Rect rcImage(0, 0, pWrapBitmap->GetWidth(), pWrapBitmap->GetHeight());
+
+			pWrapBitmap->LockBits(&rcImage, Gdiplus::ImageLockModeRead, pWrapBitmap->GetPixelFormat(), &bitmapData);
+			pBitmap = new (Gdiplus::Bitmap)(bitmapData.Width, bitmapData.Height, bitmapData.Stride, PixelFormat32bppARGB, (BYTE*)bitmapData.Scan0);
+			pWrapBitmap->UnlockBits(&bitmapData);
+		}
+
+		if (lpszPicFileName != nullptr)
+		{
+			CLSID encoderCLSID;
+			GetEncoderClsid(_T("image/png"), &encoderCLSID);
+			Gdiplus::Status st = pBitmap->Save(lpszPicFileName, &encoderCLSID, NULL);
+		}
+
+		//if (st != Gdiplus::Ok)
+			//break;
+
+	//} while (false);
+
+	//delete pBitmap;
+	if (pWrapBitmap)
+		delete pWrapBitmap;
+	DeleteObject(icInfo.hbmColor);
+	DeleteObject(icInfo.hbmMask);
+
+	return pBitmap;
+}
+
+INT GetFileName(CString csFilePath, CString& csFileName)
+{
+	int nPos = csFilePath.ReverseFind('\\'); // 文件路径，以'\'斜杠分隔的路径  
+	csFileName = csFilePath.Right(csFilePath.GetLength() - nPos - 1); // 获取文件全名，包括文件名和扩展名  
+	return csFileName.GetLength();
+}
+
+INT  GetExtName(CString csFileFullName, CString& csExtName)
+{
+	int nPos = csFileFullName.ReverseFind('.');
+	csExtName = csFileFullName.Right(csFileFullName.GetLength() - nPos - 1); // 获取扩展名  
+	return csExtName.GetLength();
+}
+
 MemDC::MemDC(int Width, int Height)
 {
 	m_MemDC = NULL;
@@ -394,15 +612,66 @@ BOOL MemDC::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, in
 	int nYSrc, DWORD dwRop)
 {
 	int ret;
+	if (nXSrc == -1)
+	{
+		nXSrc = nXDest;
+	}
+	if (nYSrc == -1)
+	{
+		nYSrc = nYDest;
+	}
 	ret=::BitBlt(hDestDC, nXDest, nYDest, wDest, hDest, m_MemDC, nXSrc, nYSrc, dwRop);
 	return (ret==0?FALSE:TRUE);
 }
 
-BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest,
-	int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc,
-	BYTE Alpha = 255)
+BOOL MemDC::BitBlt(MemDC * hDestDC, int nXDest, int nYDest, int wDest, int hDest, int nXSrc, int nYSrc, DWORD dwRop)
 {
 	int ret;
+	if (hDestDC == nullptr)
+	{
+		return FALSE;
+	}
+	if (nXSrc == -1)
+	{
+		nXSrc = nXDest;
+	}
+	if (nYSrc == -1)
+	{
+		nYSrc = nYDest;
+	}
+	if (wDest == 0)
+	{
+		wDest = hDestDC->m_Width;
+	}
+	if (hDest == 0)
+	{
+		hDest = hDestDC->m_Height;
+	}
+	ret = ::BitBlt(hDestDC->GetMemDC(), nXDest, nYDest, wDest, hDest, m_MemDC, nXSrc, nYSrc, dwRop);
+	return (ret == 0 ? FALSE : TRUE);
+}
+
+BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest,
+	int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc,
+	BYTE Alpha)
+{
+	int ret;
+	if (nXOriginSrc == -1)
+	{
+		nXOriginSrc = nXOriginDest;
+	}
+	if (nYOriginSrc == -1)
+	{
+		nYOriginSrc = nYOriginDest;
+	}
+	if (nWidthSrc == 0)
+	{
+		nWidthSrc = nWidthDest;
+	}
+	if (nHeightSrc == 0)
+	{
+		nHeightSrc = nWidthDest;
+	}
 	BLENDFUNCTION blendFunction;
 	blendFunction.BlendOp = AC_SRC_OVER;
 	blendFunction.BlendFlags = 0;
@@ -411,6 +680,59 @@ BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWid
 	ret = ::AlphaBlend(hdcDest, nXOriginDest, nYOriginDest, nWidthDest, hHeightDest,
 		m_MemDC, nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc, blendFunction);
 	return (ret == 0 ? FALSE : TRUE);
+}
+
+BOOL MemDC::AlphaBlend(MemDC * hDestDC, int nXOriginDest, int nYOriginDest, int nWidthDest, int hHeightDest, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc, BYTE Alpha)
+{
+	int ret;
+	if (hDestDC == nullptr)
+	{
+		return FALSE;
+	}
+	if (nWidthDest == 0)
+	{
+		nWidthDest = hDestDC->m_Width;
+	}
+	if (hHeightDest == 0)
+	{
+		hHeightDest = hDestDC->m_Height;
+	}
+	if (nXOriginSrc == -1)
+	{
+		nXOriginSrc = nXOriginDest;
+	}
+	if (nYOriginSrc == -1)
+	{
+		nYOriginSrc = nYOriginDest;
+	}
+	if (nWidthSrc == 0)
+	{
+		nWidthSrc = nWidthDest;
+	}
+	if (nHeightSrc == 0)
+	{
+		nHeightSrc = hHeightDest;
+	}
+	BLENDFUNCTION blendFunction;
+	blendFunction.BlendOp = AC_SRC_OVER;
+	blendFunction.BlendFlags = 0;
+	blendFunction.SourceConstantAlpha = Alpha;
+	blendFunction.AlphaFormat = AC_SRC_ALPHA;
+	ret = ::AlphaBlend(hDestDC->GetMemDC(), nXOriginDest, nYOriginDest, nWidthDest, hHeightDest,m_MemDC, nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc, blendFunction);
+	return (ret == 0 ? FALSE : TRUE);
+}
+
+INT MemDC::SelectClipRgn(HRGN hrgn)
+{
+	return ::SelectClipRgn(m_MemDC,hrgn);
+}
+
+INT MemDC::SelectRectClipRgn(INT X, INT Y, INT W, INT H)
+{
+	HRGN hRgn = CreateRectRgn(X, Y, X + W, Y + H);
+	INT Ret = SelectClipRgn(hRgn);
+	DeleteObject(hRgn);
+	return Ret;
 }
 
 HDC MemDC::GetMemDC()

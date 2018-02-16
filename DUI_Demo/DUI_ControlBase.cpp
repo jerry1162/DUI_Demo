@@ -17,10 +17,13 @@ DUI_ControlBase::DUI_ControlBase()
 	m_bVisialbe = TRUE;
 	m_AnimateAlpha = 0;
 	m_PrevState = S_Invalid;
-	m_bAutoUpdate = TRUE;
+	m_bHasState = FALSE;
 	m_AnimatePrevDC = nullptr;
 	m_pAnimateProc = (TIMERPROC)GetCallBackAddr(this, &DUI_ControlBase::AnimateProc);
 	m_Prompt = nullptr;
+	m_MsgProc = nullptr;
+	m_bAutoUpdate = FALSE;
+	m_bMoveWithMouse = FALSE;
 }
 
 
@@ -29,7 +32,7 @@ DUI_ControlBase::~DUI_ControlBase()
 	Destroy();
 }
 
-BOOL DUI_ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, REAL Height, LPCWSTR Text, BOOL bVisiable)
+BOOL DUI_ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, REAL Height, LPCWSTR Text, BOOL bVisiable, BOOL bForceUpdate)
 {
 	m_ID = NewID();
 	m_Parent = Window;
@@ -38,7 +41,6 @@ BOOL DUI_ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width
 	m_MemDC->Create((int)m_Rect->Width, (int)m_Rect->Height);
 	m_bVisialbe = bVisiable;
 
-	//m_Text = new GdipString;
 	m_Text = new GdipString;
 	m_Text->string = new CString;
 	m_Text->string->SetString(Text);
@@ -49,17 +51,17 @@ BOOL DUI_ControlBase::Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width
 	m_Text->format->SetAlignment(StringAlignmentCenter);
 	m_Text->format->SetLineAlignment(StringAlignmentCenter);
 	//m_Text->format->GenericDefault();
-	m_Text->color = new Color(Color::Black);
+	m_Text->color = new Color(254, 0, 0, 0);
 	m_Text->rect = new RectF(0, 0, Width, Height);
 
 	//m_Index = Window->m_Controls->size();
-	Window->m_Controls->push_back(this);
+	Window->AddControl(this);
 
-	if (m_bAutoUpdate)
+	if (m_Parent->IsWindowInited())
 	{
-		Update();
+		m_bAutoUpdate = TRUE;
 	}
-	//Window->OnUpdate(NULL, TRUE);
+	Update(bForceUpdate);
 	return TRUE;
 }
 
@@ -100,6 +102,22 @@ VOID DUI_ControlBase::SetAlpha(BYTE Alpha)
 
 VOID DUI_ControlBase::Move(REAL Left, REAL Top)
 {
+	m_Parent->m_MemDC->SelectRectClipRgn((INT)m_Rect->X, (INT)m_Rect->Y, (INT)m_Rect->Width, (INT)m_Rect->Height);
+	m_Parent->m_BkgDC->BitBlt(m_Parent->m_MemDC, (INT)m_Rect->X, (INT)m_Rect->Y, (INT)m_Rect->Width, (INT)m_Rect->Height);
+	for (auto it = m_Parent->m_Controls->begin(); it != m_Parent->m_Controls->end(); it++)
+	{
+		if (!(*it)->m_bVisialbe || (*it) == this)
+		{
+			continue;
+		}
+		if ((*it)->m_Rect->IntersectsWith(*m_Rect))
+		{
+			m_Parent->m_BkgDC->BitBlt(m_Parent->m_MemDC, (INT)(*it)->m_Rect->X, (INT)(*it)->m_Rect->Y, (INT)(*it)->m_Rect->Width, (INT)(*it)->m_Rect->Height);
+			(*it)->m_MemDC->AlphaBlend(m_Parent->m_MemDC, (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+		}
+	}
+	m_Parent->m_MemDC->SelectClipRgn();
+
 	m_Rect->X = Left;
 	m_Rect->Y = Top;
 	Update();
@@ -134,15 +152,13 @@ BOOL DUI_ControlBase::GetVisiable()
 	return m_bVisialbe;
 }
 
-VOID DUI_ControlBase::Update(BOOL bForce)
+VOID DUI_ControlBase::Update(INT bForce)
 {
-	if (bForce)
+	if (m_bAutoUpdate && bForce == -1)
 	{
-		OnUpdate(NULL, TRUE);
-		return;
+		bForce = TRUE;
 	}
-
-	if (m_bAutoUpdate)
+	if (bForce==TRUE && m_Parent->IsWindowInited())
 	{
 		OnUpdate(NULL, TRUE);
 	}
@@ -160,6 +176,53 @@ LRESULT DUI_ControlBase::SendMessage(INT ID, UINT Msg, WPARAM wParam, LPARAM lPa
 VOID DUI_ControlBase::SetPrompt(LPTSTR Text)
 {
 	m_Prompt = Text;
+}
+
+REAL DUI_ControlBase::GetX()
+{
+	return m_Rect->X;
+}
+
+REAL DUI_ControlBase::GetY()
+{
+	return m_Rect->Y;
+}
+
+REAL DUI_ControlBase::GetWidth()
+{
+	return m_Rect->Width;
+}
+
+REAL DUI_ControlBase::GetHeight()
+{
+	return m_Rect->Height;
+}
+
+MSGPROC DUI_ControlBase::SetMsgProc(MSGPROC Proc)
+{
+	MSGPROC PrevProc = m_MsgProc;
+	m_MsgProc = Proc;
+	return PrevProc;
+}
+
+BOOL DUI_ControlBase::HasState(INT bHasState)
+{
+	if (m_bHasState == -1)
+	{
+		return m_bHasState;
+	}
+	m_bHasState = bHasState;
+	return TRUE;
+}
+
+BOOL DUI_ControlBase::MoveWithMouse(INT b)
+{
+	if (b == -1)
+	{
+		return m_bMoveWithMouse;
+	}
+	m_bMoveWithMouse = b;
+	return TRUE;
 }
 
 BOOL DUI_ControlBase::Destroy()
@@ -220,8 +283,14 @@ LRESULT DUI_ControlBase::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static BOOL bMouseDown = FALSE;
 	static Point ptMouseDown;
-	static Point ptLable;
 	Point ptMouse;
+	if (m_MsgProc != nullptr)
+	{
+		if (!m_MsgProc((VOID*)this, uMsg, wParam, lParam))
+		{
+			return TRUE;
+		}
+	}
 	switch (uMsg)
 	{
 	case WM_UPDATE:
@@ -232,39 +301,37 @@ LRESULT DUI_ControlBase::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&ptMouse);
 		ptMouseDown.X = ptMouse.X;
 		ptMouseDown.Y = ptMouse.Y;
-		ptLable.X = (INT)m_Rect->X;
-		ptLable.Y = (INT)m_Rect->Y;
 		break;
 	case WM_LBUTTONUP:
-		bMouseDown = FALSE;
-		ptMouseDown.X = 0;
-		ptMouseDown.Y = 0;
-		ptLable.X = 0;
-		ptLable.Y = 0;
+		if (bMouseDown)
+		{
+			bMouseDown = FALSE;
+			ptMouseDown.X = 0;
+			ptMouseDown.Y = 0;
+			if (m_bMoveWithMouse)
+			{
+				return -1;
+			}
+		}
 		break;
 	case WM_MOUSEMOVE:
 		if (bMouseDown)
 		{
-			//TRACE("\nlParam %d  %d\n", LOWORD(lParam), HIWORD(lParam));
-			//TRACE("\nptMouse %d  %d\n", ptMouseDown.X, ptMouseDown.Y);
-			//GetCursorPos(&ptMouse);
-			//m_Rect->X = (REAL)ptLable.X + ptMouse.X - ptMouseDown.X;
-			//m_Rect->Y = (REAL)ptLable.Y + ptMouse.Y - ptMouseDown.Y;
-			//ptLable.X = (INT)m_Rect->X;
-			//ptLable.Y = (INT)m_Rect->Y;
-			//Update();
-
-			//m_Parent->GetCursorPos(&ptMouse);
-			//m_Rect->X = (REAL)ptMouse.X - ptMouseDown.X;
-			//m_Rect->Y = (REAL)ptMouse.Y - ptMouseDown.Y;
-			//Update();
+			if (m_bMoveWithMouse)
+			{
+				m_Parent->GetCursorPos(&ptMouse);
+				Move((REAL)ptMouse.X - ptMouseDown.X, (REAL)ptMouse.Y - ptMouseDown.Y);
+			}
 		}
 		break;
-	case WM_MOUSEGETIN:
+	case CM_MOUSEGETIN:
 		if (m_Prompt != _T(""))
 		{
 			m_Parent->GetWndPrompt()->Create(m_Parent->m_hWnd, m_Prompt, m_Rect);
 		}
+		break;
+	case CM_SETAUTOUPDATE:
+		m_bAutoUpdate = (BOOL)lParam;
 		break;
 	}
 	if (IsMouseMsg(uMsg))
@@ -275,7 +342,7 @@ LRESULT DUI_ControlBase::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		return TRUE;
 	}
-	return LRESULT();
+	return FALSE;
 }
 
 VOID DUI_ControlBase::Draw(DUI_Status s)
@@ -300,9 +367,13 @@ VOID DUI_ControlBase::Draw(DUI_Status s)
 
 VOID DUI_ControlBase::ChangeState(DUI_Status s)
 {
+	if (!m_bHasState)
+	{
+		return;
+	}
 	m_PrevState = m_CurState;
 	m_CurState = s;
-	if (!MsgProc(WM_STATECHANGED, m_ID, m_PrevState))
+	if (!MsgProc(CM_STATECHANGED, m_ID, m_PrevState))
 	{
 		Draw();
 		Update();
@@ -418,36 +489,46 @@ BOOL DUI_ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 	//}
 
 /*	m_MemDC->BitBlt(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, SRCCOPY);*/
-	if (lParam == TRUE)
-	{
-		//HDC hDC = m_Parent->m_Graphics->GetHDC();
-		m_Parent->OnUpdate(m_ID, TRUE);
+	m_Parent->OnUpdate(m_ID, lParam);
+	
+// 	if (lParam == TRUE)
+// 	{
+// 		//HDC hDC = m_Parent->m_Graphics->GetHDC();
+// 		m_Parent->OnUpdate(m_ID, TRUE);
+// 
+// // 		if (m_Parent->m_Alpha != 0)
+// // 		{
+// // 			//m_Parent->OnUpdate(m_ID, TRUE);
+// // 			SIZE szWnd;
+// // 			szWnd = { (INT)m_Parent->m_WndRect->Width, (INT)m_Parent->m_WndRect->Height };
+// // 			POINT ptSrc = { 0,0 };
+// // 			BLENDFUNCTION bf;
+// // 			bf.AlphaFormat = AC_SRC_ALPHA;
+// // 			bf.BlendFlags = 0;
+// // 			bf.BlendOp = 0;
+// // 			bf.SourceConstantAlpha = m_Parent->m_Alpha;
+// // 			UpdateLayeredWindow(m_Parent->m_hWnd, NULL, NULL, &szWnd, m_Parent->m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+// // 		}
+// // 		else
+// // 		{
+// // 			//m_Parent->m_MemDC->BitBlt(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), SRCCOPY);
+// // 			m_Parent->m_MemDC->AlphaBlend(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
+// // 		}
+// // 
+// // 		m_Parent->m_Graphics->ReleaseHDC(hDC);
+// 
+// 	}
+// 	else
+// 	{
+// 		m_Parent->OnUpdate(m_ID, FALSE);
+// 		/*
+// 		m_Parent->m_MemDC->SelectRectClipRgn((INT)m_Rect->X, (INT)m_Rect->Y, (INT)m_Rect->Width, (INT)m_Rect->Height);
+// 		m_Parent->m_BkgDC->AlphaBlend(m_Parent->m_MemDC);
+// 
+// 		m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
+// 
+// 		m_Parent->m_MemDC->SelectClipRgn();*/
+// 	}
 
-		//if (m_Parent->m_Alpha != 0)
-		//{
-		//	m_Parent->OnUpdate(m_ID, TRUE);
-		//	//SIZE szWnd;
-		//	//szWnd = { (INT)m_Parent->m_WndRect->Width, (INT)m_Parent->m_WndRect->Height };
-		//	//POINT ptSrc = { 0,0 };
-		//	//BLENDFUNCTION bf;
-		//	//bf.AlphaFormat = AC_SRC_ALPHA;
-		//	//bf.BlendFlags = 0;
-		//	//bf.BlendOp = 0;
-		//	//bf.SourceConstantAlpha = m_Parent->m_Alpha;
-		//	//UpdateLayeredWindow(m_Parent->m_hWnd, NULL, NULL, &szWnd, m_Parent->m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
-		//}
-		//else
-		//{
-		//	//m_Parent->m_MemDC->BitBlt(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), SRCCOPY);
-		//	m_Parent->m_MemDC->AlphaBlend(hDC, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
-		//}
-
-		//m_Parent->m_Graphics->ReleaseHDC(hDC);
-
-	}
-	else
-	{
-		m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
-	}
 	return TRUE;
 }

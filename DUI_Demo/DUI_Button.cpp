@@ -6,6 +6,7 @@ DUI_Button::DUI_Button()
 {
 	m_ClickProc = nullptr;
 	m_bMouseDown = FALSE;
+	HasState(TRUE);
 }
 
 
@@ -13,9 +14,9 @@ DUI_Button::~DUI_Button()
 {
 }
 
-CLICKPROC DUI_Button::SetClickEventHandler(CLICKPROC Proc)
+MSGPROC DUI_Button::SetClickEventHandler(MSGPROC Proc)
 {
-	CLICKPROC Prev = m_ClickProc;
+	MSGPROC Prev = m_ClickProc;
 	m_ClickProc = Proc;
 	return Prev;
 }
@@ -31,7 +32,7 @@ VOID DUI_Button::OnClick()
 {
 	if (m_ClickProc != nullptr)
 	{
-		m_ClickProc((HWND)this, CM_CLICKED, m_ID, m_ExtraInfo);
+		m_ClickProc((VOID*)this, CM_CLICKED, m_ExtraInfo, NULL);
 		return;
 	}
 }
@@ -69,7 +70,7 @@ LRESULT DUI_Button::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			//Draw();
 		}
 		break;
-	case WM_STATECHANGED:
+	case CM_STATECHANGED:
 		if (m_bInAnimating)
 		{
 			EndAnimate();

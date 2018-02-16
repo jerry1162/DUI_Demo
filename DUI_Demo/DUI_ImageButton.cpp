@@ -148,6 +148,8 @@ VOID DUI_ImageButton::Draw(DUI_Status s)
 			SolidBrush TextBrush(*m_Text->color);
 			INT offset = (m_bMouseDown) ? 1 : 0;
 			m_MemDC->graphics->DrawString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, RectF(m_Text->rect->X + offset, m_Text->rect->Y + offset, m_Text->rect->Width, m_Text->rect->Height), m_Text->format, &TextBrush);
+			
+			//DrawShadowText(m_MemDC->graphics, 5, m_Text, Color::Black, Color::MakeARGB(100, 50, 50, 50));
 		}
 		DUI_ControlBase::Draw();
 	}

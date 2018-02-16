@@ -1,10 +1,14 @@
 #pragma once
+#include "Def.h"
 #include "Functions.h"
+//C:\Users\Jerry\Desktop\VCProject\ResDataBase\ResDataBase
+#include "C:\\Users\\Jerry\\Desktop\\VCProject\\ResDataBase\\ResDataBase\\RDBManager.h"
 #include "DUI_ControlBase.h"
 #include "DUI_Prompt.h"
 #include <vector>
 using std::vector;
 
+/*
 //定义窗口基本属性
 #define TITLEBARHEIGHT 20
 #define MINWNDWIDTH 200
@@ -30,7 +34,8 @@ using std::vector;
 #define CM_SHOW WM_USER + 5//组件显示或隐藏 wParam是指控件ID，lParam表示显示状态
 	#define CS_SHOW 1
 	#define CS_HIDE 0
-typedef LRESULT(CALLBACK *CLICKPROC) (HWND hWnd, UINT uMsg, WPARAM ID, LONG Extra);
+typedef LRESULT(CALLBACK *MSGPROC) (VOID* pThis,UINT uMsg, WPARAM ID, LPARAM ExtraInfo);
+//typedef LRESULT(CALLBACK *CLICKPROC) (VOID* pThis,UINT uMsg, WPARAM ID, LONG Extra);
 
 enum BorderMode
 {
@@ -67,14 +72,28 @@ enum SYSBTNTYPE
 	BT_None
 };
 
+struct AnimArg
+{
+	INT Arg_1;
+	INT Arg_2;
+	MemDC* pDC1;
+	MemDC* pDC2;
+	AnimArg()
+	{
+		Arg_1 = 0;
+		Arg_2 = 0;
+		pDC1 = nullptr;
+		pDC2 = nullptr;
+	}
+};
+
+//typedef BOOL(CALLBACK *WNDANIMPROC)(AnimArg* pArg);
+*/
 class DUI_Window
 {
 public:
 	friend class DUI_ControlBase;
-	friend class DUI_Lable;
-	friend class DUI_Button;
 	friend class DUI_ImageButton;
-	friend class DUI_RadioGroup;
 	DUI_Window();
 	~DUI_Window();
 	BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,
@@ -93,16 +112,24 @@ public:
 	BOOL GetSizeable();
 	DUI_ControlBase* FindControlByID(INT ID, _Out_ INT* Index = nullptr);
 	VOID SetDebugMode(BOOL bDebug);
-	VOID Update(BOOL bForce = FALSE);
+	VOID Update(BOOL bForce = TRUE);
 	DUI_Prompt* GetWndPrompt();
-	BOOL m_bAutoUpdate;//是否在调用函数改变窗口时自动刷新，默认为真，若需要连续的多次更改则可以设置为假然后手动刷新
+	INT ScreenToClient(Point* pt);
+	BOOL GetCursorPos(Point* pt);
+	RDBManager* GetRDBMgr();
+	VOID AddControl(DUI_ControlBase* pControl);
+	BOOL IsWindowInited();
+	MSGPROC SetMsgProc(MSGPROC Proc);
+
 	HWND m_hWnd;
 private:
 	//static LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM ID, LPARAM lParam);
-	VOID DrawWnd();
+	VOID DrawWndBkg();
 	DUI_Window* m_Parent;
+	HDC m_hDC;
 	MemDC* m_MemDC;
+	MemDC* m_BkgDC;
 	Gdiplus::Graphics* m_Graphics;
 	Gdiplus::RectF* m_WndRect;
 	Gdiplus::RectF* m_ClientRect;
@@ -111,9 +138,8 @@ private:
 	WNDPROC m_WndProc;
 
 	BOOL InitDUIWnd(HWND hWnd, LPTSTR Title = L"", BOOL bSizable = FALSE);
+	VOID InitRes();
 	BOOL OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递 ID为INVALID_CONTROLID(-1)则表示此消息被发送给所有控件
-	INT ScreenToClient(Point* pt);
-	BOOL GetCursorPos(Point* pt);
 
 	//MsgProcFuncs
 	BOOL OnMouseMove(WPARAM wParam,Point* ptMouse);
@@ -121,12 +147,19 @@ private:
 	BOOL OnLButtonUp(WPARAM wParam, Point* ptMouse);
 	BOOL OnMouseLeave(WPARAM wParam, Point* ptMouse);
 	BOOL OnSize(WPARAM wParam, LPARAM lParam);
+	BOOL OnMove(WPARAM wParam, LPARAM lParam);
 	BOOL OnPaint(WPARAM wParam, LPARAM lParam);
 	BOOL OnUpdate(WPARAM wParam, BOOL bUpdate);//wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上  //现已取消局部更新
 	BOOL OnSetCursor(WPARAM wParam, LPARAM lParam);
 	BOOL OnGetMinMaxInfo(WPARAM wParam, LPARAM lParam);
+	BOOL OnTimer(WPARAM wParam, LPARAM lParam);
+	BOOL OnShowWindow(WPARAM wParam, LPARAM lParam);
+	BOOL OnDropFiles(WPARAM wParam, LPARAM lParam);
+	BOOL OnWndInited(WPARAM wParam, LPARAM lParam);
+	//BOOL OnWindowPosChanged(WPARAM wParam, LPARAM lParam);
 
 	BYTE m_Alpha;
+	BOOL m_bInited;//当处理完WM_SHOWWINDOW后，此标识为真
 	GdipString* m_Title;
 	Color* m_BkgColor;
 	Image* m_Icon;
@@ -136,8 +169,8 @@ private:
 	BOOL m_Sizeable;
 	BorderStyle m_BorderStyle;
 	DUI_ImageButton* m_SysBtn[4];
-	CLICKPROC m_SysBtnClickProcAddr;
-	LRESULT CALLBACK SysBtnClick(HWND hWnd, UINT uMsg, WPARAM ID, LONG Extra);
+	MSGPROC m_SysBtnClickProcAddr;
+	BOOL CALLBACK SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	INT m_SysBtnCnt;
 	
 	BOOL m_bMouseDown;
@@ -149,4 +182,11 @@ private:
 	INT m_FocusCtrlID;
 	INT m_LastHoverCtrlID;
 	CursorDirection m_CurCDR;
+
+	RDBManager* m_pRdbMgr;
+	AnimArg* m_pAnimArg;
+	MSGPROC m_MsgProc;
+	//WNDANIMPROC m_lpfnAnimProc;
+	BOOL WndAnimProc(AnimArg* pArg);
+	BOOL m_bAnimate;
 };

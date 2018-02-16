@@ -22,7 +22,7 @@ BOOL DUI_RadioGroup::Create(DUI_Window * Window)
 	m_bVisialbe = FALSE;
 	m_IDs = new vector<INT>;
 
-	Window->m_Controls->push_back(this);
+	Window->AddControl(this);
 	return TRUE;
 }
 

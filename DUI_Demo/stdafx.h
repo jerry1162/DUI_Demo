@@ -20,6 +20,7 @@
 #include <afxext.h>         // MFC 扩展
 
 
+#include <afxdisp.h>        // MFC 自动化类
 
 
 
@@ -31,6 +32,7 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxcontrolbars.h>     // 功能区和控件条的 MFC 支持
+
 
 
 #ifdef _UNICODE

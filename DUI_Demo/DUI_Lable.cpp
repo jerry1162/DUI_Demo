@@ -6,6 +6,7 @@ DUI_Lable::DUI_Lable()
 {
 	m_TextColor = Color::White;
 	//m_pAnimateProc = (TIMERPROC)GetCallBackAddr(this, &DUI_Lable::AnimateProc);
+	HasState(TRUE);
 }
 
 
@@ -30,7 +31,7 @@ LRESULT DUI_Lable::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	switch (uMsg)
 	{
-	case WM_STATECHANGED:
+	case CM_STATECHANGED:
 		if (m_bInAnimating)
 		{
 			EndAnimate();
@@ -63,7 +64,7 @@ VOID DUI_Lable::Draw(DUI_Status s)
 		{
 			s = m_CurState;
 		}
-		SolidBrush br(m_TextColor);
+		SolidBrush br(/*m_TextColor*/Color::Black);
 		//m_Text->color = &m_TextColor;
 		switch (s)
 		{
@@ -84,6 +85,7 @@ VOID DUI_Lable::Draw(DUI_Status s)
 			break;
 		}
 		DrawShadowText(m_MemDC->graphics, 5, m_Text, Color::Black, Color::MakeARGB(100, 50, 50, 50));
+		//br.SetColor(m_TextColor);
 		//m_MemDC->graphics->DrawString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &br);
 
 		DUI_ControlBase::Draw();

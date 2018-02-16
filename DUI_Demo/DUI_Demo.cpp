@@ -52,6 +52,8 @@ BOOL CDUI_DemoApp::InitInstance()
 	CWinApp::InitInstance();
 
 
+	AfxEnableControlContainer();
+
 	// 创建 shell 管理器，以防对话框包含
 	// 任何 shell 树视图控件或 shell 列表视图控件。
 	CShellManager *pShellManager = new CShellManager;
@@ -92,16 +94,13 @@ BOOL CDUI_DemoApp::InitInstance()
 	{
 		delete pShellManager;
 	}
-	//GdipStartup();
+
+#if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)
+	ControlBarCleanUp();
+#endif
+
 	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
 	//  而不是启动应用程序的消息泵。
 	return FALSE;
 }
 
-
-
-int CDUI_DemoApp::ExitInstance()
-{
-	// TODO: 在此添加专用代码和/或调用基类
-	return CWinApp::ExitInstance();
-}

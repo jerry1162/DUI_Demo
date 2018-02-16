@@ -1,4 +1,4 @@
-
+#pragma once
 template <typename T>//产生一个代理函数
 LPVOID  GetCallBackAddr(LPVOID pThis, T MethodAddr)
 {
@@ -33,3 +33,8 @@ LPVOID  GetCallBackAddr(LPVOID pThis, T MethodAddr)
 	}
 	return (LPVOID)Block;
 }
+
+/*void FreeCallBackAddr(LPVOID wndProc)
+{
+	VirtualFree(wndProc, 4096, MEM_RELEASE);
+}*/

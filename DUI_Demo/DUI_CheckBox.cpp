@@ -16,13 +16,25 @@ DUI_CheckBox::~DUI_CheckBox()
 
 BOOL DUI_CheckBox::Create(DUI_Window * Window, REAL Left, REAL Top, REAL Width, REAL Height, LPCWSTR Text, BOOL bChecked, BOOL bVisiable)
 {
-	BOOL Ret = DUI_Button::Create(Window, Left, Top, Width, Height, Text, bVisiable);
+	BOOL Ret = DUI_Button::Create(Window, Left, Top, Width, Height, Text, FALSE);
 	if (Ret)
 	{
-		m_Text->rect->X = CHECK_SIZE;
-		m_Text->rect->Width -= CHECK_SIZE;
+		INT size = m_Parent->GetRDBMgr()->GetIntValByName(_T("CheckBox_Size"));
+		m_Text->rect->X = (REAL)size;
+		m_Text->rect->Width -= size;
 		m_Text->color->SetValue(Color::White);
-		pImg = ImageFromIDResource(IDB_CHECKBOX, _T("PNG"));
+
+		ResItem* lpItem = m_Parent->GetRDBMgr()->GetItemByName(_T("CheckBox_Pic"));
+		if (!lpItem)
+		{
+			MessageBox(m_Parent->m_hWnd, _T("×ÊÔ´¼ÓÔØÊ§°Ü"), _T("´íÎó:"), MB_ICONINFORMATION);
+			return FALSE;
+		}
+		pImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
+
+		//pImg = ImageFromIDResource(IDB_CHECKBOX, _T("PNG"));
+		m_bVisialbe = bVisiable;
+		Update();
 	}
 	return Ret;
 }

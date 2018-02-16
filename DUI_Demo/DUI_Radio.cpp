@@ -17,14 +17,24 @@ DUI_Radio::~DUI_Radio()
 
 BOOL DUI_Radio::Create(DUI_Window * Window, DUI_RadioGroup * Group, REAL Left, REAL Top, REAL Width, REAL Height, LPCWSTR Text, BOOL bVisiable)
 {
-	BOOL Ret = DUI_ControlBase::Create(Window, Left, Top, Width, Height, Text, bVisiable);
+	BOOL Ret = DUI_ControlBase::Create(Window, Left, Top, Width, Height, Text, FALSE);
 	if (Ret)
 	{
 		ChangeGroup(Group);
-		m_Text->rect->X = 15;
-		m_Text->rect->Width -= 15;
+		INT size = m_Parent->GetRDBMgr()->GetIntValByName(_T("Radio_Size"));
+		m_Text->rect->X = (REAL)size;
+		m_Text->rect->Width -= size;
 		m_Text->color->SetValue(Color::White);
-		pImg = ImageFromIDResource(IDB_RADIOBOX, _T("PNG"));
+		ResItem* lpItem = m_Parent->GetRDBMgr()->GetItemByName(_T("Radio_Pic"));
+		if (!lpItem)
+		{
+			MessageBox(m_Parent->m_hWnd, _T("×ÊÔ´¼ÓÔØÊ§°Ü"), _T("´íÎó:"), MB_ICONINFORMATION);
+			return FALSE;
+		}
+		pImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
+		//pImg = ImageFromIDResource(IDB_RADIOBOX, _T("PNG"));
+		m_bVisialbe = bVisiable;
+		Update();
 	}
 	return Ret;
 }

@@ -44,10 +44,10 @@ BOOL DUI_Prompt::Create(HWND hParent, LPTSTR Text, RectF* Rect)
 	Info->hinst = GetModuleHandle(nullptr);
 	Info->uId = NULL;
 	Info->lpszText = Text;
-	Info->rect.left = m_Rect->X;
-	Info->rect.top = m_Rect->Y;
-	Info->rect.right = m_Rect->X + m_Rect->Width;
-	Info->rect.bottom = m_Rect->Y + m_Rect->Height;
+	Info->rect.left = (LONG)m_Rect->X;
+	Info->rect.top = (LONG)m_Rect->Y;
+	Info->rect.right = (LONG)m_Rect->X + (LONG)m_Rect->Width;
+	Info->rect.bottom = (LONG)m_Rect->Y + (LONG)m_Rect->Height;
 	SendMessage(m_hWnd, TTM_ADDTOOL, NULL, (LPARAM)Info);
 	SendMessage(m_hWnd, TTM_SETTIPBKCOLOR, RGB(255, 255, 191), (LPARAM)Info);
 	SendMessage(m_hWnd, TTM_SETTIPTEXTCOLOR, 0, (LPARAM)Info);
