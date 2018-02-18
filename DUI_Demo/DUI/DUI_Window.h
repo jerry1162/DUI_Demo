@@ -1,9 +1,8 @@
 #pragma once
-#include "Def.h"
-#include "Functions.h"
-//C:\Users\Jerry\Desktop\VCProject\ResDataBase\ResDataBase
-#include "C:\\Users\\Jerry\\Desktop\\VCProject\\ResDataBase\\ResDataBase\\RDBManager.h"
+#include "..//Common//Def.h"
+#include "..//RDBManager//RDBManager.h"
 #include "DUI_ControlBase.h"
+
 #include "DUI_Prompt.h"
 #include <vector>
 using std::vector;

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "DUI_CheckBox.h"
-#include "resource.h"
+#include "..//resource.h"
 
 DUI_CheckBox::DUI_CheckBox()
 {

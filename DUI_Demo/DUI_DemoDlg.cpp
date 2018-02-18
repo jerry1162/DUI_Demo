@@ -37,6 +37,7 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 	delete m_Radio1;
 	delete m_Radio2;
 	delete m_RGroup;
+	delete m_ProgressBar;
 	delete m_SubWindow;
 	delete m_Window;
 	GdipShutdown();
@@ -45,7 +46,7 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	//m_Lable->SetVisiable(!m_Lable->GetVisiable());
-	m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
+	//m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
 	////m_Lable->SetText(L"Button");
 	////static int i = 0;
 	////i += 1;
@@ -162,7 +163,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	//	MessageBox(L"´´½¨Ê§°Ü");
 	//	return TRUE;
 	//}
-	//_CrtSetBreakAlloc(3670);
+
 	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
 	//m_Window->SetSizeable(TRUE);
 	//m_Window->SetDebugMode(TRUE);

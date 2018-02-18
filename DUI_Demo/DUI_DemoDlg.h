@@ -3,17 +3,16 @@
 //
 
 #pragma once
-#include "Functions.h"
-#include "DUI_Window.h"
-//#include "ControlBase.h"
-#include "DUI_Lable.h"
-#include "DUI_Button.h"
-#include "DUI_ImageButton.h"
-#include "DUI_CheckBox.h"
-#include "DUI_RadioGroup.h"
-#include "DUI_Radio.h"
-#include "DUI_ProgressBar.h"
-#include "DUI_ImageBox.h"
+#include ".//Common//Functions.h"
+#include ".//DUI//DUI_Window.h"
+#include ".//DUI//DUI_Lable.h"
+#include ".//DUI//DUI_Button.h"
+#include ".//DUI//DUI_ImageButton.h"
+#include ".//DUI//DUI_CheckBox.h"
+#include ".//DUI//DUI_RadioGroup.h"
+#include ".//DUI//DUI_Radio.h"
+#include ".//DUI//DUI_ProgressBar.h"
+#include ".//DUI//DUI_ImageBox.h"
 
 // CDUI_DemoDlg ¶Ô»°¿ò
 class CDUI_DemoDlg : public CDialogEx

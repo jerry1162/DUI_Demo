@@ -93,6 +93,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,43 +188,45 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Desktop\VCProject\ResDataBase\ResDataBase\RDBManager.h" />
-    <ClInclude Include="CallBack.hpp" />
-    <ClInclude Include="Def.h" />
-    <ClInclude Include="DUI_Button.h" />
-    <ClInclude Include="DUI_CheckBox.h" />
-    <ClInclude Include="DUI_ControlBase.h" />
+    <ClInclude Include="Common\CallBack.hpp" />
+    <ClInclude Include="Common\Def.h" />
+    <ClInclude Include="Common\Functions.h" />
+    <ClInclude Include="Common\MemDC.h" />
+    <ClInclude Include="DUI\DUI_Button.h" />
+    <ClInclude Include="DUI\DUI_CheckBox.h" />
+    <ClInclude Include="DUI\DUI_ControlBase.h" />
+    <ClInclude Include="DUI\DUI_ImageBox.h" />
+    <ClInclude Include="DUI\DUI_ImageButton.h" />
+    <ClInclude Include="DUI\DUI_Lable.h" />
+    <ClInclude Include="DUI\DUI_ProgressBar.h" />
+    <ClInclude Include="DUI\DUI_Prompt.h" />
+    <ClInclude Include="DUI\DUI_Radio.h" />
+    <ClInclude Include="DUI\DUI_RadioGroup.h" />
+    <ClInclude Include="DUI\DUI_Window.h" />
     <ClInclude Include="DUI_Demo.h" />
     <ClInclude Include="DUI_DemoDlg.h" />
-    <ClInclude Include="DUI_ImageBox.h" />
-    <ClInclude Include="DUI_ImageButton.h" />
-    <ClInclude Include="DUI_Lable.h" />
-    <ClInclude Include="DUI_ProgressBar.h" />
-    <ClInclude Include="DUI_Prompt.h" />
-    <ClInclude Include="DUI_Radio.h" />
-    <ClInclude Include="DUI_RadioGroup.h" />
-    <ClInclude Include="DUI_Window.h" />
-    <ClInclude Include="Functions.h" />
+    <ClInclude Include="RDBManager\RDBManager.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Desktop\VCProject\ResDataBase\ResDataBase\RDBManager.cpp" />
-    <ClCompile Include="DUI_Button.cpp" />
-    <ClCompile Include="DUI_CheckBox.cpp" />
-    <ClCompile Include="DUI_ControlBase.cpp" />
+    <ClCompile Include="Common\Functions.cpp" />
+    <ClCompile Include="Common\MemDC.cpp" />
+    <ClCompile Include="DUI\DUI_Button.cpp" />
+    <ClCompile Include="DUI\DUI_CheckBox.cpp" />
+    <ClCompile Include="DUI\DUI_ControlBase.cpp" />
+    <ClCompile Include="DUI\DUI_ImageBox.cpp" />
+    <ClCompile Include="DUI\DUI_ImageButton.cpp" />
+    <ClCompile Include="DUI\DUI_Lable.cpp" />
+    <ClCompile Include="DUI\DUI_ProgressBar.cpp" />
+    <ClCompile Include="DUI\DUI_Prompt.cpp" />
+    <ClCompile Include="DUI\DUI_Radio.cpp" />
+    <ClCompile Include="DUI\DUI_RadioGroup.cpp" />
+    <ClCompile Include="DUI\DUI_Window.cpp" />
     <ClCompile Include="DUI_Demo.cpp" />
     <ClCompile Include="DUI_DemoDlg.cpp" />
-    <ClCompile Include="DUI_ImageBox.cpp" />
-    <ClCompile Include="DUI_ImageButton.cpp" />
-    <ClCompile Include="DUI_Lable.cpp" />
-    <ClCompile Include="DUI_ProgressBar.cpp" />
-    <ClCompile Include="DUI_Prompt.cpp" />
-    <ClCompile Include="DUI_Radio.cpp" />
-    <ClCompile Include="DUI_RadioGroup.cpp" />
-    <ClCompile Include="DUI_Window.cpp" />
-    <ClCompile Include="Functions.cpp" />
+    <ClCompile Include="RDBManager\RDBManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -234,8 +238,8 @@
     <ResourceCompile Include="DUI_Demo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\DUI_Res.RDB" />
     <None Include="res\DUI_Demo.rc2" />
+    <None Include="res\DUI_Res.RDB" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Image\Icon.ico" />

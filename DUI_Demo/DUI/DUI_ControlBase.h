@@ -1,6 +1,5 @@
 #pragma once
 #include "DUI_Window.h"
-#include "Functions.h"
 /*
 enum DUI_Status
 {

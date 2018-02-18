@@ -19,6 +19,9 @@
     <Filter Include="RDBManager">
       <UniqueIdentifier>{1d25e7fb-8678-4dd9-bb16-96a97ed9932c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{99b28306-8051-4355-bab2-cef942d6abb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -39,50 +42,53 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CallBack.hpp">
+    <ClInclude Include="RDBManager\RDBManager.h">
+      <Filter>RDBManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\CallBack.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Def.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Functions.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\MemDC.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Button.h">
       <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_ProgressBar.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_CheckBox.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="Def.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_ControlBase.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_ImageBox.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_Lable.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="Functions.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_Prompt.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_Window.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_Radio.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_RadioGroup.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_RadioGroup.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_Radio.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_Window.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_Prompt.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_ImageButton.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_Lable.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="DUI\DUI_ImageBox.h">
+      <Filter>DUI</Filter>
     </ClInclude>
-    <ClInclude Include="DUI_ImageButton.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI_ControlBase.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI_CheckBox.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI_Button.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Desktop\VCProject\ResDataBase\ResDataBase\RDBManager.h">
-      <Filter>RDBManager</Filter>
+    <ClInclude Include="DUI\DUI_ProgressBar.h">
+      <Filter>DUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -95,44 +101,47 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DUI_Button.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_CheckBox.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_ControlBase.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_ImageButton.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_Lable.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_Prompt.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_Radio.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_RadioGroup.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_Window.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Functions.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_ProgressBar.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI_ImageBox.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Desktop\VCProject\ResDataBase\ResDataBase\RDBManager.cpp">
+    <ClCompile Include="RDBManager\RDBManager.cpp">
       <Filter>RDBManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Functions.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\MemDC.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Button.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_CheckBox.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ControlBase.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Lable.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Prompt.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Radio.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_RadioGroup.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Window.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ImageButton.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ImageBox.cpp">
+      <Filter>DUI</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ProgressBar.cpp">
+      <Filter>DUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -144,7 +153,7 @@
     <None Include="res\DUI_Demo.rc2">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\..\DUI_Res.RDB" />
+    <None Include="res\DUI_Res.RDB" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DUI_Demo.ico">

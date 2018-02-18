@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DUI_Window.h"
-#include "Resource.h"
 #include "DUI_ImageButton.h"
+#include "..//Resource.h"
 
 DUI_Window::DUI_Window()
 {

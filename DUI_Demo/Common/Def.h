@@ -1,5 +1,6 @@
 #pragma once
 #include "Functions.h"
+#include "MemDC.h"
 //定义窗口基本属性
 #define TITLEBARHEIGHT (20)
 #define MINWNDWIDTH (200)

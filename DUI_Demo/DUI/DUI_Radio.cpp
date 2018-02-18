@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "DUI_Radio.h"
-#include "resource.h"
+#include "..//resource.h"
 
 DUI_Radio::DUI_Radio()
 {
