@@ -43,6 +43,8 @@ public:
 	VOID WndToClient(Point* ptWnd);
 	VOID SetbShowOnNCRgn(BOOL bShow);
 	BOOL GetbShowOnNCRgn();
+	LPTSTR SetCursor(LPTSTR CursorName);
+	LPTSTR GetCursor();
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	DUI_Object* m_Parent;
@@ -79,6 +81,8 @@ protected:
 	BOOL m_bMouseDown;
 	Point* m_ptMouseDown;
 	BOOL m_bCanShowOnNCRgn;
+	LPTSTR m_CursorName;
+	HCURSOR m_LastHCursor;
 
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上

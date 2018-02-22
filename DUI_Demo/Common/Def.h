@@ -33,7 +33,7 @@ enum ObjType
 #define WM_UPDATE (WM_USER + 1) //对窗口来说，wParam是指向需要更新的RectF的指针,为空则刷新整个窗口,lParam表示是否更新到窗口上   对控件来说，wParam是指控件ID，lParam相同
 #define WM_WNDINITED (WM_USER + 2) //用于处理窗口初始化完后的一些工作
 
-
+#define CM_MOUSELEAVE (WM_USER + 99)  //表示鼠标离开控件,wParam为控件ID，lParam未用
 #define CM_MOUSEGETIN (WM_USER + 100) //表示鼠标进入控件，注意，此消息与WM_MOUSEMOVE不同，只在鼠标进入控件时发送，鼠标在控件上移动时不会发送此消息
 #define CM_STATECHANGED (WM_USER + 101)//当控件状态发生变化时，收到此消息，wParam是指控件ID，lParam为上一个状态 返回0表示不需要在ChangeState里调用Update.
 #define CM_CLICKED (WM_USER + 102)//控件的按下事件 wParam是指控件ID，lParam未用
@@ -50,6 +50,7 @@ enum ObjType
 #define RG_GROUPCHANGE (WM_USER + 109)//当单选框改变所属单选组时，向其单选组发送此消息 wParam是单选框ID，lParam未用
 
 #define CM_CREATE (WM_USER + 109) //当组件创建完毕由ControlBase分发给组件，wParam是单选框ID，lParam未用
+#define CM_SETCURSOR (WM_USER + 110) //需要设置鼠标指针时发送，wParam是单选框ID，lParam未用
 
 //定义其他信息
 #define DEF_CLICKTIME 150 //默认的鼠标单击事件中，鼠标按下和抬起的时间 GetTickCount

@@ -27,6 +27,8 @@ DUI_ControlBase::DUI_ControlBase()
 	m_ParentWnd = nullptr;
 	m_ptMouseDown = nullptr;
 	m_bCanShowOnNCRgn = FALSE;
+	m_CursorName = nullptr;
+	m_LastHCursor = NULL;
 }
 
 
@@ -350,6 +352,18 @@ BOOL DUI_ControlBase::GetbShowOnNCRgn()
 	return m_bCanShowOnNCRgn;
 }
 
+LPTSTR DUI_ControlBase::SetCursor(LPTSTR CursorName)
+{
+	LPTSTR PrevCur = m_CursorName;
+	m_CursorName = CursorName;
+	return PrevCur;
+}
+
+LPTSTR DUI_ControlBase::GetCursor()
+{
+	return m_CursorName;
+}
+
 BOOL DUI_ControlBase::IsPtInCtrl(Point * pt)
 {
 	RectF* cRect = m_VRect->Clone();
@@ -455,9 +469,30 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 	case CM_MOUSEGETIN:
+		if (m_CursorName != nullptr)
+		{
+			m_LastHCursor = m_ParentWnd->SetCursor(m_CursorName);
+		}
+		else
+		{
+			m_ParentWnd->SetCursor(IDC_ARROW);
+		}
 		if (m_Prompt != _T(""))
 		{
 			m_ParentWnd->GetWndPrompt()->Create(m_ParentWnd->GetHWND(), m_Prompt, m_VRect);
+		}
+		break;
+	case CM_MOUSELEAVE:
+		if (m_LastHCursor != NULL)
+		{
+			m_ParentWnd->SetCursor(m_LastHCursor);
+			m_LastHCursor = NULL;
+		}
+		break;
+	case CM_SETCURSOR:
+		if (m_CursorName != nullptr)
+		{
+			m_ParentWnd->SetCursor(m_CursorName);
 		}
 		break;
 	case CM_SETAUTOUPDATE:

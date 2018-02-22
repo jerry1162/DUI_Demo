@@ -51,6 +51,8 @@ public:
 	HWND GetHWND();
 	VOID AddControl(DUI_ControlBase * pCtrl);
 	VOID Flush();
+	HCURSOR SetCursor(LPTSTR CursorName);
+	HCURSOR SetCursor(HCURSOR hCursor);
 	//HWND m_hWnd;
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;

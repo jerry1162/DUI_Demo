@@ -173,20 +173,25 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 
 	m_Lable = new DUI_Lable;
 	m_Lable->Create(m_Window, 120, 120, 200, 25, _T("Lable1"));
+	m_Lable->SetCursor(IDC_IBEAM);
+
 	m_Button = new DUI_Button;
 	m_Button->Create(m_Window, 60, 20, 76, 26, _T("正常按钮"));
 	m_BtnClick = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::MyBtn);
 	m_Button->SetMsgProc(m_BtnClick);
+	m_Button->SetCursor(IDC_HAND);
 
 	pImg[0] = ImageFromIDResource(IDB_BTN_1, _T("PNG"));
 	pImg[1] = ImageFromIDResource(IDB_BTN_2, _T("PNG"));
 	pImg[2] = ImageFromIDResource(IDB_BTN_3, _T("PNG"));
 	m_ImgBtn = new DUI_ImageButton;
 	m_ImgBtn->Create(m_Window, 60, 55, 76, 26, pImg[0], pImg[1], pImg[2], _T("ImageBtn"));
+	m_ImgBtn->SetCursor(IDC_HAND);
 
 	m_GroupBox = new DUI_GroupBox;
 	m_GroupBox->Create(m_Window, 120, 155, 100, 70, _T("分 组 框"));
 	m_GroupBox->MoveWithMouse(TRUE);
+	m_GroupBox->SetCursor(IDC_SIZEALL);
 
 	m_CheckBox = new DUI_CheckBox; //ID 8
 	m_CheckBox->Create(m_GroupBox, 0, 0, 75, 15, _T("Box"));//150, 20, 75, 15
@@ -209,7 +214,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_WndProc = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::WndProc);
 	m_Window->AcceptDropFile();
 	m_Window->SetMsgProc(m_WndProc);
-	//m_Window->SetDebugMode(TRUE);
+	m_Window->SetDebugMode(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

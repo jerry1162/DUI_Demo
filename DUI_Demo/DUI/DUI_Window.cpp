@@ -1203,7 +1203,7 @@ BOOL DUI_Window::OnWndInited(WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
-RDBManager * DUI_Window::GetRDBMgr()
+RDBManager* DUI_Window::GetRDBMgr()
 {
 	return m_pRdbMgr;
 }
@@ -1231,6 +1231,16 @@ VOID DUI_Window::Flush()
 	{
 		m_MemDC->AlphaBlend(m_hDC, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 255);
 	}
+}
+
+HCURSOR DUI_Window::SetCursor(LPTSTR CursorName)
+{
+	return ::SetCursor(LoadCursor(NULL, CursorName));
+}
+
+HCURSOR DUI_Window::SetCursor(HCURSOR hCursor)
+{
+	return ::SetCursor(hCursor);
 }
 
 BOOL DUI_Window::CanBeParent()
@@ -1522,16 +1532,22 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				else
 				{
 					pCtrl->ChangeState(S_Normal);
+					pCtrl->MsgProc(pCtrl->m_ID, CM_MOUSELEAVE, pCtrl->m_ID, NULL);
 					MsgProc(m_ID, WM_MOUSEMOVE, wParam, lParam);
 				}
 				break;
 			default:
 				break;
 			}
-		}
-		if (IsMouseMsg(uMsg))
-		{
 			lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(), ptMouse.Y - pCtrl->m_Rect->GetTop());
+		}
+		else if (uMsg == WM_SETCURSOR)
+		{
+			if (bInCtrl)
+			{
+				pCtrl->MsgProc(pCtrl->m_ID, CM_SETCURSOR, pCtrl->m_ID, NULL);
+				return TRUE;
+			}
 		}
 		return pCtrl->MsgProc(pCtrl->m_ID, uMsg, wParam, lParam);
 	}
@@ -1541,9 +1557,9 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	for (auto it = m_Controls->rbegin(); it != m_Controls->rend(); ++it)
 	{
 		if ((*it)->m_bVisialbe == FALSE) continue;
+		bInCtrl = (*it)->IsPtInCtrl(&ptMouse);
 		if (IsMouseMsg(uMsg))
 		{
-			bInCtrl = (*it)->IsPtInCtrl(&ptMouse);
 			if (bInCtrl)
 			{
 				bFound = TRUE;
@@ -1557,8 +1573,9 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					if (m_LastHoverCtrlID != INVALID_CONTROLID)
 					{
-						FindControlByID(m_LastHoverCtrlID)->MsgProc(m_LastHoverCtrlID, WM_MOUSELEAVE, wParam, NULL);
-						FindControlByID(m_LastHoverCtrlID)->ChangeState(S_Normal);
+						DUI_ControlBase* p = FindControlByID(m_LastHoverCtrlID);
+						p->MsgProc(m_LastHoverCtrlID, CM_MOUSELEAVE, wParam, NULL);
+						p->ChangeState(S_Normal);
 					}
 					(*it)->MsgProc((*it)->m_ID, CM_MOUSEGETIN, NULL, NULL);
 					(*it)->ChangeState(S_HighLight);
@@ -1578,25 +1595,33 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			default:
 				break;
 			}
+			if (bInCtrl)
+			{
+				return Ret;
+			}
+		}
+		else if (uMsg == WM_SETCURSOR)
+		{
+			if (bInCtrl)
+			{
+				(*it)->MsgProc((*it)->m_ID, CM_SETCURSOR, (*it)->m_ID, NULL);
+				return TRUE;
+			}
 		}
 		else
 		{
 			(*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
 		}
-		if (IsMouseMsg(uMsg) && bInCtrl)
-		{
-			//lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(),ptMouse.Y - (*it)->m_Rect->GetTop());
-			return Ret;//(*it)->MsgProc(uMsg, wParam, lParam);
-		}
 	}
 
 	if (IsMouseMsg(uMsg))//bFound一定为假
 	{
+		//标识在窗口上，而非控件上。
 		if (uMsg == WM_LBUTTONDOWN)
 		{
-			m_CaptureCtrlID = INVALID_CONTROLID;//标识在窗口上，而非控件上。
+			m_CaptureCtrlID = INVALID_CONTROLID;
 		}
-		if (m_LastHoverCtrlID != INVALID_CONTROLID)
+		else if (uMsg == WM_MOUSEMOVE && m_LastHoverCtrlID != INVALID_CONTROLID)
 		{
 			pCtrl = FindControlByID(m_LastHoverCtrlID);
 			if (pCtrl == nullptr)
@@ -1604,7 +1629,7 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				m_LastHoverCtrlID = INVALID_CONTROLID;
 				return FALSE;
 			}
-			pCtrl->MsgProc(pCtrl->m_ID, WM_MOUSELEAVE, wParam, NULL);
+			pCtrl->MsgProc(pCtrl->m_ID, CM_MOUSELEAVE, pCtrl->m_ID, NULL);
 			pCtrl->ChangeState(S_Normal);
 			m_LastHoverCtrlID = INVALID_CONTROLID;
 		}
