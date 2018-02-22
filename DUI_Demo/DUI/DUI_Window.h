@@ -54,10 +54,13 @@ public:
 	VOID Flush();
 	HCURSOR SetCursor(LPTSTR CursorName);
 	HCURSOR SetCursor(HCURSOR hCursor);
-	//HWND m_hWnd;
+	VOID SetAllowCtrlUpdate(BOOL bAllow);
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-	VOID DrawWndBkg();
+	VOID DrawWnd(MemDC* hDC = nullptr);
+	VOID DrawWndFrame(MemDC* hDC = nullptr);
+	VOID DrawWndBkg(MemDC* hDC = nullptr);
+	VOID DrawTitleBar(MemDC* hDC = nullptr);
 	DUI_Window* m_Parent;
 	HDC m_hDC;
 	MemDC* m_MemDC;
@@ -120,4 +123,5 @@ protected:
 	//WNDANIMPROC m_lpfnAnimProc;
 	BOOL WndAnimProc(AnimArg* pArg);
 	BOOL m_bAnimate;
+	BOOL m_bAllowCtrlUpdate;
 };

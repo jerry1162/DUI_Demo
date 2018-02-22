@@ -53,7 +53,7 @@ enum ObjType
 #define CM_SETCURSOR (WM_USER + 110) //需要设置鼠标指针时发送，wParam是控件ID，lParam未用
 #define CM_MOVE (WM_USER + 111) //当组件位置被移动后发送给控件，也就是由Move发送，wParam是控件ID，lParam未用
 #define CM_SIZE (WM_USER + 112) //当组件大小被改变后发送给控件，也就是由Size发送，wParam是控件ID，lParam未用
-
+#define CM_PARENTDESTROY (WM_USER + 113) //父组件被销毁前发送给控件，wParam是控件ID，lParam未用
 
 
 

@@ -46,6 +46,7 @@ public:
 	BOOL GetbShowOnNCRgn();
 	LPTSTR SetCursor(LPTSTR CursorName);
 	LPTSTR GetCursor();
+	BOOL SetParent(DUI_Object* Parent);
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	DUI_Object* m_Parent;

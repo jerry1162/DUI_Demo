@@ -50,7 +50,7 @@ DUI_Window::DUI_Window()
 	m_pRdbMgr = nullptr;
 	m_pAnimArg = new AnimArg;
 	m_bAnimate = FALSE;
-
+	m_bAllowCtrlUpdate = FALSE;
 	//m_lpfnAnimProc= (WNDANIMPROC)GetCallBackAddr(this, &DUI_Window::WndAnimProc);
 	InitRes();
 }
@@ -83,7 +83,7 @@ LRESULT DUI_Window::MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_CREATE:
-		DrawWndBkg();
+		DrawWnd();
 		break;
 	case WM_LBUTTONDOWN:
 		ptMouse.X = LOWORD(lParam);
@@ -156,25 +156,25 @@ LRESULT DUI_Window::MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	
 }
 
-VOID DUI_Window::DrawWndBkg()
+VOID DUI_Window::DrawWnd(MemDC* hDC)
 {
-	m_BkgDC->Clear();
-	if (SHADOWWIDTH != 0)
+	if (hDC == nullptr)
 	{
-		m_BkgDC->graphics->Clear(Color::Transparent);
-		DrawShadow(m_BkgDC->graphics, m_ClientRect, 5);
+		hDC = m_BkgDC;
 	}
-	SolidBrush Brush(*m_BkgColor);
-	if (m_BkgImg != nullptr)
-	{
-		m_BkgDC->graphics->DrawImage(m_BkgImg, /*m_WndRect->GetLeft()*/0.0 + SHADOWWIDTH,
-			/*m_WndRect->GetTop()*/0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH*2, m_WndRect->Height - SHADOWWIDTH*2);
-	}
-	else
-	{
-		m_BkgDC->graphics->FillRectangle(&Brush, 0.0 + SHADOWWIDTH, 0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH * 2, m_WndRect->Height - SHADOWWIDTH * 2);
-	}
+	hDC->Clear();
+	DrawWndBkg(hDC);
+	DrawWndFrame(hDC);
+	DrawTitleBar(hDC);
+	hDC->AlphaBlend(m_MemDC);
+}
 
+VOID DUI_Window::DrawWndFrame(MemDC* hDC)
+{
+	if (hDC == nullptr)
+	{
+		hDC = m_BkgDC;
+	}
 	//画边框
 	GraphicsPath* pPath;
 	pPath = new GraphicsPath;
@@ -198,7 +198,7 @@ VOID DUI_Window::DrawWndBkg()
 	}
 	Color* color = new Color(m_BorderStyle.Color);
 	Pen pen(*color, 1);
-	m_BkgDC->graphics->DrawPath(&pen, pPath);
+	hDC->graphics->DrawPath(&pen, pPath);
 	delete pPath;
 
 	if (m_BorderStyle.DoubleBorder)
@@ -220,34 +220,61 @@ VOID DUI_Window::DrawWndBkg()
 			DrawPathRoundRect(pPath, BorderRect.X, BorderRect.Y, BorderRect.Width, BorderRect.Height, 6);
 		}
 
-		m_BkgDC->graphics->DrawPath(&pen, pPath);
+		hDC->graphics->DrawPath(&pen, pPath);
 		delete pPath;
 		//画边框结束
 	}
 	delete color;
 
-	//m_MemDC->graphics->DrawImage(m_SysBtn, (INT)0, 0);
-	//m_MemDC->graphics->DrawImage(m_SysBtnPic, *m_SysBtn_Close.rect, (REAL)((m_SysBtn_Close.status - 1)*SYSBTN_X), (REAL)0, (REAL)(m_SysBtn_Close.rect->Width), (REAL)(m_SysBtn_Close.rect->Height), UnitPixel);
-
-
-	if (m_Icon != nullptr)
-	{
-		m_BkgDC->graphics->DrawImage(m_Icon, *m_IconRect);
-	}
-
-	Brush.SetColor(*m_Title->color);
-	DrawShadowText(m_BkgDC->graphics, m_Title);
-
-	//调试模式，把所有矩形的边框画出来
 	if (m_bDebug)
 	{
 		Pen BorderPen(Color::MakeARGB(200, 100, 100, 100), 1);
-		//m_BkgDC->graphics->DrawRectangle(&BorderPen, *m_WndRect);
-		m_BkgDC->graphics->DrawRectangle(&BorderPen, *m_ClientRect);
-		m_BkgDC->graphics->DrawRectangle(&BorderPen, *m_Title->rect);
-		m_BkgDC->graphics->DrawRectangle(&BorderPen, *m_IconRect);
+		hDC->graphics->DrawRectangle(&BorderPen, *m_ClientRect);
 	}
-	m_BkgDC->AlphaBlend(m_MemDC);
+}
+
+VOID DUI_Window::DrawWndBkg(MemDC* hDC)
+{
+	if (hDC == nullptr)
+	{
+		hDC = m_BkgDC;
+	}
+	if (SHADOWWIDTH != 0)
+	{
+		hDC->graphics->Clear(Color::Transparent);
+		DrawShadow(hDC->graphics, m_ClientRect, 5);
+	}
+	SolidBrush Brush(*m_BkgColor);
+	if (m_BkgImg != nullptr)
+	{
+		hDC->graphics->DrawImage(m_BkgImg, /*m_WndRect->GetLeft()*/0.0 + SHADOWWIDTH,
+			/*m_WndRect->GetTop()*/0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH*2, m_WndRect->Height - SHADOWWIDTH*2);
+	}
+	else
+	{
+		hDC->graphics->FillRectangle(&Brush, 0.0 + SHADOWWIDTH, 0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH * 2, m_WndRect->Height - SHADOWWIDTH * 2);
+	}
+}
+
+VOID DUI_Window::DrawTitleBar(MemDC* hDC)
+{
+	if (hDC == nullptr)
+	{
+		hDC = m_BkgDC;
+	}
+	if (m_Icon != nullptr)
+	{
+		hDC->graphics->DrawImage(m_Icon, *m_IconRect);
+	}
+
+	SolidBrush Brush(*m_Title->color);
+	DrawShadowText(hDC->graphics, m_Title);
+	if (m_bDebug)
+	{
+		Pen BorderPen(Color::MakeARGB(200, 100, 100, 100), 1);
+		hDC->graphics->DrawRectangle(&BorderPen, *m_Title->rect);
+		hDC->graphics->DrawRectangle(&BorderPen, *m_IconRect);
+	}
 }
 
 BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
@@ -524,8 +551,7 @@ BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 	{
 		m_BkgColor = new Color(BackgrdColor);
 	}
-	DrawWndBkg();
-	Update(TRUE);
+	Update();
 	return TRUE;
 }
 
@@ -538,7 +564,6 @@ BOOL DUI_Window::SetTitle(LPTSTR Title, BOOL bInner)
 	{
 		SendMessage((HWND)m_ID, WM_SETTEXT, NULL, (LPARAM)Title);
 	}
-	DrawWndBkg();
 	Update();
 	return TRUE;
 }
@@ -608,7 +633,6 @@ DUI_ControlBase * DUI_Window::FindControlByPoint(Point * pt)
 VOID DUI_Window::SetDebugMode(BOOL bDebug)
 {
 	m_bDebug = bDebug;
-	DrawWndBkg();
 	Update();
 }
 
@@ -782,7 +806,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		return FALSE;
 	}
 
-
+	m_bAllowCtrlUpdate = FALSE;
 	if (m_WndRect == nullptr)
 	{
 		m_WndRect = new Gdiplus::RectF;
@@ -836,7 +860,6 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		m_MemDC->ReSize((INT)m_WndRect->Width, (INT)m_WndRect->Height);
 	}
-
 	HRGN hRgn = NULL;
 	if (m_BorderStyle.Mode == BM_RoundRect)
 	{
@@ -859,8 +882,6 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	}
 	m_IconRect->X = m_ClientRect->GetLeft() + ICONOFFSET_X;
 	m_IconRect->Y = m_ClientRect->GetTop() + ICONOFFSET_Y;
-
-
 	//更新控制按钮的位置
 	INT Size_X;
 	INT Size_Y;
@@ -888,7 +909,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		m_SysBtn[BT_Minimize]->m_bAutoReleaseImg = FALSE;
 		m_SysBtn[BT_Minimize]->SetExtraInfo(BT_Minimize);
 		m_SysBtn[BT_Minimize]->SetPrompt(_T("最小化"));
-		SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MINIMIZEBOX);
+		//SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MINIMIZEBOX);
 		m_SysBtnCnt++;
 	}
 
@@ -910,7 +931,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 			m_SysBtn[BT_Maxmize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
 			m_SysBtn[BT_Maxmize]->m_bAutoReleaseImg = FALSE;
 			m_SysBtn[BT_Maxmize]->SetExtraInfo(BT_Maxmize);
-			SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MAXIMIZEBOX);
+			//SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MAXIMIZEBOX);
 			m_SysBtnCnt++;
 		}
 		m_SysBtn[BT_Maxmize]->SetPrompt(IsZoomed((HWND)m_ID) ? _T("还原") : _T("最大化"));
@@ -923,9 +944,6 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		if (m_SysBtn[BT_Maxmize] != nullptr)
 		{
-			//m_SysBtn[BT_Maxmize]->m_bVisialbe = FALSE;
-			//m_SysBtn[BT_Maxmize]->Destroy();
-			//m_SysBtn[BT_Maxmize] = nullptr;
 			delete m_SysBtn[BT_Maxmize];
 			m_SysBtn[BT_Maxmize] = nullptr;
 		}
@@ -966,7 +984,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		m_Title->rect->X = m_ClientRect->GetLeft() + m_IconRect->GetRight() + GAP_ICON_TITLE;
 		m_Title->rect->Y = m_ClientRect->GetTop() + 5;
 		m_Title->rect->Width = m_ClientRect->Width - m_IconRect->GetRight() - GAP_ICON_TITLE - BtnWith - GAP_TITLE_SYSBTN;
-		m_Title->rect->Height = TITLEBARHEIGHT;
+		m_Title->rect->Height = TITLEBARHEIGHT - 5 - 1;
 	}
 	else
 	{
@@ -976,7 +994,11 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		m_Title->rect->Height = TITLEBARHEIGHT;
 	}
 
-	DrawWndBkg();
+	if (m_bInited)
+	{
+		m_bAllowCtrlUpdate = TRUE;
+	}
+	//DrawWnd();
 	Update();
 	return TRUE;
 }
@@ -1008,6 +1030,7 @@ BOOL DUI_Window::OnUpdate(WPARAM wParam, BOOL bUpdate)
 {
 	if (wParam == NULL)
 	{
+		DrawWnd();
 		OnControl(INVALID_CONTROLID, WM_UPDATE, wParam, FALSE);
 	}
 	else
@@ -1204,6 +1227,7 @@ BOOL DUI_Window::OnDropFiles(WPARAM wParam, LPARAM lParam)
 BOOL DUI_Window::OnWndInited(WPARAM wParam, LPARAM lParam)
 {
 	m_bInited = TRUE;
+	m_bAllowCtrlUpdate = TRUE;
 	OnControl(INVALID_CONTROLID, CM_SETAUTOUPDATE, NULL, TRUE);
 	return TRUE;
 }
@@ -1246,6 +1270,11 @@ HCURSOR DUI_Window::SetCursor(LPTSTR CursorName)
 HCURSOR DUI_Window::SetCursor(HCURSOR hCursor)
 {
 	return ::SetCursor(hCursor);
+}
+
+VOID DUI_Window::SetAllowCtrlUpdate(BOOL bAllow)
+{
+	m_bAllowCtrlUpdate = bAllow;
 }
 
 BOOL DUI_Window::CanBeParent()

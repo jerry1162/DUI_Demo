@@ -446,6 +446,18 @@ LPTSTR DUI_ControlBase::GetCursor()
 	return m_CursorName;
 }
 
+BOOL DUI_ControlBase::SetParent(DUI_Object * Parent)
+{
+	if (!Parent->CanBeParent())
+	{
+		return FALSE;
+	}
+	m_Parent = Parent;
+	OnCalcRect();
+	Update();
+	return TRUE;
+}
+
 BOOL DUI_ControlBase::IsPtInCtrl(Point * pt)
 {
 	RectF* cRect = m_VRect->Clone();
@@ -468,12 +480,17 @@ BOOL DUI_ControlBase::Destroy()
 		{
 			EndAnimate();
 		}
+		SendMsgToChild(CM_PARENTDESTROY, NULL, NULL);
 		for (auto it = m_ParentWnd->m_Controls->begin(); it != m_ParentWnd->m_Controls->end(); it++)
 		{
 			if ((*it)->m_ID == m_ID)
 			{
 				m_ParentWnd->m_Controls->erase(it);
-				m_ParentWnd->Update();
+				if (m_bVisialbe)
+				{
+					m_bVisialbe = FALSE;
+					Update();
+				}
 				break;
 			}
 		}
@@ -597,6 +614,9 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		m_Text->rect->Width = m_LogicRect->Width;
 		m_Text->rect->Height = m_LogicRect->Height;
 		break;
+	case CM_PARENTDESTROY:
+		SetParent(((DUI_ControlBase*)m_Parent)->m_Parent);
+		break;
 	}
 	if (IsMouseMsg(uMsg))
 	{
@@ -620,7 +640,7 @@ VOID DUI_ControlBase::Draw(DUI_Status s)
 // 	m_MemDC->graphics->DrawString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
 	//static int i = 0;
 	//TRACE("\nHello - %d\n", ++i);
-	if (m_ParentWnd->m_bDebug)
+	if (m_ParentWnd->m_bDebug && m_bVisialbe)
 	{
 		Pen BorderPen(Color::MakeARGB(255, 100, 100, 100), 1);
 		m_MemDC->graphics->DrawRectangle(&BorderPen, 0.0, 0.0, m_LogicRect->Width - 1, m_LogicRect->Height - 1);
@@ -810,7 +830,7 @@ BOOL DUI_ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 	}
 	delete ClipRect;
 	m_ParentWnd->m_MemDC->SelectClipRgn();
-	if (lParam == TRUE && m_ParentWnd->m_bInited)
+	if (lParam == TRUE && m_ParentWnd->m_bAllowCtrlUpdate)
 	{
 		if (m_ParentWnd->m_Alpha != 0)
 		{

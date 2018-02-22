@@ -47,44 +47,46 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == CM_CLICKED)
 	{
-		//m_Lable->SetVisiable(!m_Lable->GetVisiable());
-		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
-		//m_Window->SetDebugMode(!m_Window->GetDebugMode());
-		//m_Lable->SetText(L"Button");
-		static int i = 0;
-		i += 1;
-		if ((i % 2) == 0)
-		{
-			//m_Window->SetTitle(L"OK");
-			//m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-			//m_Button->SetText(L"Button");
-			m_GroupBox->Size(200, 200);
-		}
-		else
-		{
-			//m_Window->SetTitle(L"Clicked");
-			//m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-			//m_Button->SetText(L"Clicked");
-			m_GroupBox->Size(50, 50);
-		}
-		//m_Window->SetSizeable(!m_Window->GetSizeable());
-		// 	 	if (m_SubWindow == nullptr)
-		// 	 	{
-		// 	 		m_SubWindow = new DUI_Window;
-		// 	 		m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
-		// 	 		m_SubWindow->DoModel();
-		// 	 		delete m_SubWindow;
-		// 	 		m_SubWindow = nullptr;
-		// 	 	}
-		//DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
-		//m_RGroup->SelectNext();
-		//if (pSex != nullptr)
-		//{
-		//	CString str = _T("当前选中的性别为：");
-		//	str += pSex->GetText();
-		//	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
-		//}
-		//m_Window->SetBkgColor(Color::Red);
+//		SafeDelete(m_GroupBox);
+// 		m_Lable->SetVisiable(!m_Lable->GetVisiable());
+// 		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
+// 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
+// 		m_Lable->SetText(L"Button");
+// 		static int i = 0;
+// 		i += 1;
+// 		if ((i % 2) == 0)
+// 		{
+// 			//m_Window->SetTitle(L"OK");
+// 			//m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+// 			//m_Button->SetText(L"Button");
+// 			m_GroupBox->Size(200, 200);
+// 		}
+// 		else
+// 		{
+// 			//m_Window->SetTitle(L"Clicked");
+// 			//m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+// 			//m_Button->SetText(L"Clicked");
+// 			m_GroupBox->Size(50, 50);
+// 		}
+// 		m_Window->SetSizeable(!m_Window->GetSizeable());
+		//SafeDelete(m_Lable);
+// 		if (m_SubWindow == nullptr)
+// 		{
+// 			m_SubWindow = new DUI_Window;
+// 			m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
+// 			m_SubWindow->DoModel();
+// 			delete m_SubWindow;
+// 			m_SubWindow = nullptr;
+// 		}
+// 		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
+// 		m_RGroup->SelectNext();
+// 		if (pSex != nullptr)
+// 		{
+// 			CString str = _T("当前选中的性别为：");
+// 			str += pSex->GetText();
+// 			MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
+// 		}
+// 		m_Window->SetBkgColor(Color::Red);
 	}
 	return TRUE;
 }

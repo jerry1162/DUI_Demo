@@ -9,6 +9,7 @@ DUI_GroupBox::DUI_GroupBox()
 
 DUI_GroupBox::~DUI_GroupBox()
 {
+	Destroy();
 }
 
 BOOL DUI_GroupBox::CanBeParent()
