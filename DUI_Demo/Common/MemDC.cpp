@@ -200,6 +200,19 @@ INT MemDC::SelectRectClipRgn(INT X, INT Y, INT W, INT H)
 	return Ret;
 }
 
+INT MemDC::SelectRectClipRgn(RectF* pRect)
+{
+	if (pRect == nullptr)
+	{
+		return SelectClipRgn();
+	}
+	else
+	{
+		return SelectRectClipRgn((INT)pRect->X, (INT)pRect->Y, (INT)pRect->Width, (INT)pRect->Height);
+	}
+
+}
+
 HDC MemDC::GetMemDC()
 {
 	return m_MemDC;

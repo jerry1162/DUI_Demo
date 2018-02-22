@@ -8,7 +8,7 @@ public:
 	BOOL SetImagePath(LPTSTR Path);
 	BOOL SetImage(Image* pImage);
 protected:
-	virtual LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	virtual VOID Draw(DUI_Status s) override;
 	Image* m_Image;
 };

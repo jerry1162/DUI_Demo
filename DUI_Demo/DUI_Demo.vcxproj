@@ -195,9 +195,11 @@
     <ClInclude Include="DUI\DUI_Button.h" />
     <ClInclude Include="DUI\DUI_CheckBox.h" />
     <ClInclude Include="DUI\DUI_ControlBase.h" />
+    <ClInclude Include="DUI\DUI_GroupBox.h" />
     <ClInclude Include="DUI\DUI_ImageBox.h" />
     <ClInclude Include="DUI\DUI_ImageButton.h" />
     <ClInclude Include="DUI\DUI_Lable.h" />
+    <ClInclude Include="DUI\DUI_Object.h" />
     <ClInclude Include="DUI\DUI_ProgressBar.h" />
     <ClInclude Include="DUI\DUI_Prompt.h" />
     <ClInclude Include="DUI\DUI_Radio.h" />
@@ -216,9 +218,11 @@
     <ClCompile Include="DUI\DUI_Button.cpp" />
     <ClCompile Include="DUI\DUI_CheckBox.cpp" />
     <ClCompile Include="DUI\DUI_ControlBase.cpp" />
+    <ClCompile Include="DUI\DUI_GroupBox.cpp" />
     <ClCompile Include="DUI\DUI_ImageBox.cpp" />
     <ClCompile Include="DUI\DUI_ImageButton.cpp" />
     <ClCompile Include="DUI\DUI_Lable.cpp" />
+    <ClCompile Include="DUI\DUI_Object.cpp" />
     <ClCompile Include="DUI\DUI_ProgressBar.cpp" />
     <ClCompile Include="DUI\DUI_Prompt.cpp" />
     <ClCompile Include="DUI\DUI_Radio.cpp" />

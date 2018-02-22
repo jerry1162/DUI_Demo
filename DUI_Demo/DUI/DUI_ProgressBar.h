@@ -7,12 +7,12 @@ public:
 	DUI_ProgressBar();
 	virtual ~DUI_ProgressBar();
 	VOID SetCurPos(REAL Pos);
-	virtual BOOL Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, REAL Height,
+	virtual BOOL Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height,
 		LPCWSTR Text = L"", BOOL bVisiable = TRUE);
 protected:
-	virtual LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	virtual VOID Draw(DUI_Status s) override;
-	virtual VOID CALLBACK AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime);
+	virtual VOID CALLBACK AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime) override;
 	REAL m_CurPos;
 	REAL m_AnimCurPos;
 	Image* m_pImg;

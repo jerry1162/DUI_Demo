@@ -1,9 +1,7 @@
 #pragma once
 #include "DUI_ControlBase.h"
 #include "DUI_Radio.h"
-#define RG_ADDRADIO WM_USER + 6//当单选框创建时，向其单选组发送此消息 wParam是单选框ID，lParam未用
-#define RG_SELECTCHANGE WM_USER + 7//当单选框状态改变时，向其单选组发送此消息 wParam是新选中的单选框ID，lParam未用
-#define RG_GROUPCHANGE WM_USER + 8//当单选框改变所属单选组时，向其单选组发送此消息 wParam是单选框ID，lParam未用
+
 class DUI_RadioGroup :
 	public DUI_ControlBase  //该类不在窗口中显示任何东西
 {
@@ -11,7 +9,7 @@ class DUI_RadioGroup :
 public:
 	DUI_RadioGroup();
 	virtual ~DUI_RadioGroup() override;
-	virtual BOOL Create(DUI_Window* Window);
+	virtual BOOL Create(DUI_Object* Parent);
 	virtual BOOL Destroy() override;
 	INT GetSelect();
 	BOOL Select(INT ID);
@@ -34,7 +32,7 @@ public:
 	//************************************
 	VOID SelectNext();
 protected:
-	virtual LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	//************************************
 	// Method:    IsAvailableID
 	// FullName:  DUI_RadioGroup::IsAvailableID

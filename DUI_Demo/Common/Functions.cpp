@@ -17,6 +17,10 @@ void GdipShutdown()
 
 BOOL PtInRect(RectF * rect, Point * pt)
 {
+	if (rect == nullptr || pt == nullptr)
+	{
+		return FALSE;
+	}
 	if (pt->X >= rect->GetLeft() && pt->Y >= rect->GetTop() && 
 		pt->X <= rect->GetLeft() + rect->Width&&pt->Y <= rect->GetTop() + rect->Height)
 	{
@@ -133,8 +137,10 @@ Image * ImageFromBin(LPVOID lpData, UINT uSize)
 }
 
 
-VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB ShadowColor,
-	ARGB BorderColor, REAL TextOffsetX, REAL TextOffsetY, REAL ShadowOffsetX,
+VOID DrawShadowText(Graphics * graphics, GdipString* Text, REAL Rate,
+ ARGB ShadowColor,
+	ARGB BorderColor, REAL TextOffsetX, REAL TextOffsetY,
+ REAL ShadowOffsetX,
 	REAL ShadowOffsetY)
 {
 	if (Rate <= 0)
@@ -161,7 +167,7 @@ VOID DrawShadowText(Graphics * graphics, REAL Rate, GdipString* Text, ARGB Shado
 			TextOffsetY + ShadowOffsetY, Text->rect->Width, Text->rect->Height);
 		graphics1->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 			*OffsetRect, Text->format, brush);
-		delete brush;
+		SafeDelete(brush);
 		delete OffsetRect;
 
 		OffsetRect = new RectF(TextOffsetX + ShadowOffsetX,
@@ -246,7 +252,21 @@ BOOL IsMouseMsg(UINT uMsg)
 {
 	if (uMsg == WM_MOUSEMOVE || uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP ||
 		uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN ||
-		uMsg == WM_MBUTTONUP || uMsg == WM_MOUSEWHEEL)
+		uMsg == WM_MBUTTONUP || uMsg == WM_LBUTTONDBLCLK || uMsg == WM_RBUTTONDBLCLK)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+BOOL IsControlMsg(UINT uMsg)
+{
+	if (uMsg == WM_MOUSEMOVE || uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP ||
+		uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONUP || uMsg == WM_MBUTTONDOWN ||
+		uMsg == WM_MBUTTONUP || uMsg == WM_MOUSEWHEEL || uMsg == WM_LBUTTONDBLCLK || uMsg == WM_RBUTTONDBLCLK || uMsg == WM_CHAR || uMsg == WM_KEYDOWN || uMsg == WM_KEYUP)
 	{
 		return TRUE;
 	}

@@ -22,6 +22,12 @@
     <Filter Include="Common">
       <UniqueIdentifier>{99b28306-8051-4355-bab2-cef942d6abb4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DUI\Header">
+      <UniqueIdentifier>{da9a027b-457b-4706-93a1-bcd0629fe3b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DUI\Source">
+      <UniqueIdentifier>{7b8d32ac-1437-469d-aa0c-67aae9d5ab94}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -58,37 +64,43 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="DUI\DUI_Button.h">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Header</Filter>
     </ClInclude>
     <ClInclude Include="DUI\DUI_CheckBox.h">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Header</Filter>
     </ClInclude>
     <ClInclude Include="DUI\DUI_ControlBase.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_Lable.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_Prompt.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_Radio.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_RadioGroup.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_Window.h">
-      <Filter>DUI</Filter>
-    </ClInclude>
-    <ClInclude Include="DUI\DUI_ImageButton.h">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Header</Filter>
     </ClInclude>
     <ClInclude Include="DUI\DUI_ImageBox.h">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Lable.h">
+      <Filter>DUI\Header</Filter>
     </ClInclude>
     <ClInclude Include="DUI\DUI_ProgressBar.h">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Prompt.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Radio.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_ImageButton.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_RadioGroup.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Window.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_Object.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DUI\DUI_GroupBox.h">
+      <Filter>DUI\Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -111,37 +123,43 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_Button.cpp">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_CheckBox.cpp">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_ControlBase.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_Lable.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_Prompt.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_Radio.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_RadioGroup.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_Window.cpp">
-      <Filter>DUI</Filter>
-    </ClCompile>
-    <ClCompile Include="DUI\DUI_ImageButton.cpp">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_ImageBox.cpp">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ImageButton.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Lable.cpp">
+      <Filter>DUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_ProgressBar.cpp">
-      <Filter>DUI</Filter>
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Prompt.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Radio.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_RadioGroup.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Window.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_Object.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_GroupBox.cpp">
+      <Filter>DUI\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

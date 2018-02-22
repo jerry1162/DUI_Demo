@@ -84,25 +84,25 @@ BOOL DUI_ImageButton::SetImages(Image * pImg, INT Start, BOOL bUpdate)
 	return TRUE;
 }
 
-BOOL DUI_ImageButton::Create(DUI_Window * Window, REAL Left, REAL Top, REAL Width, REAL Height, Image * Normal, Image * HighLight, Image * Pushed, LPCWSTR Text, BOOL bVisiable)
+BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height, Image * Normal, Image * HighLight, Image * Pushed, LPCWSTR Text, BOOL bVisiable)
 {
 	BOOL Ret = Ret = SetImages(Normal, HighLight, Pushed, FALSE);
 	if (!Ret)
 	{
 		return Ret;
 	}
-	Ret = DUI_ControlBase::Create(Window, Left, Top, Width, Height, Text, bVisiable);
+	Ret = DUI_ControlBase::Create(Parent, Left, Top, Width, Height, Text, bVisiable);
 	return Ret;
 }
 
-BOOL DUI_ImageButton::Create(DUI_Window * Window, REAL Left, REAL Top, REAL Width, REAL Height, Image * pImg, INT Start, LPCWSTR Text, BOOL bVisiable)
+BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height, Image * pImg, INT Start, LPCWSTR Text, BOOL bVisiable)
 {
 	BOOL Ret = Ret = SetImages(pImg, Start, FALSE);
 	if (!Ret)
 	{
 		return Ret;
 	}
-	Ret = DUI_ControlBase::Create(Window, Left, Top, Width, Height, Text, bVisiable);
+	Ret = DUI_ControlBase::Create(Parent, Left, Top, Width, Height, Text, bVisiable);
 	return Ret;
 }
 
@@ -123,6 +123,9 @@ VOID DUI_ImageButton::Draw(DUI_Status s)
 	m_MemDC->Clear();
 	if (m_bVisialbe)
 	{
+		RectF* Rt = m_LogicRect;
+
+
 		if (s == S_Invalid)
 		{
 			s = m_CurState;
@@ -141,7 +144,7 @@ VOID DUI_ImageButton::Draw(DUI_Status s)
 			{
 				s = S_Normal;
 			}
-			m_MemDC->graphics->DrawImage(pImg, RectF(0.0, 0.0, m_Rect->Width, m_Rect->Height), m_Start + (s - 1)*m_Rect->Width, 0.0, m_Rect->Width, m_Rect->Height, UnitPixel);
+			m_MemDC->graphics->DrawImage(pImg, RectF(0.0, 0.0, Rt->Width, Rt->Height), m_Start + (s - 1)*Rt->Width, 0.0, Rt->Width, Rt->Height, UnitPixel);
 		}
 		if (m_Text != nullptr)
 		{

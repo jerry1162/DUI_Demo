@@ -1,30 +1,29 @@
 #pragma once
+#include "DUI_Object.h"
 #include "DUI_Window.h"
-/*
-enum DUI_Status
-{
-	S_Normal = 1,
-	S_HighLight,
-	S_Pushed,
-	S_Focus,
-	S_Disabled,
-	//S_Hide,
-	S_Invalid = -1
-};*/
+
 class DUI_Window;
 
-//typedef VOID  (CALLBACK *TIMERPROC)(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime);
-
-class DUI_ControlBase
+class DUI_ControlBase :public DUI_Object
 {
 public:
 	friend class DUI_Window;
 	DUI_ControlBase();
 	virtual ~DUI_ControlBase();
-	virtual BOOL Create(DUI_Window* Window, REAL Left, REAL Top, REAL Width, REAL Height,
+	virtual BOOL Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height,
 		LPCWSTR Text = L"", BOOL bVisiable = TRUE, BOOL bForceUpdate = TRUE);  //文本矩形默认为控件矩形.
-	virtual BOOL Destroy();
-	INT GetID();
+	virtual BOOL IsPtInCtrl(Point* pt);//注意：此处坐标为相对于窗口的坐标
+
+	//虚函数实现
+	virtual BOOL Destroy() override;
+	virtual ObjType GetObjType() override;
+	virtual REAL GetX() override;
+	virtual REAL GetY() override;
+	virtual REAL GetWidth() override;
+	virtual REAL GetHeight() override;
+	virtual BOOL GetCursorPos(Point* pt) override;
+
+
 	VOID SetText(LPTSTR Text = L"");
 	LPCWSTR GetText();
 	VOID SetAlpha(BYTE Alpha);
@@ -33,37 +32,42 @@ public:
 	VOID SetVisiable(BOOL bVisiable);
 	BOOL GetVisiable();
 	VOID Update(INT bForce = -1);
-	LRESULT SendMessage(INT ID, UINT Msg, WPARAM wParam, LPARAM lParam);//向指定控件发送消息，直接通过父窗口的消息处理函数，而不是消息循环
+	//LRESULT SendMessage(INT ID, UINT Msg, WPARAM wParam, LPARAM lParam);//向指定控件发送消息，直接通过父窗口的消息处理函数，而不是消息循环
 	VOID SetPrompt(LPTSTR Text);
-	REAL GetX();
-	REAL GetY();
-	REAL GetWidth();
-	REAL GetHeight();
 	MSGPROC SetMsgProc(MSGPROC Proc);
 	BOOL HasState(INT bHasState = -1);//-1表示获取状态
 	BOOL MoveWithMouse(INT b = -1);//-1表示获取状态
+	VOID SendMsgToChild(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	DUI_Window* GetParentWnd();
+	VOID ClientToWnd(Point* ptClient); //将相对于自身的左边转换为相对于窗口的坐标
+	VOID WndToClient(Point* ptWnd);
+	VOID SetbShowOnNCRgn(BOOL bShow);
+	BOOL GetbShowOnNCRgn();
 protected:
-	INT m_ID;
-	//INT m_Index;
-	DUI_Window* m_Parent;
-	RectF* m_Rect;
+	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	DUI_Object* m_Parent;
+	DUI_Window* m_ParentWnd;
+	//HWND m_hWndParent;
+	RectF* m_LogicRect;//相对于父组件的逻辑坐标
+	RectF* m_Rect;//相对于窗口的真实坐标
+	RectF* m_LogicVRect;
+	RectF* m_VRect;
 	MemDC* m_MemDC;
-	virtual LRESULT MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
 	virtual VOID Draw(DUI_Status s = (DUI_Status)-1);
 	VOID ChangeState(DUI_Status s);
 	DUI_Status GetState();
-	BOOL GetCursorPos(Point* pt);
 	BOOL StartAnimate(TIMERPROC pCallBack = nullptr, UINT uElapse = 30);
 	BOOL EndAnimate();
 	virtual VOID CALLBACK AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime);
-	
+	VOID AddCtrl();//处理将this加入到窗口中
 	//控件属性
 	GdipString* m_Text;
 	LPTSTR m_Prompt;
 	BOOL m_bVisialbe;
 	DUI_Status m_CurState;
 	BYTE m_Alpha;
-	BOOL m_bInAnimating;
+	BOOL m_bAnimating;
 	BYTE m_AnimateAlpha;
 	DUI_Status m_PrevState;
 	TIMERPROC m_pAnimateProc;
@@ -72,8 +76,12 @@ protected:
 	BOOL m_bHasState;
 	BOOL m_bAutoUpdate;//在窗口显示前的控件默认为假，后由窗口设置为真，其余默认为真。
 	BOOL m_bMoveWithMouse;//当鼠标按下时，跟随鼠标移动。 注意，移动时无法完成其他鼠标消息。
+	BOOL m_bMouseDown;
+	Point* m_ptMouseDown;
+	BOOL m_bCanShowOnNCRgn;
 
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上
+	BOOL OnCalcRect(WPARAM wParam = NULL, LPARAM lParam = NULL);
 };
 

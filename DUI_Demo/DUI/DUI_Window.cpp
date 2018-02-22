@@ -3,15 +3,18 @@
 #include "DUI_ImageButton.h"
 #include "..//Resource.h"
 
+#include "DUI_ImageBox.h"
+#include "DUI_CheckBox.h"
+
+
 DUI_Window::DUI_Window()
 {
 
-	m_hWnd = NULL;
+	//m_hWnd = NULL;
 	m_Parent = nullptr;
 	m_hDC = nullptr;
 	m_MemDC = nullptr;
 	m_BkgDC = nullptr;
-	m_Graphics = nullptr;
 	m_WndRect = nullptr;
 	m_ClientRect = nullptr;
 
@@ -31,7 +34,7 @@ DUI_Window::DUI_Window()
 	m_CurCDR = CDR_Normal;
 	
 	PrevWndProc = NULL;
-	m_WndProc = (WNDPROC)GetCallBackAddr(this, &DUI_Window::WndProc);
+	m_WndProc = (WNDPROC)GetCallBackAddr(this, &DUI_Window::MsgProc);
 	m_SysBtnClickProcAddr = (MSGPROC)GetCallBackAddr(this, &DUI_Window::SysBtnClick);
 	m_Alpha = 255;//(SHADOWWIDTH == 0 ? 0 : 255);
 	m_bInited = FALSE;
@@ -57,11 +60,11 @@ DUI_Window::~DUI_Window()
 	Destroy();
 }
 
-LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT DUI_Window::MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Point ptMouse;
 	int Res = 0;
-	if (IsWindow(hwnd))
+	if (IsWindow((HWND)hwnd))
 	{
 		if (OnControl(INVALID_CONTROLID, uMsg, wParam, lParam)) return TRUE;
 	}
@@ -148,7 +151,7 @@ LRESULT DUI_Window::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-		return CallWindowProc(WNDPROC(PrevWndProc), hwnd, uMsg, wParam, lParam);
+		return CallWindowProc(WNDPROC(PrevWndProc), (HWND)hwnd, uMsg, wParam, lParam);
 	}
 	
 }
@@ -233,7 +236,7 @@ VOID DUI_Window::DrawWndBkg()
 	}
 
 	Brush.SetColor(*m_Title->color);
-	DrawShadowText(m_BkgDC->graphics, 5, m_Title, Color::Black,Color::MakeARGB(100, 50, 50, 50));
+	DrawShadowText(m_BkgDC->graphics, m_Title);
 
 	//调试模式，把所有矩形的边框画出来
 	if (m_bDebug)
@@ -249,22 +252,21 @@ VOID DUI_Window::DrawWndBkg()
 
 BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 {
-	if (m_hWnd != NULL)
+	if (m_ID != NULL)
 	{
 		return FALSE;
 	}
-	m_hWnd = hWnd;
-	DragAcceptFiles(m_hWnd, TRUE);
-	m_hDC = GetDC(m_hWnd);
+	m_ID = (INT)hWnd;
+	m_hDC = GetDC((HWND)m_ID);
 	m_Sizeable = bSizable;
 	//m_WndRect = new RectF;
-	m_Graphics = new Gdiplus::Graphics(hWnd);
+	//m_Graphics = new Gdiplus::Graphics(hWnd);
 	//m_MemDC = new MemDC;
-	if (m_Graphics == NULL)
+	/*if (m_Graphics == NULL)
 	{
 		
 		return FALSE;
-	}
+	}*/
 	//设置默认的边框风格
 	m_BorderStyle.Mode = BM_RoundRect;
 	m_BorderStyle.Color = Color::MakeARGB(150, 50, 50, 50);
@@ -291,7 +293,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	ResItem* lpItem = m_pRdbMgr->GetItemByName(_T("SysBtn_Pic"));
 	if (!lpItem)
 	{
-		MessageBox(m_hWnd, _T("资源加载失败"), _T("错误:"), MB_ICONINFORMATION);
+		MessageBox((HWND)m_ID, _T("资源加载失败"), _T("错误:"), MB_ICONINFORMATION);
 		return FALSE;
 	}
 	m_SysBtnPic = ImageFromBin(lpItem->lpData, lpItem->uSize);
@@ -306,9 +308,9 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 
 	if (m_Alpha != 0)
 	{
-		LONG style = GetWindowLong(m_hWnd, GWL_EXSTYLE);
+		LONG style = GetWindowLong((HWND)m_ID, GWL_EXSTYLE);
 		style |= WS_EX_LAYERED;
-		SetWindowLong(m_hWnd, GWL_EXSTYLE, style);
+		SetWindowLong((HWND)m_ID, GWL_EXSTYLE, style);
 	}
 	m_Prompt = new DUI_Prompt;
 
@@ -369,15 +371,12 @@ BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, LPTSTR Title,
 	m_Parent = Parent;
 	int cx = GetSystemMetrics(SM_CXSCREEN);
 	int cy = GetSystemMetrics(SM_CYSCREEN);
-	HWND hWnd = CreateWindowW((LPCWSTR)GetDefaultWndClass(), Title, WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP,
-		(cx - Width) / 2, (cy - Height) / 2, Width, Height, m_Parent->m_hWnd, nullptr, GetModuleHandle(nullptr), nullptr);
+	HWND hWnd = CreateWindowW((LPCWSTR)GetDefaultWndClass(), Title, WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP, (cx - Width) / 2, (cy - Height) / 2, Width, Height, (HWND)m_Parent->m_ID, nullptr, GetModuleHandle(nullptr), nullptr);
 	if (hWnd == NULL)
 	{
 		return FALSE;
 	}
-	//m_bAnimate = TRUE;
 	Create(hWnd, Title, L"", L"", TRUE);
-	//OnUpdate(NULL, TRUE);
 	ShowWindow(hWnd, SW_SHOW); 
 	//SendMessage(hWnd, WM_SHOWWINDOW, NULL, NULL);
 	//UpdateWindow(hWnd);
@@ -412,7 +411,7 @@ BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, LPTSTR BackgrdPic,
 		ResItem* lpItem = m_pRdbMgr->GetItemByName(_T("BkgPic"));
 		if (!lpItem)
 		{
-			MessageBox(m_hWnd, _T("资源加载失败"), _T("错误:"), MB_ICONINFORMATION);
+			MessageBox((HWND)m_ID, _T("资源加载失败"), _T("错误:"), MB_ICONINFORMATION);
 			return FALSE;
 		}
 		m_BkgImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
@@ -428,58 +427,74 @@ BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, LPTSTR BackgrdPic,
 
 VOID DUI_Window::DoModel()
 {
-	if (m_hWnd != NULL)
+	if (m_ID != NULL)
 	{
 		if (m_Parent != nullptr)
 		{
-			EnableWindow(m_Parent->m_hWnd, FALSE);
+			EnableWindow((HWND)m_Parent->m_ID, FALSE);
 		}
 		MessageLoop();
 		if (m_Parent != nullptr)
 		{
-			EnableWindow(m_Parent->m_hWnd, TRUE);
-			SetForegroundWindow(m_Parent->m_hWnd);
+			EnableWindow((HWND)m_Parent->m_ID, TRUE);
+			SetForegroundWindow((HWND)m_Parent->m_ID);
 		}
 	}
 }
 
 BOOL DUI_Window::Destroy()
 {
-	if (m_hWnd != NULL)
+	if (m_ID != NULL)
 	{
-		SetWindowLong(m_hWnd, GWL_WNDPROC, PrevWndProc);
+		while (m_Controls->size() != 0)
+		{
+			delete (*m_Controls)[0];
+		}
+		delete m_Controls;
+		SetWindowLong((HWND)m_ID, GWL_WNDPROC, PrevWndProc);
 		FreeCallBackAddr(m_WndProc);
 		FreeCallBackAddr(m_SysBtnClickProcAddr);
-		ReleaseDC(m_hWnd, m_hDC);
+		ReleaseDC((HWND)m_ID, m_hDC);
 		delete m_MemDC;
 		delete m_BkgDC;
 		delete m_WndRect;
 		delete m_ClientRect;
 
-		delete m_Title->color;
-		delete m_Title->rect;
-		delete m_Title->font;
-		delete m_Title->format;
-		delete m_Title->string;
+		//delete m_Title->color;
+		//delete m_Title->rect;
+		//delete m_Title->font;
+		//delete m_Title->format;
+		//delete m_Title->string;
 
 		delete m_Title;
 		delete m_BkgColor;
 
 		delete m_Icon;
+		delete m_IconRect;
 		delete m_BkgImg;
+		delete m_SysBtnPic;
 		delete m_Prompt;
 		delete m_pRdbMgr;
 		delete m_pAnimArg;
-		//FreeCallBackAddr(m_lpfnAnimProc);
-		m_hWnd = NULL;
+		m_ID = NULL;
 		return TRUE;
 	}
 	return FALSE;
 }
 
+HWND DUI_Window::GetHWND()
+{
+	return (HWND)m_ID;
+}
+
+ObjType DUI_Window::GetObjType()
+{
+	return ObjType_Wnd;
+}
+
 BOOL DUI_Window::SetBkgPic(LPTSTR BackgrdPic)
 {
-	if (BackgrdPic == NULL || m_hWnd == NULL)
+	if (BackgrdPic == NULL || m_ID == NULL)
 	{
 		return FALSE;
 	}
@@ -521,7 +536,7 @@ BOOL DUI_Window::SetTitle(LPTSTR Title, BOOL bInner)
 	m_Title->string->SetString(Title);
 	if (bInner)
 	{
-		SendMessage(m_hWnd, WM_SETTEXT, NULL, (LPARAM)Title);
+		SendMessage((HWND)m_ID, WM_SETTEXT, NULL, (LPARAM)Title);
 	}
 	DrawWndBkg();
 	Update();
@@ -536,7 +551,7 @@ BOOL DUI_Window::SetBorderStyle(BorderStyle bs)
 	{
 		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 5, 5);
 	}
-	SetWindowRgn(m_hWnd, hRgn, FALSE);
+	SetWindowRgn((HWND)m_ID, hRgn, FALSE);
 	DeleteObject(hRgn);
 	Update();
 	return TRUE;
@@ -557,7 +572,7 @@ BOOL DUI_Window::GetSizeable()
 	return m_Sizeable;
 }
 
-DUI_ControlBase* DUI_Window::FindControlByID(INT ID, _Out_ INT* Index)
+DUI_ControlBase* DUI_Window::FindControlByID(INT ID)
 {
 	if (ID == INVALID_CONTROLID)
 	{
@@ -568,10 +583,22 @@ DUI_ControlBase* DUI_Window::FindControlByID(INT ID, _Out_ INT* Index)
 		//if ((*it)->m_bVisialbe == FALSE) continue;
 		if ((*it)->m_ID == ID)
 		{
-			if (Index != nullptr)
-			{
-				*Index = it - m_Controls->begin();
-			}
+			return *it;
+		}
+	}
+	return nullptr;
+}
+
+DUI_ControlBase * DUI_Window::FindControlByPoint(Point * pt)
+{
+	if (pt == nullptr)
+	{
+		return nullptr;
+	}
+	for (auto it = m_Controls->rbegin(); it != m_Controls->rend(); ++it)
+	{
+		if ((*it)->IsPtInCtrl(pt))
+		{
 			return *it;
 		}
 	}
@@ -606,10 +633,10 @@ INT DUI_Window::ScreenToClient(Point * pt)
 {
 	POINT p;
 	p = { pt->X ,pt->Y };
-	int ret = ::ScreenToClient(m_hWnd, &p);
+	int ret = ::ScreenToClient((HWND)m_ID, &p);
 	pt->X = p.x;
 	pt->Y = p.y;
-	return 0;
+	return ret;
 }
 
 BOOL DUI_Window::GetCursorPos(Point * pt)
@@ -623,13 +650,24 @@ BOOL DUI_Window::GetCursorPos(Point * pt)
 	return ret;
 }
 
+REAL DUI_Window::GetMarginTop()
+{
+	return (REAL)TITLEBARHEIGHT;
+}
+
+RectF * DUI_Window::GetClientRect()
+{
+	return new RectF(2, TITLEBARHEIGHT, m_WndRect->Width - 4, m_WndRect->Height - TITLEBARHEIGHT - 2);
+	//return new RectF(2, 2, m_WndRect->Width - 4, m_WndRect->Height - 4);
+}
+
 BOOL DUI_Window::OnMouseMove(WPARAM wParam, Point* ptMouse)
 {
 	TRACKMOUSEEVENT tme;
 	tme.cbSize = sizeof(tme);
 	tme.dwFlags = TME_HOVER | TME_LEAVE;
 	tme.dwHoverTime = 10;
-	tme.hwndTrack = m_hWnd;
+	tme.hwndTrack = (HWND)m_ID;
 	TrackMouseEvent(&tme);
 
 	//if (PtInRect(m_SysBtn_Close.rect, ptMouse))
@@ -666,37 +704,37 @@ BOOL DUI_Window::OnLButtonDown(WPARAM wParam, Point* ptMouse)
 	//}
 	if (ptMouse->Y <= TITLEBARHEIGHT && m_CurCDR == CDR_Normal) //标题栏移动 PtInRect(m_Title->rect, ptMouse)
 	{
-		SendMessage(m_hWnd, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
-		SendMessage(m_hWnd, WM_LBUTTONUP, wParam, MAKELPARAM(ptMouse->X, ptMouse->Y));
+		SendMessage((HWND)m_ID, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
+		SendMessage((HWND)m_ID, WM_LBUTTONUP, wParam, MAKELPARAM(ptMouse->X, ptMouse->Y));
 	}
 	else if (m_Sizeable && m_CurCDR != CDR_Normal)
 	{
-		SendMessage(m_hWnd, WM_LBUTTONUP, wParam, MAKELPARAM(ptMouse->X, ptMouse->Y));
+		SendMessage((HWND)m_ID, WM_LBUTTONUP, wParam, MAKELPARAM(ptMouse->X, ptMouse->Y));
 		switch (m_CurCDR)
 		{
 		case CDR_NWSE:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOPLEFT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOPLEFT, NULL);
 			break;
 		case CDR_NS:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOP, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOP, NULL);
 			break;
 		case CDR_NESW:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOPRIGHT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_TOPRIGHT, NULL);
 			break;
 		case CDR_WE:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_LEFT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_LEFT, NULL);
 			break;
 		case CDR_NWSE2:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOMRIGHT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOMRIGHT, NULL);
 			break;
 		case CDR_NS2:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOM, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOM, NULL);
 			break;
 		case CDR_NESW2:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOMLEFT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_BOTTOMLEFT, NULL);
 			break;
 		case CDR_WE2:
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_SIZE | WMSZ_RIGHT, NULL);
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_SIZE | WMSZ_RIGHT, NULL);
 			break;
 		}
 	}
@@ -734,7 +772,7 @@ BOOL DUI_Window::OnMouseLeave(WPARAM wParam, Point * ptMouse)
 
 BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 {
-	if (IsIconic(m_hWnd))
+	if (IsIconic((HWND)m_ID))
 	{
 		return FALSE;
 	}
@@ -752,7 +790,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	if (wParam == NULL)
 	{
 		RECT rect;
-		GetWindowRect(m_hWnd, &rect);
+		GetWindowRect((HWND)m_ID, &rect);
 		//m_WndRect->X = (REAL)rect.left;
 		//m_WndRect->Y = (REAL)rect.top;
 		m_WndRect->Width = REAL(rect.right - rect.left); //LOWORD(lParam);
@@ -799,7 +837,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 5, 5);
 	}
-	SetWindowRgn(m_hWnd, hRgn, FALSE);
+	SetWindowRgn((HWND)m_ID, hRgn, FALSE);
 	DeleteObject(hRgn);
 
 	if (m_IconRect == nullptr)
@@ -830,7 +868,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Close_Start"));
 		m_SysBtn[BT_Close]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
 		m_SysBtn[BT_Close]->m_bAutoReleaseImg = FALSE;
-		m_SysBtn[BT_Close]->SetExtra(BT_Close);
+		m_SysBtn[BT_Close]->SetExtraInfo(BT_Close);
 		m_SysBtn[BT_Close]->SetPrompt(_T("关闭"));
 		m_SysBtnCnt++;
 	}
@@ -843,9 +881,9 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Min_Start"));
 		m_SysBtn[BT_Minimize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
 		m_SysBtn[BT_Minimize]->m_bAutoReleaseImg = FALSE;
-		m_SysBtn[BT_Minimize]->SetExtra(BT_Minimize);
+		m_SysBtn[BT_Minimize]->SetExtraInfo(BT_Minimize);
 		m_SysBtn[BT_Minimize]->SetPrompt(_T("最小化"));
-		SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_MINIMIZEBOX);
+		SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MINIMIZEBOX);
 		m_SysBtnCnt++;
 	}
 
@@ -856,7 +894,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 			m_SysBtn[BT_Maxmize] = new DUI_ImageButton;
 			Size_X = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_X"));
 			Size_Y = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Y"));
-			if (IsZoomed(m_hWnd))
+			if (IsZoomed((HWND)m_ID))
 			{
 				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Restore_Start"));
 			}
@@ -866,11 +904,11 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 			}
 			m_SysBtn[BT_Maxmize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
 			m_SysBtn[BT_Maxmize]->m_bAutoReleaseImg = FALSE;
-			m_SysBtn[BT_Maxmize]->SetExtra(BT_Maxmize);
-			SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_MAXIMIZEBOX);
+			m_SysBtn[BT_Maxmize]->SetExtraInfo(BT_Maxmize);
+			SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MAXIMIZEBOX);
 			m_SysBtnCnt++;
 		}
-		m_SysBtn[BT_Maxmize]->SetPrompt(IsZoomed(m_hWnd) ? _T("还原") : _T("最大化"));
+		m_SysBtn[BT_Maxmize]->SetPrompt(IsZoomed((HWND)m_ID) ? _T("还原") : _T("最大化"));
 		//if (!m_SysBtn[BT_Maxmize]->m_bVisialbe)
 		//{
 		//	m_SysBtn[BT_Maxmize]->m_bVisialbe = TRUE;
@@ -893,8 +931,12 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		if (m_SysBtn[i] != nullptr&&m_SysBtn[i]->m_bVisialbe)
 		{
-			m_SysBtn[i]->SetClickEventHandler(m_SysBtnClickProcAddr);
-			BtnWith += m_SysBtn[i]->m_Rect->Width;
+			if (!m_SysBtn[i]->GetbShowOnNCRgn())
+			{
+				m_SysBtn[i]->SetbShowOnNCRgn(TRUE);
+			}
+			m_SysBtn[i]->SetMsgProc(m_SysBtnClickProcAddr);
+			BtnWith += m_SysBtn[i]->m_LogicRect->Width;
 			if (m_BorderStyle.DoubleBorder)
 			{
 				m_SysBtn[i]->m_bAutoUpdate = FALSE;
@@ -948,12 +990,12 @@ BOOL DUI_Window::OnMove(WPARAM wParam, LPARAM lParam)
 BOOL DUI_Window::OnPaint(WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
-	BeginPaint(m_hWnd, &ps);
+	BeginPaint((HWND)m_ID, &ps);
 	//HDC hDC = m_Graphics->GetHDC();
 	//m_MemDC->BitBlt(hDC, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height,0, 0, SRCCOPY);
 	Update();
 	//m_Graphics->ReleaseHDC(hDC);
-	EndPaint(m_hWnd, &ps);
+	EndPaint((HWND)m_ID, &ps);
 	return TRUE;
 }
 
@@ -965,30 +1007,56 @@ BOOL DUI_Window::OnUpdate(WPARAM wParam, BOOL bUpdate)
 	}
 	else
 	{
-		INT Index;
-		DUI_ControlBase* pCtrl = FindControlByID((INT)wParam, &Index);
-		if (pCtrl != nullptr)
-		{
-			m_MemDC->SelectRectClipRgn((INT)pCtrl->m_Rect->X, (INT)pCtrl->m_Rect->Y, (INT)pCtrl->m_Rect->Width, (INT)pCtrl->m_Rect->Height);
-			//m_BkgDC->BitBlt(m_MemDC);
-			m_BkgDC->AlphaBlend(m_MemDC);
-			//INT i = 0;
-			for (auto it = m_Controls->begin(); it != m_Controls->end(); it++)
-			{
-				//i = it - m_Controls->begin();
-				if (!(*it)->m_bVisialbe)
-				{
-					continue;
-				}
-				if ((*it)->m_Rect->IntersectsWith(*pCtrl->m_Rect))
-				{
-					//(*it)->OnUpdate(NULL, FALSE);
-					(*it)->m_MemDC->AlphaBlend(m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
-				}
-			}
-			m_MemDC->SelectClipRgn();
-		}
+		OnControl(wParam, WM_UPDATE, wParam, bUpdate);
+		return TRUE;
 	}
+// 	else
+// 	{
+// 		DUI_ControlBase* pCtrl = FindControlByID((INT)wParam);
+// 		if (pCtrl != nullptr)
+// 		{
+// // 			RectF* rect = pCtrl->m_Rect->Clone();
+// // 			if (pCtrl->m_Parent->GetObjType() == ObjType_Ctrl)
+// // 			{
+// // 				rect->Intersect(*((DUI_ControlBase*)pCtrl->m_Parent)->m_Rect);
+// // 			}
+// // 			m_MemDC->SelectRectClipRgn(rect);
+// 
+// 
+// 			m_BkgDC->BitBlt(m_MemDC, (INT)pCtrl->m_VRect->X, (INT)pCtrl->m_VRect->Y, (INT)pCtrl->m_VRect->Width, (INT)pCtrl->m_VRect->Height);
+// 			RectF* rfRect = nullptr;
+// 			for (auto it = m_Controls->begin(); it != m_Controls->end(); it++)
+// 			{
+// 				if (!(*it)->m_bVisialbe)
+// 				{
+// 					continue;
+// 				}
+// 				if (*it == pCtrl)
+// 				{
+// 					pCtrl->m_MemDC->AlphaBlend(m_MemDC, (int)pCtrl->m_VRect->GetLeft(), (int)pCtrl->m_VRect->GetTop(), (int)pCtrl->m_VRect->Width, (int)pCtrl->m_VRect->Height, INT(pCtrl->m_VRect->X - pCtrl->m_Rect->X), INT(pCtrl->m_VRect->Y - pCtrl->m_Rect->Y), (int)pCtrl->m_VRect->Width, (int)pCtrl->m_VRect->Height, (*it)->m_Alpha);
+// 					continue;
+// 				}
+// 				rfRect = pCtrl->m_VRect->Clone();
+// 				if (rfRect->Intersect(*(*it)->m_VRect))
+// 				{
+// 					(*it)->m_MemDC->AlphaBlend(m_MemDC, (int)rfRect->GetLeft(), (int)rfRect->GetTop(), (int)rfRect->Width, (int)rfRect->Height, INT(rfRect->X - (*it)->m_VRect->X), INT(rfRect->Y - (*it)->m_VRect->Y), (int)rfRect->Width, (int)rfRect->Height, (*it)->m_Alpha);
+// 				}
+// 				delete rfRect;
+// 
+// 
+// 
+// 
+// // 				if ((*it)->m_Rect->IntersectsWith(*pCtrl->m_Rect))
+// // 				{
+// // 					(*it)->m_MemDC->AlphaBlend(m_MemDC->GetMemDC(), (int)(*it)->m_Rect->GetLeft(), (int)(*it)->m_Rect->GetTop(), (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, 0, 0, (int)(*it)->m_Rect->Width, (int)(*it)->m_Rect->Height, (*it)->m_Alpha);
+// // 				}
+// 			}
+// // 			delete rect;
+// // 			m_MemDC->SelectClipRgn();
+// 		}
+// 	}
+
+
 	if (m_bAnimate)
 	{
 		return TRUE;
@@ -1005,7 +1073,7 @@ BOOL DUI_Window::OnUpdate(WPARAM wParam, BOOL bUpdate)
 			bf.BlendFlags = 0;
 			bf.BlendOp = 0;
 			bf.SourceConstantAlpha = m_Alpha;
-			UpdateLayeredWindow(m_hWnd, m_hDC, nullptr, &szWnd, m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+			UpdateLayeredWindow((HWND)m_ID, m_hDC, nullptr, &szWnd, m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
 		}
 		else
 		{
@@ -1096,12 +1164,12 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 {
 	if (!WndAnimProc(m_pAnimArg))
 	{
-		KillTimer(m_hWnd, wParam);
+		KillTimer((HWND)m_ID, wParam);
 		m_bAnimate = FALSE;
 		m_bInited = TRUE;
 		m_BorderStyle.Mode = BM_RoundRect;
 		SetBorderStyle(m_BorderStyle);
-		WndProc(m_hWnd, WM_WNDINITED, NULL, NULL);
+		MsgProc(m_ID, WM_WNDINITED, NULL, NULL);
 	}
 	return 0;
 }
@@ -1110,13 +1178,13 @@ BOOL DUI_Window::OnShowWindow(WPARAM wParam, LPARAM lParam)
 {
 	if (m_Alpha == 0)
 	{
-		WndProc(m_hWnd, WM_WNDINITED, NULL, NULL);
+		MsgProc(m_ID, WM_WNDINITED, NULL, NULL);
 		return TRUE;
 	}
 	m_bAnimate = TRUE;
 	m_BorderStyle.Mode = BM_Normal;
 	SetBorderStyle(m_BorderStyle);
-	SetTimer(m_hWnd, 0, 16, nullptr);
+	SetTimer((HWND)m_ID, 0, 16, nullptr);
 	return TRUE;
 }
 
@@ -1135,208 +1203,59 @@ BOOL DUI_Window::OnWndInited(WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
-// BOOL DUI_Window::OnWindowPosChanged(WPARAM wParam, LPARAM lParam)
-// {
-// 	WINDOWPOS *wp;
-// 	if (lParam == NULL)
-// 	{
-// 		wp = new WINDOWPOS;
-// 
-// 		RECT rect;
-// 		GetWindowRect(m_hWnd, &rect);
-// 		wp->cx = rect.right - rect.left;
-// 		wp->cy = rect.bottom - rect.top;
-// 	}
-// 	else
-// 	{
-// 		wp = (WINDOWPOS*)lParam;
-// 		if (wp->flags = SWP_NOSIZE | SWP_NOMOVE)
-// 		{
-// 			return TRUE;
-// 		}
-// 	}
-// 
-// 
-// 	if (m_WndRect == nullptr)
-// 	{
-// 		m_WndRect = new Gdiplus::RectF;
-// 	}
-// 	m_WndRect->X = 0;
-// 	m_WndRect->Y = 0;
-// 	m_WndRect->Width = REAL(wp->cx); //LOWORD(lParam);
-// 	m_WndRect->Height = REAL(wp->cx); //HIWORD(lParam);
-// 	if (lParam == NULL)
-// 	{
-// 		delete wp;
-// 	}
-// 	if (m_ClientRect == nullptr)
-// 	{
-// 		m_ClientRect = new Gdiplus::RectF;
-// 	}
-// 	m_ClientRect->X = SHADOWWIDTH;
-// 	m_ClientRect->Y = SHADOWWIDTH;
-// 	m_ClientRect->Width = m_WndRect->Width - 2 * SHADOWWIDTH - 2;
-// 	m_ClientRect->Height = m_WndRect->Height - 2 * SHADOWWIDTH - 2;
-// 	if (m_MemDC == nullptr)
-// 	{
-// 		m_MemDC = new MemDC;
-// 		m_MemDC->Create((INT)m_WndRect->Width, (INT)m_WndRect->Height);
-// 	}
-// 	else
-// 	{
-// 		m_MemDC->ReSize((INT)m_WndRect->Width, (INT)m_WndRect->Height);
-// 	}
-// 
-// 	HRGN hRgn;
-// 	if (m_BorderStyle.Mode == BM_RoundRect)
-// 	{
-// 		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 5, 5);
-// 	}
-// 	else
-// 	{
-// 		hRgn = CreateRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height);
-// 	}
-// 	SetWindowRgn(m_hWnd, hRgn, FALSE);
-// 	DeleteObject(hRgn);
-// 
-// 	if (m_IconRect == nullptr)
-// 	{
-// 		if (m_Icon != nullptr)
-// 		{
-// 			m_IconRect = new RectF(0, 0, /*(REAL)m_Icon->GetWidth()*/ICONSIZE_X, /*(REAL)m_Icon->GetHeight()*/ICONSIZE_Y);
-// 		}
-// 		else
-// 		{
-// 			m_IconRect = new RectF(0, 0, 0, 0);
-// 		}
-// 
-// 	}
-// 	m_IconRect->X = m_ClientRect->GetLeft() + ICONOFFSET_X;
-// 	m_IconRect->Y = m_ClientRect->GetTop() + ICONOFFSET_Y;
-// 
-// 
-// 	//更新控制按钮的位置
-// 	INT Size_X;
-// 	INT Size_Y;
-// 	INT Start;
-// 	if (m_SysBtn[BT_Close] == nullptr)
-// 	{
-// 		m_SysBtn[BT_Close] = new DUI_ImageButton;
-// 		Size_X = m_pRdbMgr->GetIntValByName(_T("SysBtn_Close_X"));
-// 		Size_Y = m_pRdbMgr->GetIntValByName(_T("SysBtn_Close_Y"));
-// 		Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Close_Start"));
-// 		m_SysBtn[BT_Close]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
-// 		m_SysBtn[BT_Close]->m_bAutoReleaseImg = FALSE;
-// 		m_SysBtn[BT_Close]->SetExtra(BT_Close);
-// 		m_SysBtn[BT_Close]->SetPrompt(_T("关闭"));
-// 		m_SysBtnCnt++;
-// 	}
-// 
-// 	if (m_SysBtn[BT_Minimize] == nullptr)
-// 	{
-// 		m_SysBtn[BT_Minimize] = new DUI_ImageButton;
-// 		Size_X = m_pRdbMgr->GetIntValByName(_T("SysBtn_Min_X"));
-// 		Size_Y = m_pRdbMgr->GetIntValByName(_T("SysBtn_Min_Y"));
-// 		Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Min_Start"));
-// 		m_SysBtn[BT_Minimize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
-// 		m_SysBtn[BT_Minimize]->m_bAutoReleaseImg = FALSE;
-// 		m_SysBtn[BT_Minimize]->SetExtra(BT_Minimize);
-// 		m_SysBtn[BT_Minimize]->SetPrompt(_T("最小化"));
-// 		SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_MINIMIZEBOX);
-// 		m_SysBtnCnt++;
-// 	}
-// 
-// 	if (GetSizeable())
-// 	{
-// 		if (m_SysBtn[BT_Maxmize] == nullptr)
-// 		{
-// 			m_SysBtn[BT_Maxmize] = new DUI_ImageButton;
-// 			Size_X = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_X"));
-// 			Size_Y = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Y"));
-// 			if (IsZoomed(m_hWnd))
-// 			{
-// 				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Restore_Start"));
-// 			}
-// 			else
-// 			{
-// 				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Start"));
-// 			}
-// 			m_SysBtn[BT_Maxmize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
-// 			m_SysBtn[BT_Maxmize]->m_bAutoReleaseImg = FALSE;
-// 			m_SysBtn[BT_Maxmize]->SetExtra(BT_Maxmize);
-// 			SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_MAXIMIZEBOX);
-// 			m_SysBtnCnt++;
-// 		}
-// 		m_SysBtn[BT_Maxmize]->SetPrompt(IsZoomed(m_hWnd) ? _T("还原") : _T("最大化"));
-// 		//if (!m_SysBtn[BT_Maxmize]->m_bVisialbe)
-// 		//{
-// 		//	m_SysBtn[BT_Maxmize]->m_bVisialbe = TRUE;
-// 		//}
-// 	}
-// 	else
-// 	{
-// 		if (m_SysBtn[BT_Maxmize] != nullptr)
-// 		{
-// 			//m_SysBtn[BT_Maxmize]->m_bVisialbe = FALSE;
-// 			//m_SysBtn[BT_Maxmize]->Destroy();
-// 			//m_SysBtn[BT_Maxmize] = nullptr;
-// 			delete m_SysBtn[BT_Maxmize];
-// 			m_SysBtn[BT_Maxmize] = nullptr;
-// 		}
-// 	}
-// 
-// 
-// 
-// 	REAL BtnWith = 0;
-// 	for (int i = BT_Close; i < BT_None; i++)
-// 	{
-// 		if (m_SysBtn[i] != nullptr&&m_SysBtn[i]->m_bVisialbe)
-// 		{
-// 			m_SysBtn[i]->SetClickEventHandler(m_SysBtnClickProcAddr);
-// 			BtnWith += m_SysBtn[i]->m_Rect->Width;
-// 			if (m_BorderStyle.DoubleBorder)
-// 			{
-// 				m_SysBtn[i]->Move(m_ClientRect->GetRight() - BtnWith - 1, m_ClientRect->GetTop() + 1);
-// 			}
-// 			else
-// 			{
-// 				m_SysBtn[i]->Move(m_ClientRect->GetRight() - BtnWith + 1, m_ClientRect->GetTop());
-// 			}
-// 		}
-// 	}
-// 
-// 	if (m_Title->rect == nullptr)
-// 	{
-// 		m_Title->rect = new RectF;
-// 	}
-// 	if (m_Icon != nullptr)
-// 	{
-// 		m_Title->rect->X = m_ClientRect->GetLeft() + m_IconRect->GetRight() + GAP_ICON_TITLE;
-// 		m_Title->rect->Y = m_ClientRect->GetTop() + 5;
-// 		m_Title->rect->Width = m_ClientRect->Width - m_IconRect->GetRight() - GAP_ICON_TITLE - BtnWith - GAP_TITLE_SYSBTN;
-// 		m_Title->rect->Height = TITLEBARHEIGHT;
-// 	}
-// 	else
-// 	{
-// 		m_Title->rect->X = m_ClientRect->GetLeft() + 2;
-// 		m_Title->rect->Y = m_ClientRect->GetTop() + 4;
-// 		m_Title->rect->Width = m_ClientRect->Width - BtnWith - 2 - GAP_TITLE_SYSBTN;
-// 		m_Title->rect->Height = TITLEBARHEIGHT;
-// 	}
-// 
-// 
-// 
-// 	return FALSE;
-// }
-
 RDBManager * DUI_Window::GetRDBMgr()
 {
 	return m_pRdbMgr;
 }
 
-VOID DUI_Window::AddControl(DUI_ControlBase * pControl)
+VOID DUI_Window::AddControl(DUI_ControlBase * pCtrl)
 {
-	m_Controls->push_back(pControl);
+	m_Controls->push_back(pCtrl);
+}
+
+VOID DUI_Window::Flush()
+{
+	if (m_Alpha != 0)
+	{
+		SIZE szWnd;
+		szWnd = { (INT)m_WndRect->Width, (INT)m_WndRect->Height };
+		POINT ptSrc = { 0,0 };
+		BLENDFUNCTION bf;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		bf.BlendFlags = 0;
+		bf.BlendOp = 0;
+		bf.SourceConstantAlpha = m_Alpha;
+		UpdateLayeredWindow((HWND)m_ID, m_hDC, nullptr, &szWnd, m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+	}
+	else
+	{
+		m_MemDC->AlphaBlend(m_hDC, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 255);
+	}
+}
+
+BOOL DUI_Window::CanBeParent()
+{
+	return TRUE;
+}
+
+REAL DUI_Window::GetX()
+{
+	return m_WndRect->X;
+}
+
+REAL DUI_Window::GetY()
+{
+	return m_WndRect->Y;
+}
+
+REAL DUI_Window::GetWidth()
+{
+	return m_WndRect->Width;
+}
+
+REAL DUI_Window::GetHeight()
+{
+	return m_WndRect->Height;
 }
 
 BOOL DUI_Window::IsWindowInited()
@@ -1351,41 +1270,48 @@ MSGPROC DUI_Window::SetMsgProc(MSGPROC Proc)
 	return PrevProc;
 }
 
+VOID DUI_Window::AcceptDropFile(BOOL bAccept)
+{
+	DragAcceptFiles((HWND)m_ID, bAccept);
+}
+
 BOOL DUI_Window::SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	DUI_ImageButton* pBtn = (DUI_ImageButton*)pThis;
-	switch (wParam)
+	if (uMsg == CM_CLICKED)
 	{
-	case BT_Close:
-		SendMessage(m_hWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
-		break;
-	case BT_Minimize:
-		SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-		break;
-	case BT_Maxmize:
-		INT Start;
-		if (IsZoomed(m_hWnd))
+		DUI_ImageButton* pBtn = (DUI_ImageButton*)pThis;
+		switch (pBtn->GetExtraInfo())
 		{
-			Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Start"));
-			//117
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-			Point ptMouse;
-			GetCursorPos(&ptMouse);
-			OnControl(INVALID_CONTROLID, WM_MOUSEMOVE, NULL, MAKELPARAM(ptMouse.X, ptMouse.Y));
-			//ShowWindowAsync(m_hWnd, SW_RESTORE);
+		case BT_Close:
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_CLOSE, 0);
+			break;
+		case BT_Minimize:
+			SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+			break;
+		case BT_Maxmize:
+			INT Start;
+			if (IsZoomed((HWND)m_ID))
+			{
+				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Start"));
+				//117
+				SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_RESTORE, 0);
+				//ShowWindowAsync(m_hWnd, SW_RESTORE);
+			}
+			else
+			{
+				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Restore_Start"));
+				//201
+				SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+				//ShowWindowAsync(m_hWnd, SW_MAXIMIZE);
+			}
+			pBtn->SetImages(m_SysBtnPic, Start);
+			break;
+		default:
+			break;
 		}
-		else
-		{
-			Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Restore_Start"));
-			//201
-			SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
-			//ShowWindowAsync(m_hWnd, SW_MAXIMIZE);
-		}
-		pBtn->SetImages(m_SysBtnPic, Start);
-		OnSize(NULL, NULL);
-		break;
-	default:
-		break;
+		Point ptMouse;
+		GetCursorPos(&ptMouse);
+		OnControl(INVALID_CONTROLID, WM_MOUSEMOVE, NULL, MAKELPARAM(ptMouse.X, ptMouse.Y));
 	}
 	return TRUE;
 }
@@ -1500,7 +1426,7 @@ BOOL DUI_Window::WndAnimProc(AnimArg * pArg)
 	bf.BlendFlags = 0;
 	bf.BlendOp = 0;
 	bf.SourceConstantAlpha = 255 * (pArg->Arg_2 == 1 ? pArg->Arg_1 / 2 : (20 - pArg->Arg_1) / 2) / 10;
-	UpdateLayeredWindow(m_hWnd, m_hDC, &ptDest, &szWnd, pArg->pDC1->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+	UpdateLayeredWindow((HWND)m_ID, m_hDC, &ptDest, &szWnd, pArg->pDC1->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
 	if (pArg->Arg_2 == 1 && pArg->Arg_1 == 10)
 	{
 		pArg->Arg_2 = 2;
@@ -1517,7 +1443,6 @@ BOOL DUI_Window::WndAnimProc(AnimArg * pArg)
 
 BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	//return FALSE;
 	if (m_Controls->size() == 0)
 	{
 		return FALSE;
@@ -1541,161 +1466,149 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(),
 				ptMouse.Y - pCtrl->m_Rect->GetTop());
 		}
-		return pCtrl->MsgProc(uMsg, wParam, lParam);
+		return pCtrl->MsgProc(ID, uMsg, wParam, lParam);
 	}
-	else
-	{
-		if (uMsg == CM_SETAUTOUPDATE)
-		{
-			uMsg = uMsg;
-		}
-	}
+
+	//发送给所有控件的消息
 
 	if (uMsg == WM_UPDATE)
 	{
 		for (auto it = m_Controls->begin(); it != m_Controls->end(); ++it)
 		{
-			if ((*it)->m_bVisialbe == FALSE) continue;
-			(*it)->MsgProc(uMsg, wParam, lParam);
+			if (!(*it)->m_bVisialbe) continue;
+			(*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
 		}
+		return FALSE;
 	}
-	else
+
+	if (m_CaptureCtrlID != INVALID_CONTROLID)
 	{
-		if (m_CaptureCtrlID != INVALID_CONTROLID)
+		BOOL bInCtrl = FALSE;
+		pCtrl = FindControlByID((INT)m_CaptureCtrlID);
+		bInCtrl = pCtrl->IsPtInCtrl(&ptMouse);
+		if (IsMouseMsg(uMsg))
 		{
-			BOOL bInCtrl = FALSE;
-			pCtrl = FindControlByID((INT)m_CaptureCtrlID/*, &Index*/);
-			bInCtrl= PtInRect(pCtrl->m_Rect, &ptMouse);
-			if (IsMouseMsg(uMsg))
+			switch (uMsg)
 			{
-				switch (uMsg)
+			case WM_MOUSEMOVE:
+				if (m_bMouseDown)
 				{
-				case WM_MOUSEMOVE:
-					if (m_bMouseDown)
+					if (bInCtrl)
 					{
-						if (bInCtrl)
+						if (m_LastHoverCtrlID == INVALID_CONTROLID)
 						{
-							if (m_LastHoverCtrlID == INVALID_CONTROLID)
-							{
-								m_LastHoverCtrlID = pCtrl->m_ID;
-								pCtrl->ChangeState(S_Pushed);
-							}
-						}
-						else
-						{
-							if (m_LastHoverCtrlID != INVALID_CONTROLID)
-							{
-								m_LastHoverCtrlID = INVALID_CONTROLID;
-								pCtrl->ChangeState(S_Focus);
-							}
+							m_LastHoverCtrlID = pCtrl->m_ID;
+							pCtrl->ChangeState(S_Pushed);
 						}
 					}
-					//else
-					//{
-					//	m_Controls->at(Index)->ChangeState(S_HighLight);
-					//}
-					break;
-				case WM_LBUTTONUP:
-					if (m_CaptureCtrlID != INVALID_CONTROLID)
-					{
-						m_bMouseDown = FALSE;
-						m_CaptureCtrlID = INVALID_CONTROLID;
-						ReleaseCapture();
-						if (bInCtrl)
-						{
-							pCtrl->ChangeState(S_HighLight);
-						}
-						else
-						{
-							pCtrl->ChangeState(S_Normal);
-							WndProc(m_hWnd, WM_MOUSEMOVE, wParam, lParam);
-							//return TRUE;
-						}
-					}
-					break;
-				default:
-					break;
-				}
-			}
-			if (IsMouseMsg(uMsg))
-			{
-				lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(), ptMouse.Y - pCtrl->m_Rect->GetTop());
-			}
-			return pCtrl->MsgProc(uMsg, wParam, lParam);
-		}
-		BOOL bInCtrl = FALSE, bFound = FALSE,Ret;
-		for (auto it = m_Controls->rbegin(); it != m_Controls->rend(); ++it)
-		{
-			if ((*it)->m_bVisialbe == FALSE) continue;
-			if (IsMouseMsg(uMsg))
-			{
-				bInCtrl = PtInRect((*it)->m_Rect, &ptMouse);
-				if (bInCtrl)
-				{
-					bFound = TRUE;
-					lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(),ptMouse.Y - (*it)->m_Rect->GetTop());
-					Ret = (*it)->MsgProc(uMsg, wParam, lParam);
-				}
-				switch (uMsg)
-				{
-				case WM_MOUSEMOVE:
-					if (m_LastHoverCtrlID != (*it)->m_ID && bInCtrl)
+					else
 					{
 						if (m_LastHoverCtrlID != INVALID_CONTROLID)
 						{
-							FindControlByID(m_LastHoverCtrlID)->MsgProc(WM_MOUSELEAVE, wParam, NULL);
-							FindControlByID(m_LastHoverCtrlID)->ChangeState(S_Normal);
+							m_LastHoverCtrlID = INVALID_CONTROLID;
+							pCtrl->ChangeState(S_Focus);
 						}
-						(*it)->MsgProc(CM_MOUSEGETIN, NULL, NULL);
-						(*it)->ChangeState(S_HighLight);
-						m_LastHoverCtrlID = (*it)->m_ID;
 					}
-					break;
-				case WM_LBUTTONDOWN:
-					if (bInCtrl)
-					{
-						m_bMouseDown = TRUE;
-						SetCapture(m_hWnd);
-						m_CaptureCtrlID = (*it)->m_ID;
-						//m_LastHoverCtrlID = m_CaptureCtrlID;
-						(*it)->ChangeState(S_Pushed);
-					}
-					break;
-				default:
-					break;
 				}
-			}
-			else
-			{
-				(*it)->MsgProc(uMsg, wParam, lParam);
-			}
-			if (IsMouseMsg(uMsg) && bInCtrl)
-			{
-				//lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(),ptMouse.Y - (*it)->m_Rect->GetTop());
-				return Ret;//(*it)->MsgProc(uMsg, wParam, lParam);
-			}
-		}
-
-		if (IsMouseMsg(uMsg))//bFound一定为假
-		{
-			if (uMsg == WM_LBUTTONDOWN)
-			{
-				m_CaptureCtrlID = INVALID_CONTROLID;//标识在窗口上，而非控件上。
-			}
-			if (m_LastHoverCtrlID != INVALID_CONTROLID)
-			{
-				pCtrl = FindControlByID(m_LastHoverCtrlID);
-				if (pCtrl == nullptr)
+				break;
+			case WM_LBUTTONUP:
+				m_bMouseDown = FALSE;
+				m_CaptureCtrlID = INVALID_CONTROLID;
+				ReleaseCapture();
+				if (bInCtrl)
 				{
-					m_LastHoverCtrlID = INVALID_CONTROLID;
-					return FALSE;
+					pCtrl->ChangeState(S_HighLight);
 				}
-				pCtrl->MsgProc(WM_MOUSELEAVE, wParam, NULL);
-				pCtrl->ChangeState(S_Normal);
-				m_LastHoverCtrlID = INVALID_CONTROLID;
+				else
+				{
+					pCtrl->ChangeState(S_Normal);
+					MsgProc(m_ID, WM_MOUSEMOVE, wParam, lParam);
+				}
+				break;
+			default:
+				break;
 			}
-
 		}
+		if (IsMouseMsg(uMsg))
+		{
+			lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(), ptMouse.Y - pCtrl->m_Rect->GetTop());
+		}
+		return pCtrl->MsgProc(pCtrl->m_ID, uMsg, wParam, lParam);
+	}
+
+
+	BOOL bInCtrl = FALSE, bFound = FALSE, Ret;
+	for (auto it = m_Controls->rbegin(); it != m_Controls->rend(); ++it)
+	{
+		if ((*it)->m_bVisialbe == FALSE) continue;
+		if (IsMouseMsg(uMsg))
+		{
+			bInCtrl = (*it)->IsPtInCtrl(&ptMouse);
+			if (bInCtrl)
+			{
+				bFound = TRUE;
+				lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(), ptMouse.Y - (*it)->m_Rect->GetTop());
+				Ret = (*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
+			}
+			switch (uMsg)
+			{
+			case WM_MOUSEMOVE:
+				if (m_LastHoverCtrlID != (*it)->m_ID && bInCtrl)
+				{
+					if (m_LastHoverCtrlID != INVALID_CONTROLID)
+					{
+						FindControlByID(m_LastHoverCtrlID)->MsgProc(m_LastHoverCtrlID, WM_MOUSELEAVE, wParam, NULL);
+						FindControlByID(m_LastHoverCtrlID)->ChangeState(S_Normal);
+					}
+					(*it)->MsgProc((*it)->m_ID, CM_MOUSEGETIN, NULL, NULL);
+					(*it)->ChangeState(S_HighLight);
+					m_LastHoverCtrlID = (*it)->m_ID;
+				}
+				break;
+			case WM_LBUTTONDOWN:
+				if (bInCtrl)
+				{
+					m_bMouseDown = TRUE;
+					SetCapture((HWND)m_ID);
+					m_CaptureCtrlID = (*it)->m_ID;
+					//m_LastHoverCtrlID = m_CaptureCtrlID;
+					(*it)->ChangeState(S_Pushed);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			(*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
+		}
+		if (IsMouseMsg(uMsg) && bInCtrl)
+		{
+			//lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(),ptMouse.Y - (*it)->m_Rect->GetTop());
+			return Ret;//(*it)->MsgProc(uMsg, wParam, lParam);
+		}
+	}
+
+	if (IsMouseMsg(uMsg))//bFound一定为假
+	{
+		if (uMsg == WM_LBUTTONDOWN)
+		{
+			m_CaptureCtrlID = INVALID_CONTROLID;//标识在窗口上，而非控件上。
+		}
+		if (m_LastHoverCtrlID != INVALID_CONTROLID)
+		{
+			pCtrl = FindControlByID(m_LastHoverCtrlID);
+			if (pCtrl == nullptr)
+			{
+				m_LastHoverCtrlID = INVALID_CONTROLID;
+				return FALSE;
+			}
+			pCtrl->MsgProc(pCtrl->m_ID, WM_MOUSELEAVE, wParam, NULL);
+			pCtrl->ChangeState(S_Normal);
+			m_LastHoverCtrlID = INVALID_CONTROLID;
+		}
+
 	}
 	return FALSE;
 }

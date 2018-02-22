@@ -26,7 +26,7 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 {
 	FreeCallBackAddr(m_BtnClick);
 	FreeCallBackAddr(m_WndProc);
-	delete m_Lable;
+	/*delete m_Lable;
 	delete m_Button;
 	//delete pImg[0];
 	//delete pImg[1];
@@ -37,7 +37,7 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 	delete m_Radio1;
 	delete m_Radio2;
 	delete m_RGroup;
-	delete m_ProgressBar;
+	delete m_ProgressBar;*/
 	delete m_SubWindow;
 	delete m_Window;
 	GdipShutdown();
@@ -45,46 +45,48 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 
 BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	//m_Lable->SetVisiable(!m_Lable->GetVisiable());
-	//m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
-	////m_Lable->SetText(L"Button");
-	////static int i = 0;
-	////i += 1;
-	////if ((i % 2) == 0)
-	////{
-	////	m_Window->SetTitle(L"OK");
-	////	m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-	////	m_Window->SetDebugMode(FALSE);
-	////	m_Button->SetText(L"Button");
-	////}
-	////else
-	////{
-	////	m_Window->SetTitle(L"Clicked");
-	////	m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-	////	m_Window->SetDebugMode(TRUE);
-	////	m_Button->SetText(L"Clicked");
-	////}
-	////m_Window->SetSizeable(!m_Window->GetSizeable());
-// 	 	if (m_SubWindow == nullptr)
-// 	 	{
-// 	 		m_SubWindow = new DUI_Window;
-// 	 		m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
-// 	 		m_SubWindow->DoModel();
-// 	 		delete m_SubWindow;
-// 	 		m_SubWindow = nullptr;
-// 	 	}
-	//DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
-	//m_RGroup->SelectNext();
-	////if (pSex != nullptr)
-	////{
-	////	CString str = _T("当前选中的性别为：");
-	////	str += pSex->GetText();
-	////	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
-	////}
-	//m_Window->SetBkgColor(Color::Red);
+	if (uMsg == CM_CLICKED)
+	{
+		m_Lable->SetVisiable(!m_Lable->GetVisiable());
+		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
+		////m_Lable->SetText(L"Button");
+		////static int i = 0;
+		////i += 1;
+		////if ((i % 2) == 0)
+		////{
+		////	m_Window->SetTitle(L"OK");
+		////	m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+		////	m_Window->SetDebugMode(FALSE);
+		////	m_Button->SetText(L"Button");
+		////}
+		////else
+		////{
+		////	m_Window->SetTitle(L"Clicked");
+		////	m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+		////	m_Window->SetDebugMode(TRUE);
+		////	m_Button->SetText(L"Clicked");
+		////}
+		////m_Window->SetSizeable(!m_Window->GetSizeable());
+		// 	 	if (m_SubWindow == nullptr)
+		// 	 	{
+		// 	 		m_SubWindow = new DUI_Window;
+		// 	 		m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
+		// 	 		m_SubWindow->DoModel();
+		// 	 		delete m_SubWindow;
+		// 	 		m_SubWindow = nullptr;
+		// 	 	}
+		//DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
+		//m_RGroup->SelectNext();
+		////if (pSex != nullptr)
+		////{
+		////	CString str = _T("当前选中的性别为：");
+		////	str += pSex->GetText();
+		////	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
+		////}
+		//m_Window->SetBkgColor(Color::Red);
 
-	//m_Button->Move(m_Button->GetX() + 5,m_Button->GetY());
-
+		//m_Button->Move(m_Button->GetX() + 5,m_Button->GetY());
+	}
 	return TRUE;
 }
 
@@ -174,7 +176,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_Button = new DUI_Button;
 	m_Button->Create(m_Window, 60, 20, 76, 26, _T("正常按钮"));
 	m_BtnClick = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::MyBtn);
-	m_Button->SetClickEventHandler(m_BtnClick);
+	m_Button->SetMsgProc(m_BtnClick);
 
 	pImg[0] = ImageFromIDResource(IDB_BTN_1, _T("PNG"));
 	pImg[1] = ImageFromIDResource(IDB_BTN_2, _T("PNG"));
@@ -182,8 +184,13 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_ImgBtn = new DUI_ImageButton;
 	m_ImgBtn->Create(m_Window, 60, 55, 76, 26, pImg[0], pImg[1], pImg[2], _T("ImageBtn"));
 
-	m_CheckBox = new DUI_CheckBox;
-	m_CheckBox->Create(m_Window, 150, 20, 75, 15, _T("Box"));
+	m_GroupBox = new DUI_GroupBox;
+	m_GroupBox->Create(m_Window, 120, 155, 100, 70, _T("分 组 框"));
+	m_GroupBox->MoveWithMouse(TRUE);
+
+	m_CheckBox = new DUI_CheckBox; //ID 8
+	m_CheckBox->Create(m_GroupBox, 0, 0, 75, 15, _T("Box"));//150, 20, 75, 15
+	m_CheckBox->MoveWithMouse(TRUE);
 
 	m_RGroup = new DUI_RadioGroup;
 	m_RGroup->Create(m_Window);
@@ -196,10 +203,11 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_ProgressBar->Create(m_Window, 60, 85, 210, 25, _T("进度条"));
 	m_ProgressBar->SetCurPos(100);
 
-	m_ImageBox = new DUI_ImageBox;
+	m_ImageBox = new DUI_ImageBox;//ID 13
 	m_ImageBox->Create(m_Window, 60, 120, 48, 48);
 
 	m_WndProc = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::WndProc);
+	m_Window->AcceptDropFile();
 	m_Window->SetMsgProc(m_WndProc);
 	//m_Window->SetDebugMode(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
