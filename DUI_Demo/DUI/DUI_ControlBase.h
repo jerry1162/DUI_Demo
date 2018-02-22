@@ -28,6 +28,7 @@ public:
 	LPCWSTR GetText();
 	VOID SetAlpha(BYTE Alpha);
 	VOID Move(REAL Left = NULL, REAL Top = NULL);
+	VOID Size(REAL Width = -1, REAL Height = -1); //-1表示保持不变
 	BOOL Existence();//返回该组件是否存在，即是否已经被创建
 	VOID SetVisiable(BOOL bVisiable);
 	BOOL GetVisiable();
@@ -49,7 +50,6 @@ protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	DUI_Object* m_Parent;
 	DUI_Window* m_ParentWnd;
-	//HWND m_hWndParent;
 	RectF* m_LogicRect;//相对于父组件的逻辑坐标
 	RectF* m_Rect;//相对于窗口的真实坐标
 	RectF* m_LogicVRect;

@@ -70,8 +70,9 @@ BOOL DUI_ControlBase::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width
 	m_Text->format = new StringFormat/*(StringFormat::GenericTypographic())*/;
 	m_Text->format->SetAlignment(StringAlignmentCenter);
 	m_Text->format->SetLineAlignment(StringAlignmentCenter);
+	m_Text->format->SetTrimming(StringTrimmingEllipsisCharacter);
 	m_Text->color = new Color(254, 0, 0, 0);
-	m_Text->rect = new RectF(0, 0, Width, Height);
+	m_Text->rect = new RectF;
 
 	AddCtrl();
 	
@@ -81,7 +82,8 @@ BOOL DUI_ControlBase::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width
 	}
 
 	MsgProc(m_ID, CM_CREATE, m_ID, NULL);
-
+	MsgProc(m_ID, CM_MOVE, m_ID, NULL);
+	MsgProc(m_ID, CM_SIZE, m_ID, NULL);
 	Update(bForceUpdate);
 	return TRUE;
 }
@@ -193,6 +195,86 @@ VOID DUI_ControlBase::Move(REAL Left, REAL Top)
 	m_LogicRect->X = Left;
 	m_LogicRect->Y = Top;
 	OnCalcRect();
+	MsgProc(m_ID, CM_MOVE, m_ID, NULL);
+	SendMsgToChild(CM_CALCRECT, NULL, NULL);
+	Update();
+}
+
+VOID DUI_ControlBase::Size(REAL Width, REAL Height)
+{
+	if (Width < 0)
+	{
+		Width = m_LogicRect->Width;
+	}
+	if (Height < 0)
+	{
+		Height = m_LogicRect->Height;
+	}
+	if (Width != m_LogicRect->Width || Height != m_LogicRect->Height)
+	{
+		//StartPauseDebug();
+		if (!m_VRect->IsEmptyArea())
+		{
+			RectF* ClipRect = nullptr;
+			if (!m_bCanShowOnNCRgn)
+			{
+				ClipRect = m_Parent->GetClientRect();
+				if (ClipRect != nullptr)
+				{
+					m_ParentWnd->m_MemDC->SelectRectClipRgn(ClipRect);
+				}
+			}
+
+			m_ParentWnd->m_BkgDC->BitBlt(m_ParentWnd->m_MemDC, (INT)m_VRect->X, (INT)m_VRect->Y, (INT)m_VRect->Width, (INT)m_VRect->Height);
+			//ExcuteAfterPaused(m_ParentWnd->Flush());
+			RectF* rfRect = nullptr;
+			for (auto it = m_ParentWnd->m_Controls->begin(); it != m_ParentWnd->m_Controls->end(); it++)
+			{
+				if (!(*it)->m_bVisialbe || (*it) == this || (*it)->m_Parent == this)
+				{
+					continue;
+				}
+				rfRect = m_VRect->Clone();
+				if (!(*it)->m_VRect->IsEmptyArea() && rfRect->Intersect(*(*it)->m_VRect))
+				{
+					if (!(*it)->m_bCanShowOnNCRgn)
+					{
+						RectF* iClipRect = nullptr;
+						iClipRect = (*it)->m_Parent->GetClientRect();
+						if (iClipRect != nullptr)
+						{
+							if (ClipRect != nullptr)
+							{
+								if (iClipRect->Intersect(*ClipRect))
+								{
+									m_ParentWnd->m_MemDC->SelectRectClipRgn(iClipRect);
+								}
+							}
+							else
+							{
+								m_ParentWnd->m_MemDC->SelectRectClipRgn(iClipRect);
+							}
+							delete iClipRect;
+						}
+					}
+					(*it)->m_MemDC->AlphaBlend(m_ParentWnd->m_MemDC->GetMemDC(), (int)rfRect->GetLeft(), (int)rfRect->GetTop(), (int)rfRect->Width, (int)rfRect->Height, INT(rfRect->X - (*it)->m_VRect->X), INT(rfRect->Y - (*it)->m_VRect->Y), (int)rfRect->Width, (int)rfRect->Height, (*it)->m_Alpha);
+					//ExcuteAfterPaused(m_ParentWnd->Flush());
+					if (!m_bCanShowOnNCRgn)
+					{
+						m_ParentWnd->m_MemDC->SelectRectClipRgn(ClipRect);
+					}
+				}
+				delete rfRect;
+			}
+			delete ClipRect;
+			m_ParentWnd->m_MemDC->SelectClipRgn();
+		}
+	}
+	m_MemDC->ReSize((INT)Width, (INT)Height);
+	m_LogicRect->Width = Width;
+	m_LogicRect->Height = Height;
+	OnCalcRect();
+	MsgProc(m_ID, CM_SIZE, m_ID, NULL);
 	SendMsgToChild(CM_CALCRECT, NULL, NULL);
 	Update();
 }
@@ -510,6 +592,10 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		break;
 	case CM_CALCRECT:
 		OnCalcRect(wParam, lParam);
+		break;
+	case CM_SIZE:
+		m_Text->rect->Width = m_LogicRect->Width;
+		m_Text->rect->Height = m_LogicRect->Height;
 		break;
 	}
 	if (IsMouseMsg(uMsg))

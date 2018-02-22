@@ -612,6 +612,11 @@ VOID DUI_Window::SetDebugMode(BOOL bDebug)
 	Update();
 }
 
+BOOL DUI_Window::GetDebugMode()
+{
+	return m_bDebug;
+}
+
 VOID DUI_Window::Update(BOOL bForce)
 {
 	if (bForce)

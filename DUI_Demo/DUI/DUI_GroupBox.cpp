@@ -41,12 +41,15 @@ LRESULT DUI_GroupBox::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT Ret;
 	Ret = DUI_ControlBase::MsgProc(m_ID, uMsg, wParam, lParam);
-
 	if (Ret == -1)
 	{
 		return TRUE;
 	}
-	if (uMsg == CM_CREATE)
+
+
+	switch (uMsg)
+	{
+	case CM_CREATE:
 	{
 		m_Text->color->SetValue(Color::White);
 
@@ -54,9 +57,19 @@ LRESULT DUI_GroupBox::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		m_Text->format = new StringFormat(StringFormat::GenericTypographic());
 		m_Text->format->SetAlignment(StringAlignmentCenter);
 		m_Text->format->SetLineAlignment(StringAlignmentCenter);
+		m_Text->format->SetTrimming(StringTrimmingEllipsisCharacter);
+		m_Text->format->SetFormatFlags(StringFormatFlagsNoWrap);
+	}
+		break;
+	case CM_SIZE:
+	{
 		RectF TextRect;
 		m_MemDC->graphics->MeasureString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &TextRect);
 		m_Text->rect->Height = TextRect.Height + 0.1F;
+	}
+		break;
+	default:
+		break;
 	}
 
 	return Ret;

@@ -41,7 +41,7 @@ enum ObjType
 	#define CS_SHOW (1)
 	#define CS_HIDE (0)
 #define CM_SETAUTOUPDATE (WM_USER + 104)//用于设置自动刷新属性 wParam是指控件ID，lParam表示属性值
-#define CM_CALCRECT (WM_USER + 105)//用于刷新控件矩形 wParam是指控件ID，lParam为NULL
+#define CM_CALCRECT (WM_USER + 105)//用于刷新控件矩形 wParam是控件ID，lParam为NULL
 #define CM_ADDCTRL (WM_USER + 106) //用于通知窗口增加了一个组件，wParam为控件指针，lParam未用。
 
 
@@ -49,11 +49,14 @@ enum ObjType
 #define RG_SELECTCHANGE (WM_USER + 108)//当单选框状态改变时，向其单选组发送此消息 wParam是新选中的单选框ID，lParam未用
 #define RG_GROUPCHANGE (WM_USER + 109)//当单选框改变所属单选组时，向其单选组发送此消息 wParam是单选框ID，lParam未用
 
-#define CM_CREATE (WM_USER + 109) //当组件创建完毕由ControlBase分发给组件，wParam是单选框ID，lParam未用
-#define CM_SETCURSOR (WM_USER + 110) //需要设置鼠标指针时发送，wParam是单选框ID，lParam未用
+#define CM_CREATE (WM_USER + 109) //当组件创建完毕由ControlBase分发给组件，wParam是控件ID，lParam未用
+#define CM_SETCURSOR (WM_USER + 110) //需要设置鼠标指针时发送，wParam是控件ID，lParam未用
+#define CM_MOVE (WM_USER + 111) //当组件位置被移动后发送给控件，也就是由Move发送，wParam是控件ID，lParam未用
+#define CM_SIZE (WM_USER + 112) //当组件大小被改变后发送给控件，也就是由Size发送，wParam是控件ID，lParam未用
 
-//定义其他信息
-#define DEF_CLICKTIME 150 //默认的鼠标单击事件中，鼠标按下和抬起的时间 GetTickCount
+
+
+
 
 
 typedef BOOL(CALLBACK *MSGPROC) (VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回值表示此消息是否要继续传递，真则表示继续向下传递。注：用户消息处理会先于对象本身的消息处理。

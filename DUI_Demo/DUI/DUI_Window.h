@@ -41,6 +41,7 @@ public:
 	DUI_ControlBase* FindControlByID(INT ID);
 	DUI_ControlBase* FindControlByPoint(Point* pt);
 	VOID SetDebugMode(BOOL bDebug);
+	BOOL GetDebugMode();
 	VOID Update(BOOL bForce = TRUE);
 	DUI_Prompt* GetWndPrompt();
 	INT ScreenToClient(Point* pt);

@@ -47,26 +47,27 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == CM_CLICKED)
 	{
-		m_Lable->SetVisiable(!m_Lable->GetVisiable());
+		//m_Lable->SetVisiable(!m_Lable->GetVisiable());
 		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
-		////m_Lable->SetText(L"Button");
-		////static int i = 0;
-		////i += 1;
-		////if ((i % 2) == 0)
-		////{
-		////	m_Window->SetTitle(L"OK");
-		////	m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-		////	m_Window->SetDebugMode(FALSE);
-		////	m_Button->SetText(L"Button");
-		////}
-		////else
-		////{
-		////	m_Window->SetTitle(L"Clicked");
-		////	m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-		////	m_Window->SetDebugMode(TRUE);
-		////	m_Button->SetText(L"Clicked");
-		////}
-		////m_Window->SetSizeable(!m_Window->GetSizeable());
+		//m_Window->SetDebugMode(!m_Window->GetDebugMode());
+		//m_Lable->SetText(L"Button");
+		static int i = 0;
+		i += 1;
+		if ((i % 2) == 0)
+		{
+			//m_Window->SetTitle(L"OK");
+			//m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+			//m_Button->SetText(L"Button");
+			m_GroupBox->Size(200, 200);
+		}
+		else
+		{
+			//m_Window->SetTitle(L"Clicked");
+			//m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+			//m_Button->SetText(L"Clicked");
+			m_GroupBox->Size(50, 50);
+		}
+		//m_Window->SetSizeable(!m_Window->GetSizeable());
 		// 	 	if (m_SubWindow == nullptr)
 		// 	 	{
 		// 	 		m_SubWindow = new DUI_Window;
@@ -77,15 +78,13 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// 	 	}
 		//DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
 		//m_RGroup->SelectNext();
-		////if (pSex != nullptr)
-		////{
-		////	CString str = _T("当前选中的性别为：");
-		////	str += pSex->GetText();
-		////	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
-		////}
+		//if (pSex != nullptr)
+		//{
+		//	CString str = _T("当前选中的性别为：");
+		//	str += pSex->GetText();
+		//	MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
+		//}
 		//m_Window->SetBkgColor(Color::Red);
-
-		//m_Button->Move(m_Button->GetX() + 5,m_Button->GetY());
 	}
 	return TRUE;
 }
@@ -189,7 +188,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_ImgBtn->SetCursor(IDC_HAND);
 
 	m_GroupBox = new DUI_GroupBox;
-	m_GroupBox->Create(m_Window, 120, 155, 100, 70, _T("分 组 框"));
+	m_GroupBox->Create(m_Window, 120, 155, 100, 70, _T("分  组  框"));
 	m_GroupBox->MoveWithMouse(TRUE);
 	m_GroupBox->SetCursor(IDC_SIZEALL);
 
@@ -200,9 +199,9 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_RGroup = new DUI_RadioGroup;
 	m_RGroup->Create(m_Window);
 	m_Radio1 = new DUI_Radio;
-	m_Radio1->Create(m_Window, m_RGroup, 150, 40, 75, 15, _T("男"));
+	m_Radio1->Create(m_Window, m_RGroup, 150, 40, 75, 18, _T("男"));
 	m_Radio2 = new DUI_Radio;
-	m_Radio2->Create(m_Window, m_RGroup, 150, 60, 75, 15, _T("女"));
+	m_Radio2->Create(m_Window, m_RGroup, 150, 60, 75, 18, _T("女"));
 
 	m_ProgressBar = new DUI_ProgressBar;
 	m_ProgressBar->Create(m_Window, 60, 85, 210, 25, _T("进度条"));
