@@ -4,7 +4,6 @@
 using namespace std;
 using namespace Gdiplus;
 #include "Functions.h"
-#include "MemDC.h"
 
 enum ObjType
 {
@@ -27,6 +26,9 @@ enum ObjType
 #define ICONOFFSET_Y (3)
 #define SYSBTN_X (39)
 #define SYSBTN_Y (19)
+
+#define TID_WND_SHOW   (100)
+#define TID_WND_CLOSE (101)
 
 //自定义消息
 //说明当窗口接收到hWnd为非有效窗口句柄时，表明此消息为发送给控件的消息，hWnd值为控件ID
@@ -95,24 +97,6 @@ enum SYSBTNTYPE
 	BT_Minimize,
 	BT_None
 };
-
-struct AnimArg
-{
-	INT Arg_1;
-	INT Arg_2;
-	MemDC* pDC1;
-	MemDC* pDC2;
-	AnimArg()
-	{
-		Arg_1 = 0;
-		Arg_2 = 0;
-		pDC1 = nullptr;
-		pDC2 = nullptr;
-	}
-};
-
-//typedef BOOL(CALLBACK *WNDANIMPROC)(AnimArg* pArg);
-
 
 enum DUI_Status
 {

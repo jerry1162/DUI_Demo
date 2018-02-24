@@ -91,6 +91,7 @@ protected:
 	BOOL OnShowWindow(WPARAM wParam, LPARAM lParam);
 	BOOL OnDropFiles(WPARAM wParam, LPARAM lParam);
 	BOOL OnWndInited(WPARAM wParam, LPARAM lParam);
+	BOOL OnClose(WPARAM wParam, LPARAM lParam);
 
 	BYTE m_Alpha;
 	BOOL m_bInited;//当处理完WM_SHOWWINDOW后，此标识为真
@@ -121,7 +122,7 @@ protected:
 	AnimArg* m_pAnimArg;
 	MSGPROC m_MsgProc;
 	//WNDANIMPROC m_lpfnAnimProc;
-	BOOL WndAnimProc(AnimArg* pArg);
+	BOOL WndAnimProc(AnimArg* pArg, INT AnimType);
 	BOOL m_bAnimate;
 	BOOL m_bAllowCtrlUpdate;
 };

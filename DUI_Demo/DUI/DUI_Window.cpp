@@ -141,6 +141,13 @@ LRESULT DUI_Window::MsgProc(INT hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_WNDINITED:
 		Res = OnWndInited(wParam, lParam);
 		break;
+	case WM_CLOSE:
+		Res = OnClose(wParam, lParam);
+		if (Res)
+		{
+			return 0;
+		}
+		break;
 	default:
 		Res = 0;
 		break;
@@ -289,11 +296,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	//m_WndRect = new RectF;
 	//m_Graphics = new Gdiplus::Graphics(hWnd);
 	//m_MemDC = new MemDC;
-	/*if (m_Graphics == NULL)
-	{
-		
-		return FALSE;
-	}*/
+
 	//设置默认的边框风格
 	m_BorderStyle.Mode = BM_RoundRect;
 	m_BorderStyle.Color = Color::MakeARGB(150, 50, 50, 50);
@@ -314,9 +317,6 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	m_Title->color = new Color(Color::White);
 	m_Title->rect = new RectF;
 	//TitleRect的处理在OnSize里;
-
-	//初始化控制按钮信息
-	//m_LastBtn = BT_None;
 	ResItem* lpItem = m_pRdbMgr->GetItemByName(_T("SysBtn_Pic"));
 	if (!lpItem)
 	{
@@ -351,6 +351,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	m_Controls = new vector<DUI_ControlBase*>;
 
 	OnSize(NULL, NULL);
+	OnMove(NULL, NULL);
 	SetTitle(Title);
 	return TRUE;
 }
@@ -810,8 +811,6 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	if (m_WndRect == nullptr)
 	{
 		m_WndRect = new Gdiplus::RectF;
-		m_WndRect->X = 0;
-		m_WndRect->Y = 0;
 	}
 
 
@@ -909,7 +908,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		m_SysBtn[BT_Minimize]->m_bAutoReleaseImg = FALSE;
 		m_SysBtn[BT_Minimize]->SetExtraInfo(BT_Minimize);
 		m_SysBtn[BT_Minimize]->SetPrompt(_T("最小化"));
-		//SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MINIMIZEBOX);
+		SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MINIMIZEBOX);
 		m_SysBtnCnt++;
 	}
 
@@ -931,14 +930,10 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 			m_SysBtn[BT_Maxmize]->Create(this, 0, 0, (REAL)Size_X, (REAL)Size_Y, m_SysBtnPic, Start);
 			m_SysBtn[BT_Maxmize]->m_bAutoReleaseImg = FALSE;
 			m_SysBtn[BT_Maxmize]->SetExtraInfo(BT_Maxmize);
-			//SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MAXIMIZEBOX);
+			SetWindowLong((HWND)m_ID, GWL_STYLE, GetWindowLong((HWND)m_ID, GWL_STYLE) | WS_MAXIMIZEBOX);
 			m_SysBtnCnt++;
 		}
 		m_SysBtn[BT_Maxmize]->SetPrompt(IsZoomed((HWND)m_ID) ? _T("还原") : _T("最大化"));
-		//if (!m_SysBtn[BT_Maxmize]->m_bVisialbe)
-		//{
-		//	m_SysBtn[BT_Maxmize]->m_bVisialbe = TRUE;
-		//}
 	}
 	else
 	{
@@ -1005,12 +1000,18 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 
 BOOL DUI_Window::OnMove(WPARAM wParam, LPARAM lParam)
 {
-	//RECT rect;
-	//GetWindowRect(m_hWnd, &rect);
-	m_WndRect->X = LOWORD(lParam);//(REAL)rect.left;
-	m_WndRect->Y = HIWORD(lParam);//(REAL)rect.top;
-	//m_WndRect->Width = REAL(rect.right - rect.left); //LOWORD(lParam);
-	//m_WndRect->Height = REAL(rect.bottom - rect.top); //HIWORD(lParam);
+	if (wParam == NULL)
+	{
+		RECT rect;
+		GetWindowRect((HWND)m_ID, &rect);
+		m_WndRect->X = (REAL)rect.left;
+		m_WndRect->Y = (REAL)rect.top;
+	}
+	else
+	{
+		m_WndRect->X = LOWORD(lParam);//(REAL)rect.left;
+		m_WndRect->Y = HIWORD(lParam);//(REAL)rect.top;
+	}
 	return TRUE;
 }
 
@@ -1190,16 +1191,35 @@ BOOL DUI_Window::OnGetMinMaxInfo(WPARAM wParam, LPARAM lParam)
 
 BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-	if (!WndAnimProc(m_pAnimArg))
+	switch (wParam)
 	{
-		KillTimer((HWND)m_ID, wParam);
-		m_bAnimate = FALSE;
-		m_bInited = TRUE;
-		m_BorderStyle.Mode = BM_RoundRect;
-		SetBorderStyle(m_BorderStyle);
-		MsgProc(m_ID, WM_WNDINITED, NULL, NULL);
+	case TID_WND_SHOW:
+		if (WndAnimProc(m_pAnimArg, TID_WND_SHOW))
+		{
+			KillTimer((HWND)m_ID, wParam);
+			m_bAnimate = FALSE;
+			m_bInited = TRUE;
+			m_BorderStyle.Mode = BM_RoundRect;
+			SetBorderStyle(m_BorderStyle);
+			MsgProc(m_ID, WM_WNDINITED, NULL, NULL);
+		}
+		break;
+	case TID_WND_CLOSE:
+		if (WndAnimProc(m_pAnimArg, TID_WND_CLOSE))
+		{
+			KillTimer((HWND)m_ID, wParam);
+			CallWindowProc(WNDPROC(PrevWndProc), (HWND)m_ID, WM_CLOSE, NULL, NULL);
+			m_Alpha = 1;
+			m_bAllowCtrlUpdate = TRUE;
+			m_bAnimate = FALSE;
+			m_BorderStyle.Mode = BM_RoundRect;
+			SetBorderStyle(m_BorderStyle);
+		}
+		break;
+	default:
+		break;
 	}
-	return 0;
+	return TRUE;
 }
 
 BOOL DUI_Window::OnShowWindow(WPARAM wParam, LPARAM lParam)
@@ -1212,7 +1232,7 @@ BOOL DUI_Window::OnShowWindow(WPARAM wParam, LPARAM lParam)
 	m_bAnimate = TRUE;
 	m_BorderStyle.Mode = BM_Normal;
 	SetBorderStyle(m_BorderStyle);
-	SetTimer((HWND)m_ID, 0, 16, nullptr);
+	SetTimer((HWND)m_ID, TID_WND_SHOW, 16, nullptr);
 	return TRUE;
 }
 
@@ -1229,6 +1249,21 @@ BOOL DUI_Window::OnWndInited(WPARAM wParam, LPARAM lParam)
 	m_bInited = TRUE;
 	m_bAllowCtrlUpdate = TRUE;
 	OnControl(INVALID_CONTROLID, CM_SETAUTOUPDATE, NULL, TRUE);
+	return TRUE;
+}
+
+BOOL DUI_Window::OnClose(WPARAM wParam, LPARAM lParam)
+{
+
+	if (m_Alpha == 0)
+	{
+		return FALSE;
+	}
+	m_bAllowCtrlUpdate = FALSE;
+	m_bAnimate = TRUE;
+	m_BorderStyle.Mode = BM_Normal;
+	SetBorderStyle(m_BorderStyle);
+	SetTimer((HWND)m_ID, TID_WND_CLOSE, 16, nullptr);
 	return TRUE;
 }
 
@@ -1360,129 +1395,38 @@ BOOL DUI_Window::SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lPara
 	return TRUE;
 }
 
-BOOL DUI_Window::WndAnimProc(AnimArg * pArg)
+BOOL DUI_Window::WndAnimProc(AnimArg * pArg, INT AnimType)
 {
-	/*
-	//透明渐变
-	if (pArg->pDC1 == nullptr)
+	BOOL bDone = TRUE;
+	pArg->Alpha = m_Alpha;
+	switch (AnimType)
 	{
-		pArg->pDC1 = new MemDC((INT)m_WndRect->Width, (INT)m_WndRect->Height);
+	case TID_WND_SHOW:
+// 		bDone = WndAnim_Pop_Show(m_pAnimArg, m_WndRect, m_MemDC);
+// 		bDone = WndAnim_Shade_Show(m_pAnimArg, m_WndRect, m_MemDC);
+		bDone = WndAnim_QQ_Show(m_pAnimArg, m_WndRect, m_MemDC);
+		break;
+	case TID_WND_CLOSE:
+// 		bDone = WndAnim_Pop_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+// 		bDone = WndAnim_Shade_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+		bDone = WndAnim_QQ_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+		break;
 	}
-	pArg->pDC1->Clear();
-	m_MemDC->BitBlt(pArg->pDC1);
-	pArg->Arg_1 += 10;
-	if (pArg->Arg_1 > 255)
+	if (pArg->pDC1 != nullptr)
 	{
-		pArg->Arg_1 = 255;
+		BLENDFUNCTION bf;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		bf.BlendFlags = 0;
+		bf.BlendOp = 0;
+		bf.SourceConstantAlpha = m_pAnimArg->Alpha;
+		UpdateLayeredWindow((HWND)m_ID, m_hDC, &m_pAnimArg->ptDest, &m_pAnimArg->szWnd, pArg->pDC1->GetMemDC(), &m_pAnimArg->ptSrc, NULL, &bf, ULW_ALPHA);
 	}
-
-	SIZE szWnd;
-	szWnd = { (INT)m_WndRect->Width, (INT)m_WndRect->Height };
-	POINT ptSrc = { 0,0 };
-	BLENDFUNCTION bf;
-	bf.AlphaFormat = AC_SRC_ALPHA;
-	bf.BlendFlags = 0;
-	bf.BlendOp = 0;
-	bf.SourceConstantAlpha = pArg->Arg_1;
-	UpdateLayeredWindow(m_hWnd, m_hDC, NULL, &szWnd, pArg->pDC1->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
-	if (pArg->Arg_1 == 255)
+	if (bDone)
 	{
-		delete pArg->pDC1;
-		pArg->pDC1 = nullptr;
-		return FALSE;
+		SafeDelete(pArg->pDC1);
+		pArg->Arg_1 = pArg->Arg_2 = 0;
 	}
-	else
-	{
-		return TRUE;
-	}*/
-
-	//下滑
-	/*if (pArg->pDC1 == nullptr)
-	{
-		pArg->pDC1 = new MemDC((INT)m_WndRect->Width, (INT)m_WndRect->Height);
-	}
-	pArg->pDC1->Clear();
-	m_MemDC->BitBlt(pArg->pDC1);
-	pArg->Arg_1 += (INT)m_WndRect->Height / 14;
-	if (pArg->Arg_1 > (INT)m_WndRect->Height)
-	{
-		pArg->Arg_1 = (INT)m_WndRect->Height;
-	}
-
-	SIZE szWnd;
-	szWnd = { (INT)m_WndRect->Width, pArg->Arg_1 };
-	POINT ptSrc = { 0,0 };
-	BLENDFUNCTION bf;
-	bf.AlphaFormat = AC_SRC_ALPHA;
-	bf.BlendFlags = 0;
-	bf.BlendOp = 0;
-	bf.SourceConstantAlpha = 255 * pArg->Arg_1 / (INT)m_WndRect->Height;
-	UpdateLayeredWindow(m_hWnd, NULL, NULL, &szWnd, pArg->pDC1->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
-	if (pArg->Arg_1 == m_WndRect->Height)
-	{
-		delete pArg->pDC1;
-		pArg->pDC1 = nullptr;
-
-		return FALSE;
-	}
-	else
-	{
-		return TRUE;
-	}*/
-
-	
-	//弹出
-	if (pArg->pDC1 == nullptr)
-	{
-		pArg->pDC1 = new MemDC((INT)m_WndRect->Width + 10 * 2, (INT)m_WndRect->Height + 10 * 2);
-		pArg->Arg_2 = 1;
-	}
-	pArg->pDC1->Clear();
-	if (pArg->Arg_2 == 1)
-	{
-		pArg->Arg_1 += 1;
-	}
-	else
-	{
-		pArg->Arg_1 -= 2;
-	}
-	if (pArg->Arg_1 > 10)
-	{
-		pArg->Arg_1 = 10;
-	}
-	SIZE szWnd;
-	POINT ptSrc = { 0,0 }, ptDest;
-	if (pArg->Arg_2 == 1)
-	{
-		m_MemDC->AlphaBlend(pArg->pDC1, 0, 0, (INT)m_WndRect->Width + pArg->Arg_1 * 2, (INT)m_WndRect->Height + pArg->Arg_1 * 2, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 255);
-		
-		ptDest = { (INT)m_WndRect->X - pArg->Arg_1,(INT)m_WndRect->Y - pArg->Arg_1 };
-		szWnd = { (INT)m_WndRect->Width + pArg->Arg_1 * 2,(INT)m_WndRect->Height + pArg->Arg_1 * 2 };
-	}
-	else
-	{
-		m_MemDC->AlphaBlend(pArg->pDC1, 0, 0, (INT)m_WndRect->Width + pArg->Arg_1 * 2, (INT)m_WndRect->Height + pArg->Arg_1 * 2, 0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 255);
-		ptDest = { (INT)m_WndRect->X - pArg->Arg_1,(INT)m_WndRect->Y - pArg->Arg_1 };
-		szWnd = { (INT)m_WndRect->Width + pArg->Arg_1 * 2,(INT)m_WndRect->Height + pArg->Arg_1 * 2 };
-	}
-	BLENDFUNCTION bf;
-	bf.AlphaFormat = AC_SRC_ALPHA;
-	bf.BlendFlags = 0;
-	bf.BlendOp = 0;
-	bf.SourceConstantAlpha = 255 * (pArg->Arg_2 == 1 ? pArg->Arg_1 / 2 : (20 - pArg->Arg_1) / 2) / 10;
-	UpdateLayeredWindow((HWND)m_ID, m_hDC, &ptDest, &szWnd, pArg->pDC1->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
-	if (pArg->Arg_2 == 1 && pArg->Arg_1 == 10)
-	{
-		pArg->Arg_2 = 2;
-		
-	}
-	else if(pArg->Arg_2 == 2 && pArg->Arg_1 == 0)
-	{
-		delete pArg->pDC1;
-		pArg->pDC1 = nullptr;
-		return FALSE;
-	}
-	return TRUE;
+	return bDone;
 }
 
 BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)

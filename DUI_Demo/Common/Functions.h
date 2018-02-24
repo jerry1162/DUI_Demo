@@ -1,5 +1,7 @@
 #pragma once
 #include "CallBack.hpp"
+#include "MemDC.h"
+class MemDC;
 
 #define StartPauseDebug() BOOL __bPaused__=FALSE;
 #define PAUSE() _asm int 3;__bPaused__=TRUE;
@@ -42,6 +44,28 @@ struct GdipString
 	}*/
 };
 
+struct AnimArg
+{
+	INT Arg_1;
+	INT Arg_2;
+	MemDC* pDC1;
+	MemDC* pDC2;
+	SIZE szWnd;
+	POINT ptSrc;
+	POINT ptDest;
+	BYTE Alpha;
+	AnimArg()
+	{
+		Arg_1 = 0;
+		Arg_2 = 0;
+		pDC1 = nullptr;
+		pDC2 = nullptr;
+		szWnd = { 0,0 };
+		ptSrc = { 0,0 };
+		ptDest = { 0,0 };
+		Alpha = 0;
+	}
+};
 void GdipStartup();
 void GdipShutdown();
 BOOL PtInRect(RectF* rect, Point* pt);
@@ -79,3 +103,9 @@ HICON GetFileIcon(const CString& strFilePath, INT IconSize = IS_NORMAL);
 INT GetFileName(CString csFilePath,CString& csFileName);
 INT  GetExtName(CString csFileFullName,CString& csExtName);
 
+BOOL WndAnim_Pop_Show(AnimArg * pArg, RectF* pRect, MemDC* hDC);
+BOOL WndAnim_Pop_Hide(AnimArg * pArg, RectF* pRect, MemDC* hDC);
+BOOL WndAnim_Shade_Show(AnimArg * pArg, RectF* pRect, MemDC* hDC);
+BOOL WndAnim_Shade_Hide(AnimArg * pArg, RectF* pRect, MemDC* hDC);
+BOOL WndAnim_QQ_Show(AnimArg * pArg, RectF* pRect, MemDC* hDC);
+BOOL WndAnim_QQ_Hide(AnimArg * pArg, RectF* pRect, MemDC* hDC);

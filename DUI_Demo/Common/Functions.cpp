@@ -554,3 +554,193 @@ INT  GetExtName(CString csFileFullName, CString& csExtName)
 	csExtName = csFileFullName.Right(csFileFullName.GetLength() - nPos - 1); // 获取扩展名  
 	return csExtName.GetLength();
 }
+
+BOOL WndAnim_Pop_Show(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width + 10 * 2, (INT)pRect->Height + 10 * 2);
+		pArg->Arg_2 = 1;
+	}
+	pArg->pDC1->Clear();
+	if (pArg->Arg_2 == 1)
+	{
+		pArg->Arg_1 += 1;
+	}
+	else
+	{
+		pArg->Arg_1 -= 2;
+	}
+	if (pArg->Arg_1 > 10)
+	{
+		pArg->Arg_1 = 10;
+	}
+
+
+	if (pArg->Arg_2 == 1)
+	{
+		hDC->AlphaBlend(pArg->pDC1, 0, 0, (INT)pRect->Width + pArg->Arg_1 * 2, (INT)pRect->Height + pArg->Arg_1 * 2, 0, 0, (INT)pRect->Width, (INT)pRect->Height, 255);
+
+		pArg->ptDest = { (INT)pRect->X - pArg->Arg_1,(INT)pRect->Y - pArg->Arg_1 };
+		pArg->szWnd = { (INT)pRect->Width + pArg->Arg_1 * 2,(INT)pRect->Height + pArg->Arg_1 * 2 };
+	}
+	else
+	{
+		hDC->AlphaBlend(pArg->pDC1, 0, 0, (INT)pRect->Width + pArg->Arg_1 * 2, (INT)pRect->Height + pArg->Arg_1 * 2, 0, 0, (INT)pRect->Width, (INT)pRect->Height, 255);
+		pArg->ptDest = { (INT)pRect->X - pArg->Arg_1,(INT)pRect->Y - pArg->Arg_1 };
+		pArg->szWnd = { (INT)pRect->Width + pArg->Arg_1 * 2,(INT)pRect->Height + pArg->Arg_1 * 2 };
+	}
+	pArg->Alpha = pArg->Alpha * (pArg->Arg_2 == 1 ? pArg->Arg_1 / 2 : (20 - pArg->Arg_1) / 2) / 10;
+	if (pArg->Arg_2 == 1 && pArg->Arg_1 == 10)
+	{
+		pArg->Arg_2 = 2;
+
+	}
+	else if (pArg->Arg_2 == 2 && pArg->Arg_1 == 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL WndAnim_Pop_Hide(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width + 10 * 2, (INT)pRect->Height + 10 * 2);
+		pArg->Arg_2 = 1;
+	}
+	pArg->pDC1->Clear();
+	if (pArg->Arg_2 == 1)
+	{
+		pArg->Arg_1 += 1;
+	}
+	else
+	{
+		pArg->Arg_1 -= 1;
+	}
+
+	if (pArg->Arg_1 > 10)
+	{
+		pArg->Arg_1 = 10;
+	}
+
+	hDC->AlphaBlend(pArg->pDC1, 0, 0, (INT)pRect->Width + pArg->Arg_1 * 2, (INT)pRect->Height + pArg->Arg_1 * 2, 0, 0, (INT)pRect->Width, (INT)pRect->Height, 255);
+	pArg->ptDest = { (INT)pRect->X - pArg->Arg_1,(INT)pRect->Y - pArg->Arg_1 };
+	pArg->szWnd = { (INT)pRect->Width + pArg->Arg_1 * 2,(INT)pRect->Height + pArg->Arg_1 * 2 };
+	pArg->Alpha = 255- pArg->Alpha * (pArg->Arg_2 == 1 ? pArg->Arg_1 / 2 : (20 - pArg->Arg_1) / 2) / 10;
+	if (pArg->Arg_2 == 1 && pArg->Arg_1 == 10)
+	{
+		pArg->Arg_2 = 2;
+
+	}
+	else if (pArg->Arg_2 == 2 && pArg->Arg_1 == 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL WndAnim_Shade_Show(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	//透明渐变
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width, (INT)pRect->Height);
+		pArg->Arg_2 = FALSE;
+	}
+	pArg->pDC1->Clear();
+	hDC->BitBlt(pArg->pDC1);
+	pArg->Arg_1 += 10;
+	if (pArg->Arg_1 > pArg->Alpha)
+	{
+		pArg->Arg_1 = pArg->Alpha;
+		pArg->Arg_2 = TRUE;
+	}
+	pArg->szWnd = { (INT)pRect->Width, (INT)pRect->Height };
+	pArg->ptSrc = { 0,0 };
+	pArg->ptDest = { (INT)pRect->X,(INT)pRect->Y };
+	pArg->Alpha = pArg->Arg_1;
+	return pArg->Arg_2;
+}
+
+BOOL WndAnim_Shade_Hide(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	//透明渐变
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width, (INT)pRect->Height);
+		pArg->Arg_1 = pArg->Alpha;
+		pArg->Arg_2 = FALSE;
+	}
+	pArg->pDC1->Clear();
+	hDC->BitBlt(pArg->pDC1);
+	pArg->Arg_1 -= 10;
+	if (pArg->Arg_1 < 0)
+	{
+		pArg->Arg_1 = 0;
+		pArg->Arg_2 = TRUE;
+	}
+	pArg->szWnd = { (INT)pRect->Width, (INT)pRect->Height };
+	pArg->ptSrc = { 0,0 };
+	pArg->ptDest = { (INT)pRect->X,(INT)pRect->Y };
+	pArg->Alpha = pArg->Arg_1;
+	return pArg->Arg_2;
+}
+
+BOOL WndAnim_QQ_Show(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width, (INT)pRect->Height);
+	}
+	pArg->pDC1->Clear();
+	hDC->BitBlt(pArg->pDC1);
+	pArg->Arg_1 += (INT)pRect->Height / 14;
+	if (pArg->Arg_1 > (INT)pRect->Height)
+	{
+		pArg->Arg_1 = (INT)pRect->Height;
+	}
+	pArg->szWnd = { (INT)pRect->Width, pArg->Arg_1 };
+	pArg->ptSrc = { 0,0 };
+	pArg->ptDest = { (INT)pRect->X,(INT)pRect->Y };
+	pArg->Alpha = pArg->Alpha * pArg->Arg_1 / (INT)pRect->Height;
+	TRACE("%d\n", pArg->Alpha);
+	if (pArg->Arg_1 == pRect->Height)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+BOOL WndAnim_QQ_Hide(AnimArg * pArg, RectF * pRect, MemDC * hDC)
+{
+	if (pArg->pDC1 == nullptr)
+	{
+		pArg->pDC1 = new MemDC((INT)pRect->Width, (INT)pRect->Height);
+		pArg->Arg_1 = (INT)pRect->Height;
+	}
+	pArg->pDC1->Clear();
+	hDC->BitBlt(pArg->pDC1);
+	pArg->Arg_1 -= (INT)pRect->Height / 14;
+	if (pArg->Arg_1 < 0)
+	{
+		pArg->Arg_1 = 0;
+	}
+	pArg->szWnd = { (INT)pRect->Width, pArg->Arg_1 };
+	pArg->ptSrc = { 0,0 };
+	pArg->ptDest = { (INT)pRect->X,(INT)pRect->Y };
+	pArg->Alpha = pArg->Alpha * pArg->Arg_1 / (INT)pRect->Height;
+	TRACE("%d\n", pArg->Alpha);
+	if (pArg->Arg_1 == 0)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}

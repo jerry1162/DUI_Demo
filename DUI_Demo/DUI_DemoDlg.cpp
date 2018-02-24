@@ -69,15 +69,14 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // 			m_GroupBox->Size(50, 50);
 // 		}
 // 		m_Window->SetSizeable(!m_Window->GetSizeable());
-		//SafeDelete(m_Lable);
-// 		if (m_SubWindow == nullptr)
-// 		{
-// 			m_SubWindow = new DUI_Window;
-// 			m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
-// 			m_SubWindow->DoModel();
-// 			delete m_SubWindow;
-// 			m_SubWindow = nullptr;
-// 		}
+		if (m_SubWindow == nullptr)
+		{
+			m_SubWindow = new DUI_Window;
+			m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
+			m_SubWindow->DoModel();
+			delete m_SubWindow;
+			m_SubWindow = nullptr;
+		}
 // 		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
 // 		m_RGroup->SelectNext();
 // 		if (pSex != nullptr)
@@ -155,17 +154,18 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	GdipStartup();
 	m_SubWindow = nullptr;
 	m_Window = new DUI_Window;
+// 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
+// 		L"..\\Image\\BkGrd\\bkg2.jpg", 1))
+// 	{
+// 		MessageBox(L"创建失败");
+// 		return TRUE;
+// 	}
 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-		L"..\\Image\\BkGrd\\bkg2.jpg", 1))
+		Color::MakeARGB(255, 80, 140, 200), FALSE))//80, 140, 200
 	{
 		MessageBox(L"创建失败");
+		return TRUE;
 	}
-	//if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-	//	Color::MakeARGB(255, 0, 0, 0), FALSE))//80, 140, 200
-	//{
-	//	MessageBox(L"创建失败");
-	//	return TRUE;
-	//}
 
 	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
 	//m_Window->SetSizeable(TRUE);
@@ -215,7 +215,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_WndProc = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::WndProc);
 	m_Window->AcceptDropFile();
 	m_Window->SetMsgProc(m_WndProc);
-	m_Window->SetDebugMode(TRUE);
+	//m_Window->SetDebugMode(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
