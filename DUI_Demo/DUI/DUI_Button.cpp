@@ -14,33 +14,22 @@ DUI_Button::~DUI_Button()
 {
 }
 
-MSGPROC DUI_Button::SetClickEventHandler(MSGPROC Proc)
+LONG DUI_Button::GetExtraInfo()
 {
-	MSGPROC Prev = m_ClickProc;
-	m_ClickProc = Proc;
-	return Prev;
+	return m_ExtraInfo;
 }
 
-LONG DUI_Button::SetExtra(LONG Etr)
+LONG DUI_Button::SetExtraInfo(LONG Etr)
 {
 	LONG last = m_ExtraInfo;
 	m_ExtraInfo = Etr;
 	return last;
 }
 
-VOID DUI_Button::OnClick()
-{
-	if (m_ClickProc != nullptr)
-	{
-		m_ClickProc((VOID*)this, CM_CLICKED, m_ExtraInfo, NULL);
-		return;
-	}
-}
-
-LRESULT DUI_Button::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT DUI_Button::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT Ret;
-	Ret = DUI_ControlBase::MsgProc(uMsg, wParam, lParam);
+	Ret = DUI_ControlBase::MsgProc(m_ID,uMsg, wParam, lParam);
 	//////////////////////////////////////////////////////////////////////////
 
 	if (Ret == -1)
@@ -51,27 +40,8 @@ LRESULT DUI_Button::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	Point pt;
 	switch (uMsg)
 	{
-	case WM_LBUTTONUP:
-		if (m_bMouseDown != FALSE)
-		{
-			m_bMouseDown = FALSE;
-			//Draw();
-		}
-		m_Parent->GetCursorPos(&pt);
-		if (m_Rect->Contains((REAL)pt.X, (REAL)pt.Y))
-		{
-			OnClick();
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		if (m_bMouseDown != TRUE)
-		{
-			m_bMouseDown = TRUE;
-			//Draw();
-		}
-		break;
 	case CM_STATECHANGED:
-		if (m_bInAnimating)
+		if (m_bAnimating)
 		{
 			EndAnimate();
 		}
@@ -99,14 +69,14 @@ VOID DUI_Button::Draw(DUI_Status s)
 		}
 		SolidBrush bkgBrush(Color::MakeARGB(255, 255, 255, 255));
 		//LinearGradientBrush brush(PointF(0.0, 0.0), PointF(0.0, m_Rect->Height), Color(255, 229, 236, 226), Color(255, 217, 219, 202));
-		LinearGradientBrush brush(RectF(0.0, 0.0, m_Rect->Width, m_Rect->Height), Color(215 * m_Alpha / 255, 255, 255, 255), Color(80 * m_Alpha / 255, 255, 255, 255), LinearGradientModeVertical);
+		LinearGradientBrush brush(RectF(0.0, 0.0, m_LogicRect->Width, m_LogicRect->Height), Color(215 * m_Alpha / 255, 255, 255, 255), Color(80 * m_Alpha / 255, 255, 255, 255), LinearGradientModeVertical);
 
 		//brush.SetWrapMode(WrapModeTile);
 		Pen Border(Color::MakeARGB(230 * m_Alpha / 255, 50, 50, 50), 1);
 		LinearGradientBrush* brush1;
 		GraphicsPath* pPath;
 		pPath = new GraphicsPath;
-		DrawPathRoundRect(pPath, 0, 0, m_Rect->Width - 1, m_Rect->Height - 1, 6);
+		DrawPathRoundRect(pPath, 0, 0, m_LogicRect->Width - 1, m_LogicRect->Height - 1, 6);
 		switch (s)
 		{
 		case S_Normal:
@@ -119,7 +89,7 @@ VOID DUI_Button::Draw(DUI_Status s)
 			//bkgBrush.SetColor(Color::MakeARGB(255, 160, 200, 255));
 			//Border.SetColor(Color::MakeARGB(255, 1, 136, 255));//136
 			Border.SetColor(Color::MakeARGB(230, 128, 128, 128));
-			brush1 = new LinearGradientBrush(RectF(0.0, 0.0, m_Rect->Width, m_Rect->Height), Color(215 * m_Alpha / 255, 255, 255, 255), Color(80 * m_Alpha / 255, 255, 255, 255), LinearGradientModeVertical);
+			brush1 = new LinearGradientBrush(RectF(0.0, 0.0, m_LogicRect->Width, m_LogicRect->Height), Color(215 * m_Alpha / 255, 255, 255, 255), Color(80 * m_Alpha / 255, 255, 255, 255), LinearGradientModeVertical);
 			//m_MemDC->graphics->FillRectangle(brush1, 0.0, 0.0, m_Rect->Width, m_Rect->Height);
 			m_MemDC->graphics->FillPath(brush1, pPath);
 			delete brush1;
@@ -164,7 +134,7 @@ VOID DUI_Button::Draw(DUI_Status s)
 		{
 			pPath = new GraphicsPath;
 			Border.SetColor(Color(171, 236, 254));
-			DrawPathRoundRect(pPath, 1, 1, m_Rect->Width - 3, m_Rect->Height - 3, 3);
+			DrawPathRoundRect(pPath, 1, 1, m_LogicRect->Width - 3, m_LogicRect->Height - 3, 3);
 			m_MemDC->graphics->DrawPath(&Border, pPath);
 			delete pPath;
 		}

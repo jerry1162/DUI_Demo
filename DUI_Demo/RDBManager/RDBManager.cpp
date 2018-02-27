@@ -17,9 +17,10 @@ RDBManager::~RDBManager()
 	{
 		for (auto it = m_pItems->begin(); it != m_pItems->end(); it++)
 		{
-			if (m_LoadType == L_FromFile)
+			delete[](*it)->Name;
+			if (m_LoadType == L_FromFile )
 			{
-				delete[] (*it)->Name;
+				//delete[] (*it)->Name;
 				operator delete ((*it)->lpData);
 			}
 			delete *it;
@@ -131,6 +132,7 @@ BOOL RDBManager::LoadFromBin(LPVOID lpBin)
 	{
 		return FALSE;
 	}
+	m_LoadType = L_FromBin;
 	char* Addr = (char*)lpBin;
 	m_pHeader = /*(RDBHeader*)Addr;//*/new RDBHeader;
 	RtlMoveMemory(m_pHeader, Addr, sizeof(RDBHeader));
@@ -164,7 +166,7 @@ BOOL RDBManager::LoadFromBin(LPVOID lpBin)
 		m_pItems->push_back(pItem);
 	}
 
-	return 0;
+	return TRUE;
 }
 
 BOOL RDBManager::AddRes(LPTSTR Name, RESTYPE Type, LPVOID lpData, UINT uSize)

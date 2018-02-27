@@ -21,19 +21,18 @@ BOOL DUI_Radio::Create(DUI_Window * Window, DUI_RadioGroup * Group, REAL Left, R
 	if (Ret)
 	{
 		ChangeGroup(Group);
-		INT size = m_Parent->GetRDBMgr()->GetIntValByName(_T("Radio_Size"));
+		INT size = m_ParentWnd->GetRDBMgr()->GetIntValByName(_T("Radio_Size"));
 		m_Text->rect->X = (REAL)size;
 		m_Text->rect->Width -= size;
 		m_Text->color->SetValue(Color::White);
-		ResItem* lpItem = m_Parent->GetRDBMgr()->GetItemByName(_T("Radio_Pic"));
+		ResItem* lpItem = m_ParentWnd->GetRDBMgr()->GetItemByName(_T("Radio_Pic"));
 		if (!lpItem)
 		{
-			MessageBox(m_Parent->m_hWnd, _T("×ÊÔ´¼ÓÔØÊ§°Ü"), _T("´íÎó:"), MB_ICONINFORMATION);
+			MessageBox(m_ParentWnd->GetHWND(), _T("×ÊÔ´¼ÓÔØÊ§°Ü"), _T("´íÎó:"), MB_ICONINFORMATION);
 			return FALSE;
 		}
 		pImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
-		//pImg = ImageFromIDResource(IDB_RADIOBOX, _T("PNG"));
-		m_bVisialbe = bVisiable;
+		SetVisiable(bVisiable);
 		Update();
 	}
 	return Ret;
@@ -58,11 +57,32 @@ BOOL DUI_Radio::ChangeGroup(DUI_RadioGroup* Group)
 	}
 	if (m_Group != nullptr)
 	{
-		m_Group->MsgProc(RG_SELECTCHANGE, m_ID, NULL);
+		m_Group->MsgProc(m_Group->m_ID, RG_SELECTCHANGE, m_ID, NULL);
 	}
 	m_Group = Group;
-	m_Group->MsgProc(RG_ADDRADIO, m_ID, NULL);
+	m_Group->MsgProc(m_Group->m_ID, RG_ADDRADIO, m_ID, NULL);
 	return TRUE;
+}
+
+LRESULT DUI_Radio::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT Ret;
+	Ret = DUI_Button::MsgProc(m_ID, uMsg, wParam, lParam);
+	//////////////////////////////////////////////////////////////////////////
+
+	if (Ret == -1)
+	{
+		return TRUE;
+	}
+
+
+
+	if (uMsg == CM_CLICKED)
+	{
+		m_bChecked = TRUE;
+		m_Group->MsgProc(m_Group->m_ID, RG_SELECTCHANGE, m_ID, NULL);
+	}
+	return Ret;
 }
 
 VOID DUI_Radio::Draw(DUI_Status s)
@@ -79,29 +99,23 @@ VOID DUI_Radio::Draw(DUI_Status s)
 			s = S_Normal;
 		}
 		m_MemDC->graphics->DrawImage(pImg, RectF(0, 0, 15, 15), (REAL)(s - 1) * 15 + (m_bChecked ? (15 * 3) : 0), 0, (REAL)15, (REAL)15, UnitPixel);
-		DrawShadowText(m_MemDC->graphics, 5, m_Text, Color::Black, Color::MakeARGB(100, 50, 50, 50));
+		DrawShadowText(m_MemDC->graphics, m_Text);
 		DUI_ControlBase::Draw();
 	}
 }
 
-VOID DUI_Radio::OnClick()
-{
-	m_bChecked = TRUE;
-	m_Group->MsgProc(RG_SELECTCHANGE, m_ID, NULL);
-	DUI_Button::OnClick();
-}
 
 VOID DUI_Radio::Select(BOOL Select)
 {
 	if (Select)
 	{
-		OnClick();
+		MsgProc(m_ID, CM_CLICKED, m_ID, NULL);
 	}
 	else
 	{
 		m_bChecked = FALSE;
 	}
-	if (m_bInAnimating)
+	if (m_bAnimating)
 	{
 		EndAnimate();
 	}

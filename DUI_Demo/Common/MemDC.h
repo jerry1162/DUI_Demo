@@ -16,6 +16,7 @@ public:
 	BOOL AlphaBlend(MemDC* hDestDC, int nXOriginDest = 0, int nYOriginDest = 0, int nWidthDest = 0,int hHeightDest = 0, int nXOriginSrc = -1, int nYOriginSrc = -1, int nWidthSrc = 0, int nHeightSrc = 0, BYTE Alpha = 255);
 	INT SelectClipRgn(HRGN hrgn = NULL);
 	INT SelectRectClipRgn(INT X, INT Y, INT W, INT H);
+	INT SelectRectClipRgn(RectF* pRect);
 	HDC GetMemDC();
 	BOOL ReSize(int Width, int Height);
 	VOID Clear();//Clear with transparent color

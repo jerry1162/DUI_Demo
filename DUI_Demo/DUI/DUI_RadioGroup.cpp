@@ -15,14 +15,28 @@ DUI_RadioGroup::~DUI_RadioGroup()
 	Destroy();
 }
 
-BOOL DUI_RadioGroup::Create(DUI_Window * Window)
+BOOL DUI_RadioGroup::Create(DUI_Object * Parent)
 {
+	if (!Parent->CanBeParent())
+	{
+		return FALSE;
+	}
 	m_ID = NewID();
-	m_Parent = Window;
+	m_Parent = Parent;
+
+	if (Parent->GetObjType() == ObjType_Wnd)
+	{
+		m_ParentWnd = (DUI_Window*)m_Parent;
+	}
+	else
+	{
+		m_ParentWnd = ((DUI_ControlBase*)m_Parent)->GetParentWnd();
+	}
+
 	m_bVisialbe = FALSE;
 	m_IDs = new vector<INT>;
 
-	Window->AddControl(this);
+	AddCtrl();
 	return TRUE;
 }
 
@@ -38,7 +52,7 @@ BOOL DUI_RadioGroup::Select(INT ID)
 		return FALSE;
 	}
 	DUI_Radio* pRadio = nullptr;
-	pRadio = (DUI_Radio*)m_Parent->FindControlByID(ID);
+	pRadio = (DUI_Radio*)m_ParentWnd->FindControlByID(ID);
 	if (pRadio == nullptr)
 	{
 		return FALSE;
@@ -67,7 +81,7 @@ BOOL DUI_RadioGroup::Remove(INT ID)
 VOID DUI_RadioGroup::ClearSelect()
 {
 	DUI_Radio* pRadio = nullptr;
-	pRadio = (DUI_Radio*)m_Parent->FindControlByID(m_LastSelectID);
+	pRadio = (DUI_Radio*)m_ParentWnd->FindControlByID(m_LastSelectID);
 	if (pRadio != nullptr)
 	{
 		pRadio->Select(FALSE);
@@ -107,9 +121,9 @@ BOOL DUI_RadioGroup::Destroy()
 	return FALSE;
 }
 
-LRESULT DUI_RadioGroup::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT DUI_RadioGroup::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	DUI_ControlBase::MsgProc(uMsg, wParam, lParam);
+	DUI_ControlBase::MsgProc(m_ID, uMsg, wParam, lParam);
 	DUI_Radio* pRadio = nullptr;
 	switch (uMsg)
 	{
@@ -119,9 +133,9 @@ LRESULT DUI_RadioGroup::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case RG_SELECTCHANGE:
 		if (m_LastSelectID != INVALID_CONTROLID && m_LastSelectID != wParam)
 		{
-			pRadio = (DUI_Radio*)m_Parent->FindControlByID(m_LastSelectID);
+			pRadio = (DUI_Radio*)m_ParentWnd->FindControlByID(m_LastSelectID);
 			pRadio->m_bChecked = FALSE;
-			if (pRadio->m_bInAnimating)
+			if (pRadio->m_bAnimating)
 			{
 				pRadio->EndAnimate();
 			}
