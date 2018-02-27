@@ -26,13 +26,21 @@ struct GdipString
 	StringFormat* format;
 	Color* color;
 	RectF* rect;
-	/*GdipString()
+	GdipString()
 	{
 		string = nullptr;
 		font = nullptr;
 		format = nullptr;
 		color = nullptr;
 		rect = nullptr;
+	}
+	GdipString(const GdipString& gdipStr)
+	{
+		string = new CString(*gdipStr.string);
+		font = gdipStr.font->Clone();
+		format = gdipStr.format->Clone();
+		color = new Color(gdipStr.color->GetValue());
+		rect = gdipStr.rect->Clone();
 	}
 	~GdipString()
 	{
@@ -41,7 +49,7 @@ struct GdipString
 		delete format;
 		delete color;
 		delete rect;
-	}*/
+	}
 };
 
 struct AnimArg
@@ -68,7 +76,7 @@ struct AnimArg
 };
 void GdipStartup();
 void GdipShutdown();
-BOOL PtInRect(RectF* rect, Point* pt);
+BOOL PtInRect(RectF* rect, PointF* pt);
 VOID DrawShadow(Graphics* graphics, RectF* rect, INT diameter);
 BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round);
 Image* ImageFromIDResource(UINT resID, LPCTSTR resType);

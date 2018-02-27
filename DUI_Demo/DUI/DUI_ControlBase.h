@@ -12,7 +12,7 @@ public:
 	virtual ~DUI_ControlBase();
 	virtual BOOL Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height,
 		LPCWSTR Text = L"", BOOL bVisiable = TRUE, BOOL bForceUpdate = TRUE);  //文本矩形默认为控件矩形.
-	virtual BOOL IsPtInCtrl(Point* pt);//注意：此处坐标为相对于窗口的坐标
+	virtual BOOL IsPtInCtrl(PointF* pt);//注意：此处坐标为相对于窗口的坐标
 
 	//虚函数实现
 	virtual BOOL Destroy() override;
@@ -21,7 +21,7 @@ public:
 	virtual REAL GetY() override;
 	virtual REAL GetWidth() override;
 	virtual REAL GetHeight() override;
-	virtual BOOL GetCursorPos(Point* pt) override;
+	virtual BOOL GetCursorPos(PointF* pt) override;
 
 
 	VOID SetText(LPTSTR Text = L"");
@@ -40,13 +40,14 @@ public:
 	BOOL MoveWithMouse(INT b = -1);//-1表示获取状态
 	VOID SendMsgToChild(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	DUI_Window* GetParentWnd();
-	VOID ClientToWnd(Point* ptClient); //将相对于自身的左边转换为相对于窗口的坐标
-	VOID WndToClient(Point* ptWnd);
+	VOID ClientToWnd(PointF* ptClient); //将相对于自身的左边转换为相对于窗口的坐标
+	VOID WndToClient(PointF* ptWnd);
 	VOID SetbShowOnNCRgn(BOOL bShow);
 	BOOL GetbShowOnNCRgn();
 	LPTSTR SetCursor(LPTSTR CursorName);
 	LPTSTR GetCursor();
 	BOOL SetParent(DUI_Object* Parent);
+	BOOL SetMinMaxInfo(MINMAXSIZE MinMaxInfo);//MinSize若为NULL则取默认最小，Max若为NULL则为不限制最大
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	DUI_Object* m_Parent;
@@ -80,10 +81,10 @@ protected:
 	BOOL m_bAutoUpdate;//在窗口显示前的控件默认为假，后由窗口设置为真，其余默认为真。
 	BOOL m_bMoveWithMouse;//当鼠标按下时，跟随鼠标移动。 注意，移动时无法完成其他鼠标消息。
 	BOOL m_bMouseDown;
-	Point* m_ptMouseDown;
+	PointF* m_ptMouseDown;
 	BOOL m_bCanShowOnNCRgn;
 	LPTSTR m_CursorName;
-	HCURSOR m_LastHCursor;
+	MINMAXSIZE m_MinMaxInfo;
 
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上

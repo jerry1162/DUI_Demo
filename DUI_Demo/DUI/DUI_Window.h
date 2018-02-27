@@ -27,7 +27,7 @@ public:
 	virtual REAL GetY() override;
 	virtual REAL GetWidth() override;
 	virtual REAL GetHeight() override;
-	virtual BOOL GetCursorPos(Point* pt) override;
+	virtual BOOL GetCursorPos(PointF* pt) override;
 	virtual REAL GetMarginTop() override;
 	virtual RectF* GetClientRect() override;
 
@@ -39,12 +39,12 @@ public:
 	BOOL SetSizeable(BOOL bSizeable);
 	BOOL GetSizeable();
 	DUI_ControlBase* FindControlByID(INT ID);
-	DUI_ControlBase* FindControlByPoint(Point* pt);
+	DUI_ControlBase* FindControlByPoint(PointF* pt);
 	VOID SetDebugMode(BOOL bDebug);
 	BOOL GetDebugMode();
 	VOID Update(BOOL bForce = TRUE);
 	DUI_Prompt* GetWndPrompt();
-	INT ScreenToClient(Point* pt);
+	INT ScreenToClient(PointF* pt);
 	RDBManager* GetRDBMgr();
 	BOOL IsWindowInited();
 	MSGPROC SetMsgProc(MSGPROC Proc);

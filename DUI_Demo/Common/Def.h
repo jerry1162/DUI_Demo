@@ -58,8 +58,15 @@ enum ObjType
 #define CM_PARENTDESTROY (WM_USER + 113) //父组件被销毁前发送给控件，wParam是控件ID，lParam未用
 
 
-
-
+//SizeDirection
+#define SD_LEFT_TOP     0
+#define SD_MID_TOP      1
+#define SD_RIGHT_TOP    2
+#define SD_LEFT_MID     3
+#define SD_RIGHT_MID    4
+#define SD_LEFT_BOTTOM  5
+#define SD_MID_BOTTOM   6
+#define SD_RIGHT_BOTTOM 7
 
 typedef BOOL(CALLBACK *MSGPROC) (VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回值表示此消息是否要继续传递，真则表示继续向下传递。注：用户消息处理会先于对象本身的消息处理。
 //typedef LRESULT(CALLBACK *CLICKPROC) (VOID* pThis,UINT uMsg, WPARAM ID, LONG Extra);
@@ -107,4 +114,15 @@ enum DUI_Status
 	S_Disabled,
 	//S_Hide,
 	S_Invalid = -1
+};
+
+struct MINMAXSIZE
+{
+	SizeF* MinSize;
+	SizeF* MaxSize;
+	MINMAXSIZE()
+	{
+		MinSize = nullptr;
+		MaxSize = nullptr;
+	}
 };

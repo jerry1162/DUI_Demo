@@ -51,6 +51,7 @@ BOOL DUI_Prompt::Create(HWND hParent, LPTSTR Text, RectF* Rect)
 	SendMessage(m_hWnd, TTM_ADDTOOL, NULL, (LPARAM)Info);
 	SendMessage(m_hWnd, TTM_SETTIPBKCOLOR, RGB(255, 255, 191), (LPARAM)Info);
 	SendMessage(m_hWnd, TTM_SETTIPTEXTCOLOR, 0, (LPARAM)Info);
+	delete Info;
 	return TRUE;
 }
 

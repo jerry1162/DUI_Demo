@@ -28,7 +28,6 @@ DUI_ControlBase::DUI_ControlBase()
 	m_ptMouseDown = nullptr;
 	m_bCanShowOnNCRgn = FALSE;
 	m_CursorName = nullptr;
-	m_LastHCursor = NULL;
 }
 
 
@@ -75,7 +74,8 @@ BOOL DUI_ControlBase::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width
 	m_Text->rect = new RectF;
 
 	AddCtrl();
-	
+	MINMAXSIZE DefInfo;
+	SetMinMaxInfo(DefInfo);
 	if (m_ParentWnd->IsWindowInited())
 	{
 		m_bAutoUpdate = TRUE;
@@ -202,14 +202,38 @@ VOID DUI_ControlBase::Move(REAL Left, REAL Top)
 
 VOID DUI_ControlBase::Size(REAL Width, REAL Height)
 {
-	if (Width < 0)
+	if (Width == -1)
 	{
 		Width = m_LogicRect->Width;
 	}
-	if (Height < 0)
+	if (Height == -1)
 	{
 		Height = m_LogicRect->Height;
 	}
+
+	if (Width < m_MinMaxInfo.MinSize->Width)
+	{
+		//Width = m_MinMaxInfo.MinSize->Width;
+		return;
+	}
+	else if (m_MinMaxInfo.MaxSize != nullptr && Width > m_MinMaxInfo.MaxSize->Width)
+	{
+		//Width = m_MinMaxInfo.MaxSize->Width;
+		return;
+	}
+
+	if (Height < m_MinMaxInfo.MinSize->Height)
+	{
+		//Height = m_MinMaxInfo.MinSize->Height;
+		return;
+	}
+	else if (m_MinMaxInfo.MaxSize != nullptr && Height > m_MinMaxInfo.MaxSize->Height)
+	{
+		//Height = m_MinMaxInfo.MaxSize->Height;
+		return;
+	}
+
+
 	if (Width != m_LogicRect->Width || Height != m_LogicRect->Height)
 	{
 		//StartPauseDebug();
@@ -288,18 +312,7 @@ VOID DUI_ControlBase::SetVisiable(BOOL bVisiable)
 {
 	if (m_bVisialbe != bVisiable)
 	{
-		MsgProc(m_ID, CM_SHOW, m_ID, m_bVisialbe);
-		m_bVisialbe = bVisiable;
-
-		//if (m_bVisialbe)
-		//{
-		//	ChangeState(S_Normal);
-		//}
-		//else
-		//{
-		//	ChangeState(S_Hide);
-		//}
-		//Update();
+		MsgProc(m_ID, CM_SHOW, m_ID, bVisiable);
 	}
 	 
 }
@@ -411,13 +424,13 @@ DUI_Window * DUI_ControlBase::GetParentWnd()
 	return m_ParentWnd;
 }
 
-VOID DUI_ControlBase::ClientToWnd(Point * ptClient)
+VOID DUI_ControlBase::ClientToWnd(PointF * ptClient)
 {
 	ptClient->X += (INT)m_Rect->X;
 	ptClient->Y += (INT)m_Rect->Y;
 }
 
-VOID DUI_ControlBase::WndToClient(Point * ptWnd)
+VOID DUI_ControlBase::WndToClient(PointF * ptWnd)
 {
 	ptWnd->X -= (INT)m_Rect->X;
 	ptWnd->Y -= (INT)m_Rect->Y;
@@ -458,12 +471,33 @@ BOOL DUI_ControlBase::SetParent(DUI_Object * Parent)
 	return TRUE;
 }
 
-BOOL DUI_ControlBase::IsPtInCtrl(Point * pt)
+BOOL DUI_ControlBase::SetMinMaxInfo(MINMAXSIZE MinMaxInfo)
+{
+	if (MinMaxInfo.MinSize == nullptr)
+	{
+		MinMaxInfo.MinSize = new SizeF(10, 10);
+	}
+	else
+	{
+		if (MinMaxInfo.MinSize->Width < 0 || MinMaxInfo.MinSize->Height < 0)
+		{
+			return FALSE;
+		}
+	}
+	m_MinMaxInfo = MinMaxInfo;
+	return TRUE;
+}
+
+BOOL DUI_ControlBase::IsPtInCtrl(PointF * pt)
 {
 	RectF* cRect = m_VRect->Clone();
 	if (!m_bCanShowOnNCRgn)
 	{
 		RectF* pcRect = m_Parent->GetClientRect();
+		if (pcRect == nullptr)
+		{
+			return FALSE;
+		}
 		cRect->Intersect(*pcRect);
 		delete pcRect;
 	}
@@ -502,7 +536,12 @@ BOOL DUI_ControlBase::Destroy()
 		SafeDelete(m_MemDC);
 
 		SafeDelete(m_Text);
+		
 		SafeDelete(m_ptMouseDown);
+
+		SafeDelete(m_MinMaxInfo.MinSize);
+		SafeDelete(m_MinMaxInfo.MaxSize);
+
 		m_ID = NULL;
 		m_Parent = nullptr;
 		m_bVisialbe = FALSE;
@@ -520,7 +559,7 @@ ObjType DUI_ControlBase::GetObjType()
 
 LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	Point ptMouse;
+	PointF ptMouse;
 	if (m_MsgProc != nullptr)
 	{
 		if (!m_MsgProc((VOID*)this, uMsg, wParam, lParam))
@@ -538,7 +577,7 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		GetCursorPos(&ptMouse);
 		if (m_ptMouseDown == nullptr)
 		{
-			m_ptMouseDown = new Point(0, 0);
+			m_ptMouseDown = new PointF(0, 0);
 		}
 		m_ptMouseDown->X = ptMouse.X;
 		m_ptMouseDown->Y = ptMouse.Y;
@@ -568,13 +607,9 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 	case CM_MOUSEGETIN:
-		if (m_CursorName != nullptr)
+		if (m_CursorName == nullptr)
 		{
-			m_LastHCursor = m_ParentWnd->SetCursor(m_CursorName);
-		}
-		else
-		{
-			m_ParentWnd->SetCursor(IDC_ARROW);
+			m_ParentWnd->SetCursor(LoadCursor(NULL, IDC_ARROW));
 		}
 		if (m_Prompt != _T(""))
 		{
@@ -582,11 +617,6 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 	case CM_MOUSELEAVE:
-		if (m_LastHCursor != NULL)
-		{
-			m_ParentWnd->SetCursor(m_LastHCursor);
-			m_LastHCursor = NULL;
-		}
 		break;
 	case CM_SETCURSOR:
 		if (m_CursorName != nullptr)
@@ -617,6 +647,11 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 	case CM_PARENTDESTROY:
 		SetParent(((DUI_ControlBase*)m_Parent)->m_Parent);
 		break;
+	case CM_SHOW:
+		m_bVisialbe = lParam;
+		SendMsgToChild(CM_SHOW, NULL, lParam);
+		Update();
+		break;
 	}
 	if (IsMouseMsg(uMsg))
 	{
@@ -638,8 +673,6 @@ VOID DUI_ControlBase::Draw(DUI_Status s)
 // 
 // 	bkgBrush.SetColor(*m_Text->color);
 // 	m_MemDC->graphics->DrawString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &bkgBrush);
-	//static int i = 0;
-	//TRACE("\nHello - %d\n", ++i);
 	if (m_ParentWnd->m_bDebug && m_bVisialbe)
 	{
 		Pen BorderPen(Color::MakeARGB(255, 100, 100, 100), 1);
@@ -669,7 +702,7 @@ DUI_Status DUI_ControlBase::GetState()
 	return m_CurState;
 }
 
-BOOL DUI_ControlBase::GetCursorPos(Point * pt)
+BOOL DUI_ControlBase::GetCursorPos(PointF * pt)
 {
 	BOOL ret;
 	ret = m_Parent->GetCursorPos(pt);
@@ -690,9 +723,6 @@ BOOL DUI_ControlBase::StartAnimate(TIMERPROC pCallBack, UINT uElapse)
 		m_bAnimating = TRUE;
 		m_AnimatePrevDC = new MemDC((INT)m_LogicRect->Width, (INT)m_LogicRect->Height);
 		m_MemDC->BitBlt(m_AnimatePrevDC->GetMemDC(), 0, 0, (INT)m_LogicRect->Width, (INT)m_LogicRect->Height, 0, 0, SRCCOPY);
-		//m_AnimatePrevDC->Clear();
-
-		//Draw();
 		pCallBack(m_ParentWnd->GetHWND(), NULL, m_ID, GetTickCount());
 		return TRUE;
 	}
@@ -708,7 +738,6 @@ BOOL DUI_ControlBase::EndAnimate()
 	SafeDelete(m_AnimatePrevDC);
 	return KillTimer(m_ParentWnd->GetHWND(), m_ID);
 }
-
 
 VOID CALLBACK DUI_ControlBase::AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime)
 {
@@ -933,7 +962,7 @@ BOOL DUI_ControlBase::OnCalcRect(WPARAM wParam, LPARAM lParam)
 		m_Rect->X = m_LogicRect->X;
 		m_Rect->Y = m_LogicRect->Y;
 
-		RectF* cRect = m_Rect->Clone();
+		//RectF* cRect = m_Rect->Clone();
 		m_VRect->X = m_Rect->X;
 		m_VRect->Y = m_Rect->Y;
 		m_VRect->Width = m_Rect->Width;

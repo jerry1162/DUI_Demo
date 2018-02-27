@@ -14,6 +14,7 @@
 #include ".//DUI//DUI_ProgressBar.h"
 #include ".//DUI//DUI_ImageBox.h"
 #include ".//DUI//DUI_GroupBox.h"
+#include ".//DUI//DUI_SizeBox.h"
 
 // CDUI_DemoDlg 对话框
 class CDUI_DemoDlg : public CDialogEx
@@ -40,6 +41,7 @@ public:
 	DUI_ProgressBar* m_ProgressBar;
 	DUI_ImageBox* m_ImageBox;
 	DUI_GroupBox* m_GroupBox;
+	DUI_SizeBox*  m_SizeBox;
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME

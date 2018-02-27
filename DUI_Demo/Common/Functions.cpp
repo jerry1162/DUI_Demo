@@ -15,7 +15,7 @@ void GdipShutdown()
 	GdiplusShutdown(gdiplusToken);
 }
 
-BOOL PtInRect(RectF * rect, Point * pt)
+BOOL PtInRect(RectF * rect, PointF * pt)
 {
 	if (rect == nullptr || pt == nullptr)
 	{
@@ -143,6 +143,10 @@ VOID DrawShadowText(Graphics * graphics, GdipString* Text, REAL Rate,
  REAL ShadowOffsetX,
 	REAL ShadowOffsetY)
 {
+	if (Text == nullptr || Text->string == nullptr || Text->string->IsEmpty())
+	{
+		return;
+	}
 	if (Rate <= 0)
 	{
 		Rate = 1;
@@ -188,13 +192,13 @@ VOID DrawShadowText(Graphics * graphics, GdipString* Text, REAL Rate,
 	}
 
 
-	GdipString* string = new GdipString;
-	string->color = Text->color;
-	string->string = Text->string;
-	string->font = Text->font;
-	string->format = Text->format;
-	string->rect = new RectF(TextOffsetX, TextOffsetY, Text->rect->Width,
-		Text->rect->Height);
+	GdipString* string = new GdipString(*Text);
+// 	string->color = Text->color;
+// 	string->string = new CString();
+// 	string->font = Text->font;
+// 	string->format = Text->format;
+	string->rect->X = TextOffsetX; 
+	string->rect->Y = TextOffsetY;
 	DrawBorderedText(graphics1, string, BorderColor);
 	delete string;
 
@@ -281,6 +285,7 @@ BOOL IsControlMsg(UINT uMsg)
 void FreeCallBackAddr(LPVOID wndProc)
 {
 	VirtualFree(wndProc, 4096, MEM_RELEASE);
+	wndProc = nullptr;
 }
 
 ATOM MyRegisterClass()

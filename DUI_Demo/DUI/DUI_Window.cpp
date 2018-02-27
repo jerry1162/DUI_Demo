@@ -483,27 +483,22 @@ BOOL DUI_Window::Destroy()
 		FreeCallBackAddr(m_WndProc);
 		FreeCallBackAddr(m_SysBtnClickProcAddr);
 		ReleaseDC((HWND)m_ID, m_hDC);
-		delete m_MemDC;
-		delete m_BkgDC;
-		delete m_WndRect;
-		delete m_ClientRect;
+		m_hDC = NULL;
+		SafeDelete(m_MemDC);
+		SafeDelete(m_BkgDC);
+		SafeDelete(m_WndRect);
+		SafeDelete(m_ClientRect);
 
-		//delete m_Title->color;
-		//delete m_Title->rect;
-		//delete m_Title->font;
-		//delete m_Title->format;
-		//delete m_Title->string;
+		SafeDelete(m_Title);
+		SafeDelete(m_BkgColor);
 
-		delete m_Title;
-		delete m_BkgColor;
-
-		delete m_Icon;
-		delete m_IconRect;
-		delete m_BkgImg;
-		delete m_SysBtnPic;
-		delete m_Prompt;
-		delete m_pRdbMgr;
-		delete m_pAnimArg;
+		SafeDelete(m_Icon);
+		SafeDelete(m_IconRect);
+		SafeDelete(m_BkgImg);
+		SafeDelete(m_SysBtnPic);
+		SafeDelete(m_Prompt);
+		SafeDelete(m_pRdbMgr);
+		SafeDelete(m_pAnimArg);
 		m_ID = NULL;
 		return TRUE;
 	}
@@ -615,7 +610,7 @@ DUI_ControlBase* DUI_Window::FindControlByID(INT ID)
 	return nullptr;
 }
 
-DUI_ControlBase * DUI_Window::FindControlByPoint(Point * pt)
+DUI_ControlBase * DUI_Window::FindControlByPoint(PointF * pt)
 {
 	if (pt == nullptr)
 	{
@@ -659,23 +654,23 @@ DUI_Prompt* DUI_Window::GetWndPrompt()
 	return m_Prompt;
 }
 
-INT DUI_Window::ScreenToClient(Point * pt)
+INT DUI_Window::ScreenToClient(PointF * pt)
 {
 	POINT p;
-	p = { pt->X ,pt->Y };
+	p = { (INT)pt->X ,(INT)pt->Y };
 	int ret = ::ScreenToClient((HWND)m_ID, &p);
-	pt->X = p.x;
-	pt->Y = p.y;
+	pt->X = (REAL)p.x;
+	pt->Y = (REAL)p.y;
 	return ret;
 }
 
-BOOL DUI_Window::GetCursorPos(Point * pt)
+BOOL DUI_Window::GetCursorPos(PointF * pt)
 {
 	BOOL ret = FALSE;
 	POINT ptTemp;
 	ret = ::GetCursorPos(&ptTemp);
-	pt->X = ptTemp.x;
-	pt->Y = ptTemp.y;
+	pt->X = (REAL)ptTemp.x;
+	pt->Y = (REAL)ptTemp.y;
 	ScreenToClient(pt);
 	return ret;
 }
@@ -939,8 +934,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		if (m_SysBtn[BT_Maxmize] != nullptr)
 		{
-			delete m_SysBtn[BT_Maxmize];
-			m_SysBtn[BT_Maxmize] = nullptr;
+			SafeDelete(m_SysBtn[BT_Maxmize]);
 		}
 	}
 
@@ -1116,8 +1110,7 @@ BOOL DUI_Window::OnSetCursor(WPARAM wParam, LPARAM lParam)
 {
 	if (m_Sizeable)
 	{
-		//ChangeCursor();
-		Point ptMouse;
+		PointF ptMouse;
 		GetCursorPos(&ptMouse);
 		if (ptMouse.X <= DEF_BORDERWHIDTH && ptMouse.Y <= DEF_BORDERWHIDTH)
 		{
@@ -1388,7 +1381,7 @@ BOOL DUI_Window::SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lPara
 		default:
 			break;
 		}
-		Point ptMouse;
+		PointF ptMouse;
 		GetCursorPos(&ptMouse);
 		OnControl(INVALID_CONTROLID, WM_MOUSEMOVE, NULL, MAKELPARAM(ptMouse.X, ptMouse.Y));
 	}
@@ -1435,7 +1428,7 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		return FALSE;
 	}
-	Point ptMouse;
+	PointF ptMouse;
 	if (IsMouseMsg(uMsg))
 	{
 		ptMouse.X = LOWORD(lParam);
@@ -1451,8 +1444,10 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		pCtrl = FindControlByID(ID);
 		if (IsMouseMsg(uMsg))
 		{
-			lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(),
-				ptMouse.Y - pCtrl->m_Rect->GetTop());
+			PointF* ptClient = new PointF(ptMouse);
+			pCtrl->WndToClient(ptClient);
+			lParam = MAKELPARAM(ptClient->X, ptClient->Y);
+			delete ptClient;
 		}
 		return pCtrl->MsgProc(ID, uMsg, wParam, lParam);
 	}
@@ -1472,7 +1467,7 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (m_CaptureCtrlID != INVALID_CONTROLID)
 	{
 		BOOL bInCtrl = FALSE;
-		pCtrl = FindControlByID((INT)m_CaptureCtrlID);
+		pCtrl = FindControlByID(m_CaptureCtrlID);
 		bInCtrl = pCtrl->IsPtInCtrl(&ptMouse);
 		if (IsMouseMsg(uMsg))
 		{
@@ -1517,7 +1512,10 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			default:
 				break;
 			}
-			lParam = MAKELPARAM(ptMouse.X - pCtrl->m_Rect->GetLeft(), ptMouse.Y - pCtrl->m_Rect->GetTop());
+			PointF* ptClient = new PointF(ptMouse);
+			pCtrl->WndToClient(ptClient);
+			lParam = MAKELPARAM(ptClient->X, ptClient->Y);
+			delete ptClient;
 		}
 		else if (uMsg == WM_SETCURSOR)
 		{
@@ -1541,7 +1539,10 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if (bInCtrl)
 			{
 				bFound = TRUE;
-				lParam = MAKELPARAM(ptMouse.X - (*it)->m_Rect->GetLeft(), ptMouse.Y - (*it)->m_Rect->GetTop());
+				PointF* ptClient = new PointF(ptMouse);
+				(*it)->WndToClient(ptClient);
+				lParam = MAKELPARAM(ptClient->X, ptClient->Y);
+				delete ptClient;
 				Ret = (*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
 			}
 			switch (uMsg)

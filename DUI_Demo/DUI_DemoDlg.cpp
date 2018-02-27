@@ -48,44 +48,60 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (uMsg == CM_CLICKED)
 	{
 //		SafeDelete(m_GroupBox);
-// 		m_Lable->SetVisiable(!m_Lable->GetVisiable());
+//		m_GroupBox->SetVisiable(!m_GroupBox->GetVisiable());
+//		m_Lable->SetVisiable(!m_Lable->GetVisiable());
 // 		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
-// 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
+ 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
 // 		m_Lable->SetText(L"Button");
-// 		static int i = 0;
-// 		i += 1;
-// 		if ((i % 2) == 0)
-// 		{
-// 			//m_Window->SetTitle(L"OK");
-// 			//m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-// 			//m_Button->SetText(L"Button");
-// 			m_GroupBox->Size(200, 200);
-// 		}
-// 		else
-// 		{
-// 			//m_Window->SetTitle(L"Clicked");
-// 			//m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-// 			//m_Button->SetText(L"Clicked");
-// 			m_GroupBox->Size(50, 50);
-// 		}
-// 		m_Window->SetSizeable(!m_Window->GetSizeable());
-		if (m_SubWindow == nullptr)
+		static int i = 3;
+		i += 1;
+		if ((i % 2) == 0)
 		{
-			m_SubWindow = new DUI_Window;
-			m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
-			m_SubWindow->DoModel();
-			delete m_SubWindow;
-			m_SubWindow = nullptr;
+			m_Window->SetTitle(L"OK");
+			m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+			m_Button->SetText(L"Button");
+			m_GroupBox->Size(200, 200);
 		}
-// 		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
-// 		m_RGroup->SelectNext();
+		else
+		{
+			m_Window->SetTitle(L"Clicked");
+			m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+			m_Button->SetText(L"Clicked");
+			m_GroupBox->Size(50, 50);
+		}
+		DUI_ControlBase* pCtrl = nullptr;// m_Window->FindControlByID(i);
+		while (1)
+		{
+			pCtrl = m_Window->FindControlByID(i);
+			if (pCtrl == nullptr)
+			{
+				i = 4;
+				continue;
+			}
+			if (pCtrl->GetVisiable())
+			{
+				m_SizeBox->Bind(pCtrl);
+				break;
+			}
+			i++;
+		}
+ 		m_Window->SetSizeable(!m_Window->GetSizeable());
+// 		if (m_SubWindow == nullptr)
+// 		{
+// 			m_SubWindow = new DUI_Window;
+// 			m_SubWindow->Create(380, 250, m_Window, _T("SubWindow"));
+// 			m_SubWindow->DoModel();
+// 			SafeDelete(m_SubWindow);
+// 		}
+		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
+		m_RGroup->SelectNext();
 // 		if (pSex != nullptr)
 // 		{
 // 			CString str = _T("当前选中的性别为：");
 // 			str += pSex->GetText();
 // 			MessageBox(str, _T("当前选中项"), MB_ICONINFORMATION);
 // 		}
-// 		m_Window->SetBkgColor(Color::Red);
+//		m_Window->SetBkgColor(Color::Red);
 	}
 	return TRUE;
 }
@@ -151,21 +167,23 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	//_CrtDumpMemoryLeaks();
+	//_CrtSetBreakAlloc(4496);
 	GdipStartup();
 	m_SubWindow = nullptr;
 	m_Window = new DUI_Window;
-// 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-// 		L"..\\Image\\BkGrd\\bkg2.jpg", 1))
-// 	{
-// 		MessageBox(L"创建失败");
-// 		return TRUE;
-// 	}
 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-		Color::MakeARGB(255, 80, 140, 200), FALSE))//80, 140, 200
+		L"..\\Image\\BkGrd\\bkg2.jpg", 1))
 	{
 		MessageBox(L"创建失败");
 		return TRUE;
 	}
+// 	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
+// 		Color::MakeARGB(255, 80, 140, 200), FALSE))//80, 140, 200
+// 	{
+// 		MessageBox(L"创建失败");
+// 		return TRUE;
+// 	}
 
 	//m_Window.SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
 	//m_Window->SetSizeable(TRUE);
@@ -175,6 +193,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_Lable = new DUI_Lable;
 	m_Lable->Create(m_Window, 120, 120, 200, 25, _T("Lable1"));
 	m_Lable->SetCursor(IDC_IBEAM);
+	//m_Lable->SetPrompt(_T("Lable"));
 
 	m_Button = new DUI_Button;
 	m_Button->Create(m_Window, 60, 20, 76, 26, _T("正常按钮"));
@@ -211,6 +230,9 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 
 	m_ImageBox = new DUI_ImageBox;//ID 13
 	m_ImageBox->Create(m_Window, 60, 120, 48, 48);
+
+	m_SizeBox = new DUI_SizeBox;
+	m_SizeBox->Create(m_Window, 60, 180, 70, 70);
 
 	m_WndProc = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::WndProc);
 	m_Window->AcceptDropFile();
