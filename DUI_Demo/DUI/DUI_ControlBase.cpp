@@ -711,7 +711,7 @@ BOOL DUI_ControlBase::GetCursorPos(PointF * pt)
 	return ret;
 }
 
-BOOL DUI_ControlBase::StartAnimate(TIMERPROC pCallBack, UINT uElapse)
+BOOL DUI_ControlBase::StartAnimate(UINT uElapse, TIMERPROC pCallBack)
 {
 	if (pCallBack == nullptr)
 	{
@@ -805,7 +805,7 @@ BOOL DUI_ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 		}
 	}
 	
-
+	//PauseWhen(m_ID == 13);
 	m_ParentWnd->m_BkgDC->BitBlt(m_ParentWnd->m_MemDC, (INT)m_VRect->X, (INT)m_VRect->Y, (INT)m_VRect->Width, (INT)m_VRect->Height);
 
 	ExcuteAfterPaused(m_ParentWnd->Flush());

@@ -16,22 +16,31 @@ DUI_ImageBox::~DUI_ImageBox()
 	}
 }
 
-BOOL DUI_ImageBox::SetImagePath(LPTSTR Path)
+BOOL DUI_ImageBox::SetImagePath(LPTSTR Path, BOOL bFitSize)
 {
 	if (m_Image != nullptr)
 	{
 		delete m_Image;
 	}
 	m_Image = new Image(Path);
+
 	if (m_Image != nullptr)
 	{
-		Update();
+		if (bFitSize)
+		{
+			Size((REAL)m_Image->GetWidth(), (REAL)m_Image->GetHeight());
+		}
+		//Update();
 	}
 	return m_Image != nullptr;
 }
 
-BOOL DUI_ImageBox::SetImage(Image* pImage)
+BOOL DUI_ImageBox::SetImage(Image* pImage, BOOL bFitSize)
 {
+	if (bFitSize && pImage)
+	{
+		Size((REAL)pImage->GetWidth(), (REAL)pImage->GetHeight());
+	}
 	if (m_Image != pImage)
 	{
 		if (m_bAnimating)
@@ -46,10 +55,10 @@ BOOL DUI_ImageBox::SetImage(Image* pImage)
 		delete m_Image;
 	}
 	m_Image = pImage;
-	if (m_Image != nullptr)
-	{
-		//Update();
-	}
+// 	if (m_Image != nullptr)
+// 	{
+// 		Update();
+// 	}
 	return m_Image != nullptr;
 }
 
@@ -62,11 +71,6 @@ LRESULT DUI_ImageBox::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		return TRUE;
 	}
-	if (uMsg == CM_STATECHANGED)
-	{
-		uMsg = uMsg;
-	}
-
 	return Ret;
 }
 
