@@ -52,7 +52,7 @@ DUI_Window::DUI_Window()
 	m_bAnimate = FALSE;
 	m_bAllowCtrlUpdate = FALSE;
 	//m_lpfnAnimProc= (WNDANIMPROC)GetCallBackAddr(this, &DUI_Window::WndAnimProc);
-	InitRes();
+	//InitRes();
 }
 
 DUI_Window::~DUI_Window()
@@ -284,15 +284,11 @@ VOID DUI_Window::DrawTitleBar(MemDC* hDC)
 	}
 }
 
-BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
+BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title)
 {
-	if (m_ID != NULL)
-	{
-		return FALSE;
-	}
 	m_ID = (INT)hWnd;
 	m_hDC = GetDC((HWND)m_ID);
-	m_Sizeable = bSizable;
+	m_Sizeable = TRUE;
 	//m_WndRect = new RectF;
 	//m_Graphics = new Gdiplus::Graphics(hWnd);
 	//m_MemDC = new MemDC;
@@ -314,6 +310,8 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	m_Title->font = new Gdiplus::Font(&fm, 10, FontStyleRegular, UnitPoint);
 	m_Title->format = new StringFormat;
 	m_Title->format->GenericDefault();
+	m_Title->format->SetAlignment(StringAlignment::StringAlignmentCenter);
+	m_Title->format->SetLineAlignment(StringAlignment::StringAlignmentCenter);
 	m_Title->color = new Color(Color::White);
 	m_Title->rect = new RectF;
 	//TitleRect的处理在OnSize里;
@@ -356,22 +354,61 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title, BOOL bSizable)
 	return TRUE;
 }
 
-VOID DUI_Window::InitRes()
+BOOL DUI_Window::InitRes(LPVOID lpRdb)
 {
-	if (m_pRdbMgr != nullptr)
+	if (m_pRdbMgr != nullptr || lpRdb == nullptr)
 	{
-		return;
+		return FALSE;
 	}
 	m_pRdbMgr = new RDBManager;
-	HRSRC hRsrc = FindResource(NULL, MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
-	DWORD dwSize = SizeofResource(NULL, hRsrc);
-	HGLOBAL hGlobal = LoadResource(NULL, hRsrc);
-	LPVOID pBuffer = LockResource(hGlobal);
-	m_pRdbMgr->LoadFromBin(pBuffer);
+	if (!m_pRdbMgr->LoadFromBin(lpRdb))
+	{
+		return FALSE;
+	}
+	ResItem* lpItem = m_pRdbMgr->GetItemByName(_T("Icon"));
+	if (lpItem != nullptr)
+	{
+		m_Icon = ImageFromBin(lpItem->lpData, lpItem->uSize);
+	}
+	else
+	{
+		//m_Icon = ImageFromIDResource(IDI_ICON_MAIN, RT_ICON);
+		HICON hIcon = (HICON)SendMessage((HWND)m_ID, WM_GETICON, ICON_BIG, NULL);
+		m_Icon = Bitmap::FromHICON(hIcon);
+	}
+	lpItem = m_pRdbMgr->GetItemByName(_T("BkgMode"));
+	if (lpItem != nullptr)
+	{
+		bool* BkgMode = (bool*)lpItem->lpData;
+		if (*BkgMode == TRUE)//真表示图片背景
+		{
+			lpItem = m_pRdbMgr->GetItemByName(_T("BkgImg_1"));
+			if (!lpItem)
+			{
+				MessageBox((HWND)m_ID, _T("背景图加载失败"), _T("错误:"), MB_ICONINFORMATION);
+				return FALSE;
+			}
+			m_BkgImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
+		}
+		else
+		{
+			ARGB BkColor = m_pRdbMgr->GetDwordValByName(_T("BkgColor"));
+			if (m_BkgColor == nullptr)
+			{
+				m_BkgColor = new Color(BkColor);
+			}
+		}
+	}
+	else
+	{
+		MessageBox((HWND)m_ID, _T("获取背景模式失败。"), _T("错误:"), MB_ICONINFORMATION);
+		return FALSE;
+	}
+	return TRUE;
 }
 
-BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, ARGB BkgColor,
-	BOOL bSizeable)
+/*
+BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, ARGB BkgColor)
 {
 	if (hWnd == NULL)
 	{
@@ -386,25 +423,48 @@ BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, ARGB BkgColor,
 	}
 
 	m_BkgColor = new Color(BkgColor);
-	return InitDUIWnd(hWnd, Title,bSizeable);
-}
+	return InitDUIWnd(hWnd, Title);
+}*/
 
-BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, LPTSTR Title, LPTSTR Icon)
+BOOL DUI_Window::Create(HWND hWnd, LPVOID lpRdb)
 {
-	if (Icon != NULL)
-	{
-		m_Icon = (Bitmap*)ImageFromIDResource(IDI_ICON_MAIN, RT_ICON);
-	}
-	m_BkgColor = new Color(Color::MakeARGB(255, 240, 240, 240));
-	m_Parent = Parent;
-	int cx = GetSystemMetrics(SM_CXSCREEN);
-	int cy = GetSystemMetrics(SM_CYSCREEN);
-	HWND hWnd = CreateWindowW((LPCWSTR)GetDefaultWndClass(), Title, WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP, (cx - Width) / 2, (cy - Height) / 2, Width, Height, (HWND)m_Parent->m_ID, nullptr, GetModuleHandle(nullptr), nullptr);
 	if (hWnd == NULL)
 	{
 		return FALSE;
 	}
-	Create(hWnd, Title, L"", L"", TRUE);
+	//m_ID = (INT)hWnd;
+	if (!InitRes(lpRdb))
+	{
+		//MessageBox((HWND)m_ID, _T("加载资源包出错！"), _T("错误:"), MB_ICONINFORMATION);
+		return FALSE;
+	}
+	return InitDUIWnd(hWnd, m_pRdbMgr->GetTextByName(_T("Title")));
+}
+
+BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, LPVOID lpRdb)
+{
+	m_BkgColor = new Color(Color::MakeARGB(255, 240, 240, 240));
+	m_Parent = Parent;
+	if (lpRdb == nullptr)
+	{
+		if (m_Parent == nullptr)
+		{
+			return FALSE;
+		}
+		InitRes(m_Parent->GetRDBMgr()->GetCurBin());
+	}
+	else
+	{
+		InitRes(lpRdb);
+	}
+	int cx = GetSystemMetrics(SM_CXSCREEN);
+	int cy = GetSystemMetrics(SM_CYSCREEN);
+	HWND hWnd = CreateWindowW((LPCWSTR)GetDefaultWndClass(), m_Title->string->GetString(), WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP, (cx - Width) / 2, (cy - Height) / 2, Width, Height, (HWND)m_Parent->m_ID, nullptr, GetModuleHandle(nullptr), nullptr);
+	if (hWnd == NULL)
+	{
+		return FALSE;
+	}
+	//Create(hWnd, Title, L"", L"");
 	ShowWindow(hWnd, SW_SHOW); 
 	//SendMessage(hWnd, WM_SHOWWINDOW, NULL, NULL);
 	//UpdateWindow(hWnd);
@@ -413,8 +473,7 @@ BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, LPTSTR Title,
 	return TRUE;
 }
 
-BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, LPTSTR BackgrdPic,
-	BOOL bSizeable)
+/*BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, LPTSTR BackgrdPic)
 {
 
 	if (hWnd == NULL)
@@ -450,8 +509,8 @@ BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, LPTSTR BackgrdPic,
 	{
 		m_BkgColor = new Color(Color::MakeARGB(255, 240, 240, 240));
 	}
-	return InitDUIWnd(hWnd, Title,bSizeable);
-}
+	return InitDUIWnd(hWnd, Title);
+}*/
 
 VOID DUI_Window::DoModel()
 {
@@ -970,15 +1029,15 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	}
 	if (m_Icon != nullptr)
 	{
-		m_Title->rect->X = m_ClientRect->GetLeft() + m_IconRect->GetRight() + GAP_ICON_TITLE;
-		m_Title->rect->Y = m_ClientRect->GetTop() + 5;
+		m_Title->rect->X = /*m_ClientRect->GetLeft() +*/ m_IconRect->GetRight() + GAP_ICON_TITLE;
+		m_Title->rect->Y = /*m_ClientRect->GetTop() +*/ m_Sizeable ? 3.0f : 0.0f;
 		m_Title->rect->Width = m_ClientRect->Width - m_IconRect->GetRight() - GAP_ICON_TITLE - BtnWith - GAP_TITLE_SYSBTN;
 		m_Title->rect->Height = TITLEBARHEIGHT - 5 - 1;
 	}
 	else
 	{
-		m_Title->rect->X = m_ClientRect->GetLeft() + 2;
-		m_Title->rect->Y = m_ClientRect->GetTop() + 4;
+		m_Title->rect->X = /*m_ClientRect->GetLeft() +*/ 2;
+		m_Title->rect->Y = /*m_ClientRect->GetTop() +*/ m_Sizeable ? 2.0f : 0.0f;
 		m_Title->rect->Width = m_ClientRect->Width - BtnWith - 2 - GAP_TITLE_SYSBTN;
 		m_Title->rect->Height = TITLEBARHEIGHT;
 	}
@@ -1395,14 +1454,14 @@ BOOL DUI_Window::WndAnimProc(AnimArg * pArg, INT AnimType)
 	switch (AnimType)
 	{
 	case TID_WND_SHOW:
-// 		bDone = WndAnim_Pop_Show(m_pAnimArg, m_WndRect, m_MemDC);
+ 		bDone = WndAnim_Pop_Show(m_pAnimArg, m_WndRect, m_MemDC);
 // 		bDone = WndAnim_Shade_Show(m_pAnimArg, m_WndRect, m_MemDC);
-		bDone = WndAnim_QQ_Show(m_pAnimArg, m_WndRect, m_MemDC);
+//		bDone = WndAnim_QQ_Show(m_pAnimArg, m_WndRect, m_MemDC);
 		break;
 	case TID_WND_CLOSE:
-// 		bDone = WndAnim_Pop_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+ 		bDone = WndAnim_Pop_Hide(m_pAnimArg, m_WndRect, m_MemDC);
 // 		bDone = WndAnim_Shade_Hide(m_pAnimArg, m_WndRect, m_MemDC);
-		bDone = WndAnim_QQ_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+//		bDone = WndAnim_QQ_Hide(m_pAnimArg, m_WndRect, m_MemDC);
 		break;
 	}
 	if (pArg->pDC1 != nullptr)

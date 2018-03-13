@@ -7,6 +7,7 @@ RDBManager::RDBManager()
 	m_pHeader = nullptr;
 	m_pItems = nullptr;
 	m_LoadType = L_Unknown;
+	m_lpBin = nullptr;
 }
 
 
@@ -132,6 +133,7 @@ BOOL RDBManager::LoadFromBin(LPVOID lpBin)
 	{
 		return FALSE;
 	}
+	m_lpBin = lpBin;
 	m_LoadType = L_FromBin;
 	char* Addr = (char*)lpBin;
 	m_pHeader = /*(RDBHeader*)Addr;//*/new RDBHeader;
@@ -188,6 +190,9 @@ BOOL RDBManager::AddRes(LPTSTR Name, RESTYPE Type, LPVOID lpData, UINT uSize)
 			break;
 		case RT_INT:
 			uSize = sizeof(int);
+			break;
+		case RT_DWORD:
+			uSize = sizeof(DWORD);
 			break;
 		case RT_Text:
 			uSize = (lstrlen((LPTSTR)lpData) + 1) * sizeof(TCHAR);
@@ -310,6 +315,11 @@ bool RDBManager::GetBoolValByName(LPTSTR Name)
 	return *(bool*)GetResByName(Name);
 }
 
+DWORD RDBManager::GetDwordValByName(LPTSTR Name)
+{
+	return *(DWORD*)GetResByName(Name);
+}
+
 LPTSTR RDBManager::GetTextByName(LPTSTR Name)
 {
 	return (LPTSTR)GetResByName(Name);
@@ -325,4 +335,16 @@ ResItem * RDBManager::GetItemByName(LPTSTR Name)
 		}
 	}
 	return nullptr;
+}
+
+LPVOID RDBManager::GetCurBin()
+{
+	if (m_LoadType == L_FromFile)
+	{
+		return nullptr;
+	}
+	else
+	{
+		return m_lpBin;
+	}
 }

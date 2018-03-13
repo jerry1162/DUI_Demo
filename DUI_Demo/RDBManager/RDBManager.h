@@ -5,6 +5,7 @@ enum RESTYPE
 {
 	RT_BOOL = 1,
 	RT_INT,
+	RT_DWORD,
 	RT_Text,
 	RT_Icon,
 	RT_Image,
@@ -67,11 +68,14 @@ public:
 	LPVOID GetResByName(LPTSTR Name);
 	INT GetIntValByName(LPTSTR Name);
 	bool GetBoolValByName(LPTSTR Name);
+	DWORD GetDwordValByName(LPTSTR Name);
 	LPTSTR GetTextByName(LPTSTR Name);
 	ResItem* GetItemByName(LPTSTR Name);
+	LPVOID GetCurBin();//若资源包从二进制数据加载，则返回内存地址，否则返回null
 private:
 	RDBHeader* m_pHeader;
 	vector<ResItem*>* m_pItems;
 	RDBLOAD m_LoadType;
+	LPVOID m_lpBin;
 };
 

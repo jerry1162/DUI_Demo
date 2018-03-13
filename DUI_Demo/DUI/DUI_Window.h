@@ -12,11 +12,13 @@ public:
 	friend class DUI_ControlBase;
 	DUI_Window();
 	~DUI_Window();
-	BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,
-		LPTSTR BackgrdPic = NULL, BOOL bSizeable = FALSE);
-	BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,
-		ARGB BkgColor = Color::MakeARGB(255, 240, 240, 240), BOOL bSizeable = FALSE);
-	BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPTSTR Title = L"", LPTSTR Icon = NULL);//请在用此方法创建窗口后手动调用DoModel()进入消息循环。
+	//BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL, LPTSTR BackgrdPic = NULL);
+	//BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,ARGB BkgColor = Color::MakeARGB(255, 240, 240, 240));
+	BOOL Create(HWND hWnd, LPVOID lpRdb);
+
+	//请在用此方法创建窗口后手动调用DoModel()进入消息循环。
+	//BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPTSTR Title = L"", LPTSTR Icon = NULL);
+	BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPVOID lpRdb = nullptr);
 	VOID DoModel();
 
 	//虚函数实现
@@ -72,8 +74,8 @@ protected:
 	LONG PrevWndProc;
 	WNDPROC m_WndProc;
 
-	BOOL InitDUIWnd(HWND hWnd, LPTSTR Title = L"", BOOL bSizable = FALSE);
-	VOID InitRes();
+	BOOL InitDUIWnd(HWND hWnd, LPTSTR Title = L"");
+	BOOL InitRes(LPVOID lpRdb);
 	BOOL OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递 ID为INVALID_CONTROLID(-1)则表示此消息被发送给所有控件
 
 	//MsgProcFuncs

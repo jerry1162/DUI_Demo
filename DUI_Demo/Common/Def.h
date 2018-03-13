@@ -13,7 +13,7 @@ enum ObjType
 };
 
 //定义窗口基本属性
-#define TITLEBARHEIGHT (20)
+#define TITLEBARHEIGHT (30)
 #define MINWNDWIDTH (200)
 #define ICONSIZE_X (16)
 #define ICONSIZE_Y (16)

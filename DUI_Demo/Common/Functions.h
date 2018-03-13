@@ -110,6 +110,7 @@ HICON GetFileIcon(const CString& strFilePath, INT IconSize = IS_NORMAL);
 
 INT GetFileName(CString csFilePath,CString& csFileName);
 INT  GetExtName(CString csFileFullName,CString& csExtName);
+LPVOID GetResAddr(LPCWSTR lpName, LPCWSTR lpType);
 
 BOOL WndAnim_Pop_Show(AnimArg * pArg, RectF* pRect, MemDC* hDC);
 BOOL WndAnim_Pop_Hide(AnimArg * pArg, RectF* pRect, MemDC* hDC);

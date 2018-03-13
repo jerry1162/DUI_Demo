@@ -19,7 +19,7 @@
 CDUI_DemoDlg::CDUI_DemoDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_DUI_DEMO_DIALOG, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON_MAIN);
 }
 
 CDUI_DemoDlg::~CDUI_DemoDlg()
@@ -171,9 +171,16 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	//_CrtSetBreakAlloc(4496);
 	GdipStartup();
 	m_SubWindow = nullptr;
+
+/*
+	HRSRC hRsrc = FindResource(NULL, MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
+	DWORD dwSize = SizeofResource(NULL, hRsrc);
+	HGLOBAL hGlobal = LoadResource(NULL, hRsrc);
+	LPVOID pBuffer = LockResource(hGlobal);*/
+	LPVOID pResDB = GetResAddr(MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
+
 	m_Window = new DUI_Window;
-	if (!m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",
-		L"..\\Image\\BkGrd\\bkg2.jpg", 1))
+	if (!m_Window->Create(m_hWnd, pResDB))//m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",L"..\\Image\\BkGrd\\bkg2.jpg")
 	{
 		MessageBox(L"´´½¨Ê§°Ü");
 		return TRUE;

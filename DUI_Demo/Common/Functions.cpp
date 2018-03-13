@@ -560,6 +560,14 @@ INT  GetExtName(CString csFileFullName, CString& csExtName)
 	return csExtName.GetLength();
 }
 
+LPVOID GetResAddr(LPCWSTR lpName, LPCWSTR lpType)
+{
+	HRSRC hRsrc = FindResource(NULL, lpName, lpType);
+	DWORD dwSize = SizeofResource(NULL, hRsrc);
+	HGLOBAL hGlobal = LoadResource(NULL, hRsrc);
+	return LockResource(hGlobal);
+}
+
 BOOL WndAnim_Pop_Show(AnimArg * pArg, RectF * pRect, MemDC * hDC)
 {
 	if (pArg->pDC1 == nullptr)
