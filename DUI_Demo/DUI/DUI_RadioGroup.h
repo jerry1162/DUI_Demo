@@ -9,7 +9,7 @@ class DUI_RadioGroup :
 public:
 	DUI_RadioGroup();
 	virtual ~DUI_RadioGroup() override;
-	virtual BOOL Create(DUI_Object* Parent);
+	virtual BOOL Create(DUI_Object* Parent) override;
 	virtual BOOL Destroy() override;
 	INT GetSelect();
 	BOOL Select(INT ID);

@@ -2,6 +2,8 @@
 #include "Functions.h"
 #include "CommonControls.h"
 
+
+
 GdiplusStartupInput gdiplusStartupInput;
 ULONG_PTR gdiplusToken;
  

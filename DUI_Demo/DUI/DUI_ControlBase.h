@@ -8,6 +8,7 @@ class DUI_ControlBase :public DUI_Object
 {
 public:
 	friend class DUI_Window;
+	friend class DUI_ScrollBar;
 	DUI_ControlBase();
 	virtual ~DUI_ControlBase();
 	virtual BOOL Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height,
@@ -22,7 +23,8 @@ public:
 	virtual REAL GetWidth() override;
 	virtual REAL GetHeight() override;
 	virtual BOOL GetCursorPos(PointF* pt) override;
-
+	virtual REAL GetMarginTop() override;
+	virtual RectF* GetClientRect() override;
 
 	VOID SetText(LPTSTR Text = L"");
 	LPCWSTR GetText();
@@ -48,14 +50,17 @@ public:
 	LPTSTR GetCursor();
 	BOOL SetParent(DUI_Object* Parent);
 	BOOL SetMinMaxInfo(MINMAXSIZE MinMaxInfo);//MinSize若为NULL则取默认最小，Max若为NULL则为不限制最大
+	RectF* GetOffsetRect();
 protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual BOOL Create(DUI_Object* Parent);
 	DUI_Object* m_Parent;
 	DUI_Window* m_ParentWnd;
 	RectF* m_LogicRect;//相对于父组件的逻辑坐标
 	RectF* m_Rect;//相对于窗口的真实坐标
 	RectF* m_LogicVRect;
 	RectF* m_VRect;
+	RectF* m_OffsetRect;
 	MemDC* m_MemDC;
 	
 	virtual VOID Draw(DUI_Status s = (DUI_Status)-1);
@@ -65,6 +70,7 @@ protected:
 	BOOL EndAnimate();
 	virtual VOID CALLBACK AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime);
 	VOID AddCtrl();//处理将this加入到窗口中
+	BOOL SetOffset(REAL X = 0, REAL Y = 0, REAL Width = -1, REAL Height = -1);
 	//控件属性
 	GdipString* m_Text;
 	LPTSTR m_Prompt;
@@ -72,11 +78,11 @@ protected:
 	DUI_Status m_CurState;
 	BYTE m_Alpha;
 	BOOL m_bAnimating;
-	BYTE m_AnimateAlpha;
+	//BYTE m_AnimateAlpha;
 	DUI_Status m_PrevState;
 	TIMERPROC m_pAnimateProc;
 	MSGPROC m_MsgProc;
-	MemDC* m_AnimatePrevDC;//动画开始的DC内容
+	//MemDC* m_AnimatePrevDC;//动画开始的DC内容
 	BOOL m_bHasState;
 	BOOL m_bAutoUpdate;//在窗口显示前的控件默认为假，后由窗口设置为真，其余默认为真。
 	BOOL m_bMoveWithMouse;//当鼠标按下时，跟随鼠标移动。 注意，移动时无法完成其他鼠标消息。
@@ -85,6 +91,8 @@ protected:
 	BOOL m_bCanShowOnNCRgn;
 	LPTSTR m_CursorName;
 	MINMAXSIZE m_MinMaxInfo;
+	BOOL m_bOffset;
+	AnimArg* m_AnimArg;
 
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上

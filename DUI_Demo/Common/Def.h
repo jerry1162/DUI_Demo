@@ -29,6 +29,7 @@ enum ObjType
 
 #define TID_WND_SHOW   (100)
 #define TID_WND_CLOSE (101)
+#define TID_WND_CNGBKG (102)
 
 //自定义消息
 //说明当窗口接收到hWnd为非有效窗口句柄时，表明此消息为发送给控件的消息，hWnd值为控件ID
@@ -51,11 +52,11 @@ enum ObjType
 #define RG_SELECTCHANGE (WM_USER + 108)//当单选框状态改变时，向其单选组发送此消息 wParam是新选中的单选框ID，lParam未用
 #define RG_GROUPCHANGE (WM_USER + 109)//当单选框改变所属单选组时，向其单选组发送此消息 wParam是单选框ID，lParam未用
 
-#define CM_CREATE (WM_USER + 109) //当组件创建完毕由ControlBase分发给组件，wParam是控件ID，lParam未用
-#define CM_SETCURSOR (WM_USER + 110) //需要设置鼠标指针时发送，wParam是控件ID，lParam未用
-#define CM_MOVE (WM_USER + 111) //当组件位置被移动后发送给控件，也就是由Move发送，wParam是控件ID，lParam未用
-#define CM_SIZE (WM_USER + 112) //当组件大小被改变后发送给控件，也就是由Size发送，wParam是控件ID，lParam未用
-#define CM_PARENTDESTROY (WM_USER + 113) //父组件被销毁前发送给控件，wParam是控件ID，lParam未用
+#define CM_CREATE (WM_USER + 110) //当组件创建完毕由ControlBase分发给组件，wParam是控件ID，lParam未用
+#define CM_SETCURSOR (WM_USER + 111) //需要设置鼠标指针时发送，wParam是控件ID，lParam未用
+#define CM_MOVE (WM_USER + 112) //当组件位置被移动后发送给控件，也就是由Move发送，wParam是控件ID，lParam未用
+#define CM_SIZE (WM_USER + 113) //当组件大小被改变后发送给控件，也就是由Size发送，wParam是控件ID，lParam未用
+#define CM_PARENTDESTROY (WM_USER + 114) //父组件被销毁前发送给控件，wParam是控件ID，lParam未用
 
 
 //SizeDirection
@@ -125,4 +126,10 @@ struct MINMAXSIZE
 		MinSize = nullptr;
 		MaxSize = nullptr;
 	}
+};
+
+enum Orientation
+{
+	VERTICAL,
+	HORIZONTAL
 };

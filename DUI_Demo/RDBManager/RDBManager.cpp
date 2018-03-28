@@ -348,3 +348,8 @@ LPVOID RDBManager::GetCurBin()
 		return m_lpBin;
 	}
 }
+
+RDBLOAD RDBManager::GetLoadType()
+{
+	return m_LoadType;
+}

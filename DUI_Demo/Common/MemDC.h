@@ -18,8 +18,9 @@ public:
 	INT SelectRectClipRgn(INT X, INT Y, INT W, INT H);
 	INT SelectRectClipRgn(RectF* pRect);
 	HDC GetMemDC();
-	BOOL ReSize(int Width, int Height);
+	BOOL ReSize(int Width = -1, int Height = -1);
 	VOID Clear();//Clear with transparent color
+	VOID CheckStatus();
 	Graphics* graphics;
 private:
 	HDC m_MemDC;

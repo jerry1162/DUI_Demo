@@ -100,6 +100,8 @@ VOID DUI_Radio::Draw(DUI_Status s)
 		}
 		m_MemDC->graphics->DrawImage(pImg, RectF(0, 0, 15, 15), (REAL)(s - 1) * 15 + (m_bChecked ? (15 * 3) : 0), 0, (REAL)15, (REAL)15, UnitPixel);
 		DrawShadowText(m_MemDC->graphics, m_Text);
+		/*SolidBrush br(*m_Text->color);
+		m_MemDC->graphics->DrawString(m_Text->string->GetString(), m_Text->string->GetLength(), m_Text->font, *m_Text->rect, m_Text->format, &br);*/
 		DUI_ControlBase::Draw();
 	}
 }

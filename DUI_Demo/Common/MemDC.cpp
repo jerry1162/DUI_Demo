@@ -86,6 +86,7 @@ BOOL MemDC::BitBlt(HDC hDestDC, int nXDest, int nYDest, int wDest, int hDest, in
 		nYSrc = nYDest;
 	}
 	ret=::BitBlt(hDestDC, nXDest, nYDest, wDest, hDest, m_MemDC, nXSrc, nYSrc, dwRop);
+	CheckStatus();
 	return (ret==0?FALSE:TRUE);
 }
 
@@ -113,6 +114,7 @@ BOOL MemDC::BitBlt(MemDC * hDestDC, int nXDest, int nYDest, int wDest, int hDest
 		hDest = hDestDC->m_Height;
 	}
 	ret = ::BitBlt(hDestDC->GetMemDC(), nXDest, nYDest, wDest, hDest, m_MemDC, nXSrc, nYSrc, dwRop);
+	CheckStatus();
 	return (ret == 0 ? FALSE : TRUE);
 }
 
@@ -144,6 +146,7 @@ BOOL MemDC::AlphaBlend(HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWid
 	blendFunction.AlphaFormat = AC_SRC_ALPHA;
 	ret = ::AlphaBlend(hdcDest, nXOriginDest, nYOriginDest, nWidthDest, hHeightDest,
 		m_MemDC, nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc, blendFunction);
+	CheckStatus();
 	return (ret == 0 ? FALSE : TRUE);
 }
 
@@ -184,6 +187,7 @@ BOOL MemDC::AlphaBlend(MemDC * hDestDC, int nXOriginDest, int nYOriginDest, int 
 	blendFunction.SourceConstantAlpha = Alpha;
 	blendFunction.AlphaFormat = AC_SRC_ALPHA;
 	ret = ::AlphaBlend(hDestDC->GetMemDC(), nXOriginDest, nYOriginDest, nWidthDest, hHeightDest,m_MemDC, nXOriginSrc, nYOriginSrc, nWidthSrc, nHeightSrc, blendFunction);
+	CheckStatus();
 	return (ret == 0 ? FALSE : TRUE);
 }
 
@@ -220,6 +224,18 @@ HDC MemDC::GetMemDC()
 
 BOOL MemDC::ReSize(int Width, int Height)
 {
+	if (Width == -1 && Height == -1)
+	{
+		return TRUE;
+	}
+	if (Width == -1)
+	{
+		Width = m_Width;
+	}
+	if (Height == -1)
+	{
+		Height = m_Height;
+	}
 	Destroy();
 	return Create(Width, Height);
 }
@@ -227,4 +243,13 @@ BOOL MemDC::ReSize(int Width, int Height)
 VOID MemDC::Clear()
 {
 	graphics->Clear(TRANSPARENT);
+}
+
+VOID MemDC::CheckStatus()
+{
+	Status s = graphics->GetLastStatus();
+	if (s != Status::Ok)
+	{
+		//_asm int 3;
+	}
 }

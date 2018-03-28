@@ -25,16 +25,6 @@ DUI_SizeBox::~DUI_SizeBox()
 	}
 }
 
-BOOL DUI_SizeBox::CanBeParent()
-{
-	return TRUE;
-}
-
-REAL DUI_SizeBox::GetMarginTop()
-{
-	return 8.0;
-}
-
 RectF * DUI_SizeBox::GetClientRect()
 {
 	RectF* PCRect = m_Parent->GetClientRect();

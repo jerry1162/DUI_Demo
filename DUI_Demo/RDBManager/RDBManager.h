@@ -72,6 +72,7 @@ public:
 	LPTSTR GetTextByName(LPTSTR Name);
 	ResItem* GetItemByName(LPTSTR Name);
 	LPVOID GetCurBin();//若资源包从二进制数据加载，则返回内存地址，否则返回null
+	RDBLOAD GetLoadType();
 private:
 	RDBHeader* m_pHeader;
 	vector<ResItem*>* m_pItems;

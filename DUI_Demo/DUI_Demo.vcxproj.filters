@@ -105,6 +105,9 @@
     <ClInclude Include="DUI\DUI_SizeBox.h">
       <Filter>DUI\Header</Filter>
     </ClInclude>
+    <ClInclude Include="DUI\DUI_ScrollBar.h">
+      <Filter>DUI\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DUI_Demo.cpp">
@@ -165,6 +168,9 @@
       <Filter>DUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="DUI\DUI_SizeBox.cpp">
+      <Filter>DUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DUI\DUI_ScrollBar.cpp">
       <Filter>DUI\Source</Filter>
     </ClCompile>
   </ItemGroup>

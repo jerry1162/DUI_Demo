@@ -12,16 +12,6 @@ DUI_GroupBox::~DUI_GroupBox()
 	Destroy();
 }
 
-BOOL DUI_GroupBox::CanBeParent()
-{
-	return TRUE;
-}
-
-REAL DUI_GroupBox::GetMarginTop()
-{
-	return 15.0;
-}
-
 RectF * DUI_GroupBox::GetClientRect()
 {
 	RectF* PCRect = m_Parent->GetClientRect();
@@ -36,6 +26,11 @@ RectF * DUI_GroupBox::GetClientRect()
 		}
 	}
 	return cRect;
+}
+
+REAL DUI_GroupBox::GetMarginTop()
+{
+	return 15.0;
 }
 
 LRESULT DUI_GroupBox::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)

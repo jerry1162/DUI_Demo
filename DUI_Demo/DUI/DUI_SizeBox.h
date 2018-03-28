@@ -5,8 +5,6 @@ class DUI_SizeBox : public DUI_ControlBase
 public:
 	DUI_SizeBox();
 	virtual ~DUI_SizeBox();
-	virtual BOOL CanBeParent() override;
-	virtual REAL GetMarginTop() override;
 	virtual RectF* GetClientRect() override;
 	virtual BOOL IsPtInCtrl(PointF* pt) override;//注意：此处坐标为相对于窗口的坐标
 	BOOL Bind(DUI_ControlBase* pCtrl = nullptr);

@@ -14,27 +14,27 @@ public:
 	~DUI_Window();
 	//BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL, LPTSTR BackgrdPic = NULL);
 	//BOOL Create(HWND hWnd, LPTSTR Title = L"", LPTSTR Icon = NULL,ARGB BkgColor = Color::MakeARGB(255, 240, 240, 240));
-	BOOL Create(HWND hWnd, LPVOID lpRdb);
+	BOOL Create(HWND hWnd, RDBManager* RdbMgr);
 
 	//请在用此方法创建窗口后手动调用DoModel()进入消息循环。
 	//BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPTSTR Title = L"", LPTSTR Icon = NULL);
-	BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, LPVOID lpRdb = nullptr);
+	BOOL Create(INT Width = 380, INT Height = 250, DUI_Window* Parent = nullptr, RDBManager* RdbMgr = nullptr);
 	VOID DoModel();
 
 	//虚函数实现
 	virtual BOOL Destroy() override;
 	virtual ObjType GetObjType() override;
-	virtual BOOL CanBeParent();
 	virtual REAL GetX() override;
 	virtual REAL GetY() override;
 	virtual REAL GetWidth() override;
 	virtual REAL GetHeight() override;
 	virtual BOOL GetCursorPos(PointF* pt) override;
-	virtual REAL GetMarginTop() override;
 	virtual RectF* GetClientRect() override;
-
+	virtual REAL GetMarginTop() override;
 
 	BOOL SetBkgPic(LPTSTR BackgrdPic = NULL);
+	BOOL SetBkgPic(ResItem* lpItem);
+	BOOL SetBkgPic(INT PicIndex);
 	BOOL SetBkgColor(ARGB BackgrdColor = NULL);
 	BOOL SetTitle(LPTSTR Title, BOOL bInner = TRUE);//第二个参数用于区别是否是内部调用，默认为真，用于处理外部程序用消息设置窗口标题的情况
 	BOOL SetBorderStyle(BorderStyle bs);
@@ -75,7 +75,7 @@ protected:
 	WNDPROC m_WndProc;
 
 	BOOL InitDUIWnd(HWND hWnd, LPTSTR Title = L"");
-	BOOL InitRes(LPVOID lpRdb);
+	BOOL InitRes(RDBManager* RdbMgr);
 	BOOL OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam);//返回Ture表示消息不需要继续传递 ID为INVALID_CONTROLID(-1)则表示此消息被发送给所有控件
 
 	//MsgProcFuncs

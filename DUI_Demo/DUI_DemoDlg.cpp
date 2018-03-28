@@ -40,6 +40,7 @@ CDUI_DemoDlg::~CDUI_DemoDlg()
 	delete m_ProgressBar;*/
 	delete m_SubWindow;
 	delete m_Window;
+	SafeDelete(m_RdbMgr);
 	GdipShutdown();
 }
 
@@ -47,45 +48,49 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == CM_CLICKED)
 	{
+		static INT Cnt = m_RdbMgr->GetIntValByName(_T("BkgImgCnt"));
+		static INT Cur = 1;
+		Cur = Cur++ % 4;
+		m_Window->SetBkgPic(Cur);
 //		SafeDelete(m_GroupBox);
 //		m_GroupBox->SetVisiable(!m_GroupBox->GetVisiable());
 //		m_Lable->SetVisiable(!m_Lable->GetVisiable());
 // 		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
- 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
+// 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
 // 		m_Lable->SetText(L"Button");
-		static int i = 3;
-		i += 1;
-		if ((i % 2) == 0)
-		{
-			m_Window->SetTitle(L"OK");
-			m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-			m_Button->SetText(L"Button");
-			m_GroupBox->Size(200, 200);
-		}
-		else
-		{
-			m_Window->SetTitle(L"Clicked");
-			m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-			m_Button->SetText(L"Clicked");
-			m_GroupBox->Size(50, 50);
-		}
-		DUI_ControlBase* pCtrl = nullptr;// m_Window->FindControlByID(i);
-		while (1)
-		{
-			pCtrl = m_Window->FindControlByID(i);
-			if (pCtrl == nullptr)
-			{
-				i = 4;
-				continue;
-			}
-			if (pCtrl->GetVisiable())
-			{
-				m_SizeBox->Bind(pCtrl);
-				break;
-			}
-			i++;
-		}
- 		m_Window->SetSizeable(!m_Window->GetSizeable());
+// 		static int i = 3;
+// 		i += 1;
+// 		if ((i % 2) == 0)
+// 		{
+// 			m_Window->SetTitle(L"OK");
+// 			m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+// 			m_Button->SetText(L"Button");
+// 			m_GroupBox->Size(200, 200);
+// 		}
+// 		else
+// 		{
+// 			m_Window->SetTitle(L"Clicked");
+// 			m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
+// 			m_Button->SetText(L"Clicked");
+// 			m_GroupBox->Size(50, 50);
+// 		}
+// 		DUI_ControlBase* pCtrl = nullptr;// m_Window->FindControlByID(i);
+// 		while (1)
+// 		{
+// 			pCtrl = m_Window->FindControlByID(i);
+// 			if (pCtrl == nullptr)
+// 			{
+// 				i = 4;
+// 				continue;
+// 			}
+// 			if (pCtrl->GetVisiable())
+// 			{
+// 				m_SizeBox->Bind(pCtrl);
+// 				break;
+// 			}
+// 			i++;
+// 		}
+//  		m_Window->SetSizeable(!m_Window->GetSizeable());
 // 		if (m_SubWindow == nullptr)
 // 		{
 // 			m_SubWindow = new DUI_Window;
@@ -93,8 +98,8 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // 			m_SubWindow->DoModel();
 // 			SafeDelete(m_SubWindow);
 // 		}
-		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
-		m_RGroup->SelectNext();
+// 		DUI_Radio* pSex = (DUI_Radio*)m_Window->FindControlByID(m_RGroup->GetSelect());
+// 		m_RGroup->SelectNext();
 // 		if (pSex != nullptr)
 // 		{
 // 			CString str = _T("当前选中的性别为：");
@@ -111,6 +116,7 @@ BOOL CDUI_DemoDlg::WndProc(VOID * pThis, UINT uMsg, WPARAM wParam, LPARAM lParam
 	switch (uMsg)
 	{
 	case WM_DROPFILES:
+	{
 		HDROP hDrop = (HDROP)wParam;
 		UINT nCount;
 		TCHAR szPath[MAX_PATH];
@@ -125,10 +131,10 @@ BOOL CDUI_DemoDlg::WndProc(VOID * pThis, UINT uMsg, WPARAM wParam, LPARAM lParam
 			GetFileName(Path, FileName);
 			m_Lable->SetText(FileName.GetBuffer());
 			FileName.ReleaseBuffer();
-			hIcon = GetFileIcon(Path, IS_LARGE);
+			hIcon = GetFileIcon(Path, IS_EXLARGE);
 			if (hIcon)
 			{
-				m_ImageBox->SetImage(GetBitmapFromHIcon(hIcon));
+				m_ImageBox->SetImage(GetBitmapFromHIcon(hIcon), FALSE);
 			}
 
 			/*for (UINT nIndex = 0; nIndex < nCount; ++nIndex)
@@ -139,6 +145,9 @@ BOOL CDUI_DemoDlg::WndProc(VOID * pThis, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 
 		DragFinish(hDrop);
+	}
+		break;
+	case WM_MOUSEMOVE:
 		break;
 	}
 	return TRUE;
@@ -177,10 +186,18 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	DWORD dwSize = SizeofResource(NULL, hRsrc);
 	HGLOBAL hGlobal = LoadResource(NULL, hRsrc);
 	LPVOID pBuffer = LockResource(hGlobal);*/
+	
 	LPVOID pResDB = GetResAddr(MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
+	m_RdbMgr = new RDBManager;
+	if (!m_RdbMgr->LoadFromBin(pResDB))
+	{
+		MessageBox(L"资源包加载失败！");
+		return TRUE;
+	}
+	 
 
 	m_Window = new DUI_Window;
-	if (!m_Window->Create(m_hWnd, pResDB))//m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",L"..\\Image\\BkGrd\\bkg2.jpg")
+	if (!m_Window->Create(m_hWnd, m_RdbMgr))//m_Window->Create(m_hWnd, L"Direct UI", L"..\\Image\\Icon.ico",L"..\\Image\\BkGrd\\bkg2.jpg")
 	{
 		MessageBox(L"创建失败");
 		return TRUE;
@@ -236,10 +253,13 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_ProgressBar->SetCurPos(100);
 
 	m_ImageBox = new DUI_ImageBox;//ID 13
-	m_ImageBox->Create(m_Window, 60, 120, 48, 48);
+	m_ImageBox->Create(m_Window, 60, 120, 100, 100);
 
 	m_SizeBox = new DUI_SizeBox;
 	m_SizeBox->Create(m_Window, 60, 180, 70, 70);
+
+	//m_ScrollBar = new DUI_ScrollBar;
+	//m_ScrollBar->Create(m_Window, 60, 180, 15, 150);
 
 	m_WndProc = (MSGPROC)GetCallBackAddr(this, &CDUI_DemoDlg::WndProc);
 	m_Window->AcceptDropFile();

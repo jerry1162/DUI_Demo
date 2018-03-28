@@ -204,6 +204,7 @@
     <ClInclude Include="DUI\DUI_Prompt.h" />
     <ClInclude Include="DUI\DUI_Radio.h" />
     <ClInclude Include="DUI\DUI_RadioGroup.h" />
+    <ClInclude Include="DUI\DUI_ScrollBar.h" />
     <ClInclude Include="DUI\DUI_SizeBox.h" />
     <ClInclude Include="DUI\DUI_Window.h" />
     <ClInclude Include="DUI_Demo.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="DUI\DUI_Prompt.cpp" />
     <ClCompile Include="DUI\DUI_Radio.cpp" />
     <ClCompile Include="DUI\DUI_RadioGroup.cpp" />
+    <ClCompile Include="DUI\DUI_ScrollBar.cpp" />
     <ClCompile Include="DUI\DUI_SizeBox.cpp" />
     <ClCompile Include="DUI\DUI_Window.cpp" />
     <ClCompile Include="DUI_Demo.cpp" />

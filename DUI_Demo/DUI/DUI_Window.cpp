@@ -354,17 +354,13 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title)
 	return TRUE;
 }
 
-BOOL DUI_Window::InitRes(LPVOID lpRdb)
+BOOL DUI_Window::InitRes(RDBManager* RdbMgr)
 {
-	if (m_pRdbMgr != nullptr || lpRdb == nullptr)
+	if (m_pRdbMgr != nullptr || RdbMgr == nullptr || RdbMgr->GetLoadType() == L_Unknown)
 	{
 		return FALSE;
 	}
-	m_pRdbMgr = new RDBManager;
-	if (!m_pRdbMgr->LoadFromBin(lpRdb))
-	{
-		return FALSE;
-	}
+	m_pRdbMgr = RdbMgr;
 	ResItem* lpItem = m_pRdbMgr->GetItemByName(_T("Icon"));
 	if (lpItem != nullptr)
 	{
@@ -426,14 +422,14 @@ BOOL DUI_Window::Create(HWND hWnd, LPTSTR Title, LPTSTR Icon, ARGB BkgColor)
 	return InitDUIWnd(hWnd, Title);
 }*/
 
-BOOL DUI_Window::Create(HWND hWnd, LPVOID lpRdb)
+BOOL DUI_Window::Create(HWND hWnd, RDBManager* RdbMgr)
 {
 	if (hWnd == NULL)
 	{
 		return FALSE;
 	}
 	//m_ID = (INT)hWnd;
-	if (!InitRes(lpRdb))
+	if (!InitRes(RdbMgr))
 	{
 		//MessageBox((HWND)m_ID, _T("加载资源包出错！"), _T("错误:"), MB_ICONINFORMATION);
 		return FALSE;
@@ -441,21 +437,21 @@ BOOL DUI_Window::Create(HWND hWnd, LPVOID lpRdb)
 	return InitDUIWnd(hWnd, m_pRdbMgr->GetTextByName(_T("Title")));
 }
 
-BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, LPVOID lpRdb)
+BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, RDBManager* RdbMgr)
 {
 	m_BkgColor = new Color(Color::MakeARGB(255, 240, 240, 240));
 	m_Parent = Parent;
-	if (lpRdb == nullptr)
+	if (RdbMgr == nullptr)
 	{
 		if (m_Parent == nullptr)
 		{
 			return FALSE;
 		}
-		InitRes(m_Parent->GetRDBMgr()->GetCurBin());
+		InitRes(m_Parent->GetRDBMgr());
 	}
 	else
 	{
-		InitRes(lpRdb);
+		InitRes(RdbMgr);
 	}
 	int cx = GetSystemMetrics(SM_CXSCREEN);
 	int cy = GetSystemMetrics(SM_CYSCREEN);
@@ -556,7 +552,6 @@ BOOL DUI_Window::Destroy()
 		SafeDelete(m_BkgImg);
 		SafeDelete(m_SysBtnPic);
 		SafeDelete(m_Prompt);
-		SafeDelete(m_pRdbMgr);
 		SafeDelete(m_pAnimArg);
 		m_ID = NULL;
 		return TRUE;
@@ -586,6 +581,33 @@ BOOL DUI_Window::SetBkgPic(LPTSTR BackgrdPic)
 	return TRUE;
 }
 
+BOOL DUI_Window::SetBkgPic(ResItem * lpItem)
+{
+	if (lpItem == nullptr || lpItem->ItemType != RT_Image)
+	{
+		return FALSE;
+	}
+	SafeDelete(m_BkgImg);
+	m_bAnimate = TRUE;
+	SetTimer((HWND)m_ID, TID_WND_CNGBKG, 16, nullptr);
+	OnTimer(TID_WND_CNGBKG, NULL);
+	m_BkgImg = ImageFromBin(lpItem->lpData, lpItem->uSize);
+	DrawWnd();
+	return TRUE;
+}
+
+BOOL DUI_Window::SetBkgPic(INT PicIndex)
+{
+	INT Cnt = m_pRdbMgr->GetIntValByName(_T("BkgImgCnt"));
+	if (PicIndex <= 0 || PicIndex > Cnt)
+	{
+		return FALSE;
+	}
+	CString str;
+	str.Format(_T("BkgImg_%d"), PicIndex);
+	return SetBkgPic(m_pRdbMgr->GetItemByName((LPTSTR)(LPCTSTR)str));
+}
+
 BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 {
 	if (BackgrdColor == NULL)
@@ -597,7 +619,9 @@ BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 		delete m_BkgImg;
 		m_BkgImg = nullptr;
 	}
-
+	m_bAnimate = TRUE;
+	SetTimer((HWND)m_ID, TID_WND_CNGBKG, 16, nullptr);
+	OnTimer(TID_WND_CNGBKG, NULL);
 	if (m_BkgColor != nullptr)
 	{
 		m_BkgColor->SetValue(BackgrdColor);
@@ -606,7 +630,7 @@ BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 	{
 		m_BkgColor = new Color(BackgrdColor);
 	}
-	Update();
+	DrawWnd();
 	return TRUE;
 }
 
@@ -734,15 +758,15 @@ BOOL DUI_Window::GetCursorPos(PointF * pt)
 	return ret;
 }
 
-REAL DUI_Window::GetMarginTop()
-{
-	return (REAL)TITLEBARHEIGHT;
-}
-
 RectF * DUI_Window::GetClientRect()
 {
 	return new RectF(2, TITLEBARHEIGHT, m_WndRect->Width - 4, m_WndRect->Height - TITLEBARHEIGHT - 2);
 	//return new RectF(2, 2, m_WndRect->Width - 4, m_WndRect->Height - 4);
+}
+
+REAL DUI_Window::GetMarginTop()
+{
+	return TITLEBARHEIGHT;
 }
 
 BOOL DUI_Window::OnMouseMove(WPARAM wParam, Point* ptMouse)
@@ -1246,7 +1270,7 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 	switch (wParam)
 	{
 	case TID_WND_SHOW:
-		if (WndAnimProc(m_pAnimArg, TID_WND_SHOW))
+		if (WndAnimProc(m_pAnimArg, wParam))
 		{
 			KillTimer((HWND)m_ID, wParam);
 			m_bAnimate = FALSE;
@@ -1257,7 +1281,7 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case TID_WND_CLOSE:
-		if (WndAnimProc(m_pAnimArg, TID_WND_CLOSE))
+		if (WndAnimProc(m_pAnimArg, wParam))
 		{
 			KillTimer((HWND)m_ID, wParam);
 			CallWindowProc(WNDPROC(PrevWndProc), (HWND)m_ID, WM_CLOSE, NULL, NULL);
@@ -1266,6 +1290,13 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 			m_bAnimate = FALSE;
 			m_BorderStyle.Mode = BM_RoundRect;
 			SetBorderStyle(m_BorderStyle);
+		}
+		break;
+	case TID_WND_CNGBKG:
+		if (WndAnimProc(m_pAnimArg, wParam))
+		{
+			KillTimer((HWND)m_ID, wParam);
+			m_bAnimate = FALSE;
 		}
 		break;
 	default:
@@ -1335,13 +1366,13 @@ VOID DUI_Window::Flush()
 	{
 		SIZE szWnd;
 		szWnd = { (INT)m_WndRect->Width, (INT)m_WndRect->Height };
-		POINT ptSrc = { 0,0 };
+		POINT ptSrc = { 0,0 }, ptDest = { (INT)m_WndRect->X,(INT)m_WndRect->Y };;
 		BLENDFUNCTION bf;
 		bf.AlphaFormat = AC_SRC_ALPHA;
 		bf.BlendFlags = 0;
 		bf.BlendOp = 0;
 		bf.SourceConstantAlpha = m_Alpha;
-		UpdateLayeredWindow((HWND)m_ID, m_hDC, nullptr, &szWnd, m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
+		UpdateLayeredWindow((HWND)m_ID, m_hDC, &ptDest, &szWnd, m_MemDC->GetMemDC(), &ptSrc, NULL, &bf, ULW_ALPHA);
 	}
 	else
 	{
@@ -1362,11 +1393,6 @@ HCURSOR DUI_Window::SetCursor(HCURSOR hCursor)
 VOID DUI_Window::SetAllowCtrlUpdate(BOOL bAllow)
 {
 	m_bAllowCtrlUpdate = bAllow;
-}
-
-BOOL DUI_Window::CanBeParent()
-{
-	return TRUE;
 }
 
 REAL DUI_Window::GetX()
@@ -1462,6 +1488,50 @@ BOOL DUI_Window::WndAnimProc(AnimArg * pArg, INT AnimType)
  		bDone = WndAnim_Pop_Hide(m_pAnimArg, m_WndRect, m_MemDC);
 // 		bDone = WndAnim_Shade_Hide(m_pAnimArg, m_WndRect, m_MemDC);
 //		bDone = WndAnim_QQ_Hide(m_pAnimArg, m_WndRect, m_MemDC);
+		break;
+	case TID_WND_CNGBKG:
+	{
+		StartPauseDebug();
+		if (pArg->pDC1 == nullptr)
+		{
+			pArg->pDC1 = new MemDC((INT)m_WndRect->Width, (INT)m_WndRect->Height);
+			pArg->pDC2 = new MemDC((INT)m_WndRect->Width, (INT)m_WndRect->Height);
+			m_BkgDC->BitBlt(pArg->pDC2);
+			pArg->Arg_1 = m_Alpha;
+			return FALSE;
+		}
+		pArg->szWnd = { (INT)m_WndRect->Width, (INT)m_WndRect->Height };
+		pArg->ptSrc = { 0,0 };
+		pArg->ptDest = { (INT)m_WndRect->X,(INT)m_WndRect->Y };
+		pArg->pDC1->Clear();
+		pArg->Arg_1 -= 10;
+		if (pArg->Arg_1 <= 0)
+		{
+			pArg->Arg_1 = 0;
+		}
+		m_BkgDC->AlphaBlend(pArg->pDC1, 0, 0, 0, 0, -1, -1, 0, 0, 255 /*- pArg->Arg_1*/);
+		pArg->pDC2->AlphaBlend(pArg->pDC1, 0, 0, 0, 0, -1, -1, 0, 0, pArg->Arg_1);
+		
+ 		
+
+		pArg->pDC1->BitBlt(m_MemDC);
+		//未知原因，无法直接贴到BkgDC上，所以采取替换BkgDC
+		//pArg->pDC1->AlphaBlend(m_BkgDC);
+		pArg->Arg_2 = (INT)m_BkgDC;
+		m_BkgDC = pArg->pDC1;
+ 		OnControl(INVALID_CONTROLID, WM_UPDATE, NULL, FALSE);
+		m_BkgDC = (MemDC*)pArg->Arg_2;
+ 		m_MemDC->BitBlt(pArg->pDC1);
+		if (pArg->Arg_1 == 0)
+		{
+			bDone = TRUE;
+		}
+		else
+		{
+			bDone = FALSE;
+		}
+	
+	}
 		break;
 	}
 	if (pArg->pDC1 != nullptr)
@@ -1591,7 +1661,9 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	BOOL bInCtrl = FALSE, bFound = FALSE, Ret;
 	for (auto it = m_Controls->rbegin(); it != m_Controls->rend(); ++it)
 	{
+		StartPauseDebug();
 		if ((*it)->m_bVisialbe == FALSE) continue;
+		//PauseWhen((*it)->m_ID == 14);
 		bInCtrl = (*it)->IsPtInCtrl(&ptMouse);
 		if (IsMouseMsg(uMsg))
 		{

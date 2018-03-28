@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include ".//RDBManager//RDBManager.h"
 #include ".//Common//Functions.h"
 #include ".//DUI//DUI_Window.h"
 #include ".//DUI//DUI_Lable.h"
@@ -15,6 +16,7 @@
 #include ".//DUI//DUI_ImageBox.h"
 #include ".//DUI//DUI_GroupBox.h"
 #include ".//DUI//DUI_SizeBox.h"
+#include ".//DUI//DUI_ScrollBar.h"
 
 // CDUI_DemoDlg 对话框
 class CDUI_DemoDlg : public CDialogEx
@@ -24,6 +26,7 @@ public:
 	CDUI_DemoDlg(CWnd* pParent = NULL);	// 标准构造函数
 
 	~CDUI_DemoDlg();
+	RDBManager* m_RdbMgr;
 	DUI_Window* m_Window;
 	DUI_Window* m_SubWindow;
 	DUI_ImageButton* m_ImgBtn;
@@ -42,6 +45,7 @@ public:
 	DUI_ImageBox* m_ImageBox;
 	DUI_GroupBox* m_GroupBox;
 	DUI_SizeBox*  m_SizeBox;
+	DUI_ScrollBar* m_ScrollBar;
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME

@@ -17,7 +17,7 @@ DUI_RadioGroup::~DUI_RadioGroup()
 
 BOOL DUI_RadioGroup::Create(DUI_Object * Parent)
 {
-	if (!Parent->CanBeParent())
+	/*if (!Parent->CanBeParent())
 	{
 		return FALSE;
 	}
@@ -33,10 +33,14 @@ BOOL DUI_RadioGroup::Create(DUI_Object * Parent)
 		m_ParentWnd = ((DUI_ControlBase*)m_Parent)->GetParentWnd();
 	}
 
-	m_bVisialbe = FALSE;
-	m_IDs = new vector<INT>;
+	m_bVisialbe = FALSE;*/
 
-	AddCtrl();
+	BOOL ret = DUI_ControlBase::Create(Parent);
+	if (!ret)
+	{
+		return FALSE;
+	}
+	m_IDs = new vector<INT>;
 	return TRUE;
 }
 

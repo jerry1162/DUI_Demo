@@ -13,7 +13,7 @@ LPVOID  GetCallBackAddr(LPVOID pThis, T MethodAddr)
 		0x52,							//	push        edx
 		0x50,							//	push        eax
 		0x51,							//	push		ecx
-		0xE8, 0x00,0x00,0x00,0x00,	//	call        CWndProc::WndProc
+		0xE8, 0x00,0x00,0x00,0x00,	    //	call        CWndProc::WndProc
 		0xC2, 0x10, 0x00				//	ret         10h
 	};
 

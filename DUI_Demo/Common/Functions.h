@@ -1,6 +1,7 @@
 #pragma once
 #include "CallBack.hpp"
 #include "MemDC.h"
+
 class MemDC;
 
 #define StartPauseDebug() BOOL __bPaused__=FALSE;
