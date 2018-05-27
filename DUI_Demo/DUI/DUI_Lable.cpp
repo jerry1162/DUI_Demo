@@ -23,10 +23,10 @@ LRESULT DUI_Lable::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == CM_SHOW)
 	{
-		if (m_bAnimating)
+		/*if (m_bAnimating)
 		{
 			EndAnimate();
-		}
+		}*/
 		StartAnimate();
 		m_bVisialbe = lParam;
 		return TRUE;
@@ -42,10 +42,10 @@ LRESULT DUI_Lable::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case CM_STATECHANGED:
-		if (m_bAnimating)
+		/*if (m_bAnimating)
 		{
 			EndAnimate();
-		}
+		}*/
 		StartAnimate();
 		Ret = 1;
 		break;

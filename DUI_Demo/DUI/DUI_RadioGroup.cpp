@@ -139,10 +139,10 @@ LRESULT DUI_RadioGroup::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			pRadio = (DUI_Radio*)m_ParentWnd->FindControlByID(m_LastSelectID);
 			pRadio->m_bChecked = FALSE;
-			if (pRadio->m_bAnimating)
+			/*if (pRadio->m_bAnimating)
 			{
 				pRadio->EndAnimate();
-			}
+			}*/
 			pRadio->StartAnimate();
 		}
 		m_LastSelectID = wParam;

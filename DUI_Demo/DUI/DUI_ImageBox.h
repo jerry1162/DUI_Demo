@@ -13,6 +13,6 @@ protected:
 	virtual LRESULT CALLBACK MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	virtual VOID Draw(DUI_Status s = (DUI_Status)-1) override;
 	Image* m_Image;
-	DUI_ScrollBar* m_ScrollBar;
+	DUI_ScrollBar* m_ScrollBar[2];//1为横向 0为纵向
 };
 

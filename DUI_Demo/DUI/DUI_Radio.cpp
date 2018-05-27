@@ -117,9 +117,9 @@ VOID DUI_Radio::Select(BOOL Select)
 	{
 		m_bChecked = FALSE;
 	}
-	if (m_bAnimating)
+	/*if (m_bAnimating)
 	{
 		EndAnimate();
-	}
+	}*/
 	StartAnimate();
 }

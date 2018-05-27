@@ -11,6 +11,7 @@ DUI_ImageButton::DUI_ImageButton()
 	}
 	m_Start = NULL;
 	m_bAutoReleaseImg = TRUE;
+	m_NinPatchRect = nullptr;
 }
 
 
@@ -20,10 +21,11 @@ DUI_ImageButton::~DUI_ImageButton()
 	{
 		ReleaseImages();
 	}
+	SafeDelete(m_NinPatchRect);
 	Destroy();
 }
 
-BOOL DUI_ImageButton::SetImages(Image * Normal, Image * HighLight, Image * Pushed, BOOL bUpdate)
+BOOL DUI_ImageButton::SetImages(Image * Normal, Image * HighLight, Image * Pushed, Rect* rcNinePatch, BOOL bUpdate)
 {
 	if (Normal == nullptr)
 	{
@@ -57,6 +59,10 @@ BOOL DUI_ImageButton::SetImages(Image * Normal, Image * HighLight, Image * Pushe
 
 	m_StatusImage[S_Focus] = m_StatusImage[S_Normal];
 	m_StatusImage[S_Disabled] = m_StatusImage[S_Normal];
+	if (rcNinePatch != nullptr)
+	{
+		m_NinPatchRect = rcNinePatch;
+	}
 	if (bUpdate)
 	{
 		Update();
@@ -84,9 +90,9 @@ BOOL DUI_ImageButton::SetImages(Image * pImg, INT Start, BOOL bUpdate)
 	return TRUE;
 }
 
-BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height, Image * Normal, Image * HighLight, Image * Pushed, LPCWSTR Text, BOOL bVisiable)
+BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height, Image * Normal, Image * HighLight, Image * Pushed, LPCWSTR Text, Rect* rcNinePatch, BOOL bVisiable)
 {
-	BOOL Ret = Ret = SetImages(Normal, HighLight, Pushed, FALSE);
+	BOOL Ret = SetImages(Normal, HighLight, Pushed, rcNinePatch, FALSE);
 	if (!Ret)
 	{
 		return Ret;
@@ -97,7 +103,7 @@ BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width
 
 BOOL DUI_ImageButton::Create(DUI_Object* Parent, REAL Left, REAL Top, REAL Width, REAL Height, Image * pImg, INT Start, LPCWSTR Text, BOOL bVisiable)
 {
-	BOOL Ret = Ret = SetImages(pImg, Start, FALSE);
+	BOOL Ret = SetImages(pImg, Start, FALSE);
 	if (!Ret)
 	{
 		return Ret;
@@ -134,8 +140,14 @@ VOID DUI_ImageButton::Draw(DUI_Status s)
 		if (m_StatusImage[0] == nullptr)
 		{
 			pImg = m_StatusImage[s];
-			//ASSERT(pImg != nullptr);
-			m_MemDC->graphics->DrawImage(pImg, 0, 0);
+			if (m_NinPatchRect == nullptr)
+			{
+				m_MemDC->graphics->DrawImage(pImg, 0, 0);
+			}
+			else
+			{
+				DrawImgNinePatch(m_MemDC->graphics, pImg, 0, 0, Rt->Width, Rt->Height, m_NinPatchRect, m_Alpha);
+			}
 		}
 		else
 		{
@@ -144,6 +156,7 @@ VOID DUI_ImageButton::Draw(DUI_Status s)
 			{
 				s = S_Normal;
 			}
+			
 			m_MemDC->graphics->DrawImage(pImg, RectF(0.0, 0.0, Rt->Width, Rt->Height), m_Start + (s - 1)*Rt->Width, 0.0, Rt->Width, Rt->Height, UnitPixel);
 		}
 		if (m_Text != nullptr)

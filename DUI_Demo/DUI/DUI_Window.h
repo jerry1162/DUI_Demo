@@ -38,6 +38,7 @@ public:
 	BOOL SetBkgColor(ARGB BackgrdColor = NULL);
 	BOOL SetTitle(LPTSTR Title, BOOL bInner = TRUE);//第二个参数用于区别是否是内部调用，默认为真，用于处理外部程序用消息设置窗口标题的情况
 	BOOL SetBorderStyle(BorderStyle bs);
+	BorderStyle GetBorderStyle();
 	BOOL SetSizeable(BOOL bSizeable);
 	BOOL GetSizeable();
 	DUI_ControlBase* FindControlByID(INT ID);
@@ -109,6 +110,8 @@ protected:
 	MSGPROC m_SysBtnClickProcAddr;
 	BOOL CALLBACK SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	INT m_SysBtnCnt;
+	INT m_Round;
+	REAL m_ShadowSize;
 	
 	BOOL m_bMouseDown;
 	BOOL m_bDebug;

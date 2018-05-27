@@ -36,36 +36,58 @@ BOOL PtInRect(RectF * rect, PointF * pt)
 
 VOID DrawShadow(Graphics * graphics, RectF * rect, INT diameter)
 {
+	if (graphics == nullptr || rect == nullptr)
+	{
+		return;
+	}
 	graphics->SetSmoothingMode(SmoothingModeAntiAlias);
 	GraphicsPath* path;
 	path = new GraphicsPath;
+	if (diameter != 0)
+	{
+		DrawPathRoundRect(path, (REAL)rect->GetLeft(), (REAL)rect->GetTop(), (REAL)rect->Width, (REAL)rect->Height, (REAL)diameter + 4);
+		DrawPathRoundRect(path, (REAL)rect->GetLeft() - 4, (REAL)rect->GetTop() - 4, (REAL)rect->Width + 8, (REAL)rect->Height + 8, (REAL)diameter + 4);
+		graphics->SetClip(path);
+		delete path;
+		path = new GraphicsPath;
+	}
+	else
+	{
+		path->AddRectangle(*rect);
+		RectF* rf = rect->Clone();
+		rf->X -= 4;
+		rf->Y -= 4;
+		rf->Width += 8;
+		rf->Height += 8;
+		path->AddRectangle(*rf);
+		SafeDelete(rf);
+		graphics->SetClip(path);
+		delete path;
+		path = new GraphicsPath;
+	}
+	
 	DrawPathRoundRect(path, (REAL)rect->GetLeft(), (REAL)rect->GetTop(), (REAL)rect->Width, (REAL)rect->Height, (REAL)diameter + 4);
-	DrawPathRoundRect(path, (REAL)rect->GetLeft() - 4, (REAL)rect->GetTop() - 4, (REAL)rect->Width + 8, (REAL)rect->Height + 8, (REAL)diameter + 4);
-	graphics->SetClip(path);
-	delete path;
-	path = new GraphicsPath;
-	DrawPathRoundRect(path, (REAL)rect->GetLeft(), (REAL)rect->GetTop(), (REAL)rect->Width, (REAL)rect->Height, (REAL)diameter + 4);
-	Color* color = new Color(Color::MakeARGB(150, 50, 50, 50));
+	Color* color = new Color(Color::MakeARGB(5, 0, 0, 0));
 
 	Gdiplus::Pen pen(*color, 9);
 	graphics->DrawPath(&pen, path);
 
-	color->SetValue(Color::MakeARGB(10, 255, 255, 255));
+	color->SetValue(Color::MakeARGB(10, 0, 0, 0));
 	pen.SetColor(*color);
 	pen.SetWidth(7);
 	graphics->DrawPath(&pen, path);
 
-	color->SetValue(Color::MakeARGB(15, 255, 255, 255));
+	color->SetValue(Color::MakeARGB(15, 0, 0, 0));
 	pen.SetColor(*color);
 	pen.SetWidth(5);
 	graphics->DrawPath(&pen, path);
 
-	color->SetValue(Color::MakeARGB(20, 255, 255, 255));
+	color->SetValue(Color::MakeARGB(20, 0, 0, 0));
 	pen.SetColor(*color);
 	pen.SetWidth(3);
 	graphics->DrawPath(&pen, path);
 
-	color->SetValue(Color::MakeARGB(25, 255, 255, 255));
+	color->SetValue(Color::MakeARGB(25, 0, 0, 0));
 	pen.SetColor(*color);
 	pen.SetWidth(1);
 	graphics->DrawPath(&pen, path);
@@ -78,6 +100,10 @@ VOID DrawShadow(Graphics * graphics, RectF * rect, INT diameter)
 
 BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round)
 {
+	if (path == nullptr)
+	{
+		return FALSE;
+	}
 	path->AddArc(left, top, round, round, 180, 90);
 	path->AddArc(left + width - round, top, round, round, 270, 90);
 	path->AddArc(left + width - round, top + height - round, round, round, 0, 90);
@@ -145,7 +171,7 @@ VOID DrawShadowText(Graphics * graphics, GdipString* Text, REAL Rate,
  REAL ShadowOffsetX,
 	REAL ShadowOffsetY)
 {
-	if (Text == nullptr || Text->string == nullptr || Text->string->IsEmpty())
+	if (graphics == nullptr || Text == nullptr || Text->string == nullptr || Text->string->IsEmpty())
 	{
 		return;
 	}
@@ -210,6 +236,10 @@ VOID DrawShadowText(Graphics * graphics, GdipString* Text, REAL Rate,
 
 VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
 {
+	if (graphics == nullptr || Text == nullptr || Text->string == nullptr || Text->string->IsEmpty())
+	{
+		return;
+	}
 	SolidBrush* brush;
 	if (BorderColor != NULL)
 	{
@@ -245,6 +275,87 @@ VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor)
 	graphics->DrawString(Text->string->GetString(), Text->string->GetLength(), Text->font,
 		*Text->rect, Text->format, brush);
 	delete brush;
+}
+
+VOID DrawImgNinePatch(Graphics * graphics, Image * pImg, REAL xDest, REAL yDest, REAL WidthDst, REAL HeightDst, Rect* NinePatchRect, BYTE Alpha)
+{
+	if (graphics == nullptr || pImg == nullptr)
+	{
+		return;
+	}
+	UINT ImgWidth = pImg->GetWidth();
+	UINT ImgHeight = pImg->GetHeight();
+	REAL NinePatchWidth = (REAL)(NinePatchRect->X + NinePatchRect->Width);
+	REAL NinePatchHeight = (REAL)(NinePatchRect->Y + NinePatchRect->Height);
+	REAL RightDst = xDest + WidthDst;
+	REAL BottomDst = yDest + HeightDst;
+
+
+	ImageAttributes ia;
+	ColorMatrix colorMatrix = {
+		1.0f,0.0f,0.0f,0.0f,0.0f,
+		0.0f,1.0f,0.0f,0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,0.0f,
+		0.0f,0.0f,0.0f,(REAL)Alpha / 255,0.0f,
+		0.0f,0.0f,0.0f,0.0f,1.0f
+	};
+	ia.SetColorMatrix(&colorMatrix);
+
+	Rect DestRect;
+
+	DestRect.X = (INT)xDest;
+	DestRect.Y = (INT)yDest;
+	DestRect.Width = (INT)NinePatchRect->X;
+	DestRect.Height = (INT)NinePatchRect->Y;
+	graphics->DrawImage(pImg, DestRect, 0, 0, (INT)NinePatchRect->X, (INT)NinePatchRect->Y, UnitPixel, &ia);
+
+	DestRect.X = (INT)(xDest + NinePatchRect->X);
+	DestRect.Y = (INT)yDest;
+	DestRect.Width = (INT)(WidthDst - NinePatchWidth);
+	DestRect.Height = (INT)NinePatchRect->Y;
+	graphics->DrawImage(pImg, DestRect, (INT)NinePatchRect->X, 0, (INT)(ImgWidth - NinePatchWidth), (INT)NinePatchRect->Y, UnitPixel, &ia);
+
+	DestRect.X = (INT)(RightDst - NinePatchRect->Width);
+	DestRect.Y = (INT)yDest;
+	DestRect.Width = (INT)NinePatchRect->Width;
+	DestRect.Height = (INT)NinePatchRect->Y;
+	graphics->DrawImage(pImg, DestRect, (INT)(ImgWidth - NinePatchRect->Width), 0, (INT)NinePatchRect->Width, (INT)NinePatchRect->Y, UnitPixel, &ia);
+
+	DestRect.X = (INT)xDest;
+	DestRect.Y = (INT)(yDest + NinePatchRect->Y);
+	DestRect.Width = (INT)NinePatchRect->X;
+	DestRect.Height = (INT)(HeightDst - NinePatchHeight);
+	graphics->DrawImage(pImg, DestRect, 0, (INT)NinePatchRect->Y, (INT)NinePatchRect->X, (INT)(ImgHeight - NinePatchHeight), UnitPixel, &ia);
+
+	DestRect.X = (INT)(xDest + NinePatchRect->X);
+	DestRect.Y = (INT)(yDest + NinePatchRect->Y);
+	DestRect.Width = (INT)(WidthDst - NinePatchWidth);
+	DestRect.Height = (INT)(HeightDst - NinePatchHeight);
+	graphics->DrawImage(pImg, DestRect, (INT)NinePatchRect->X, (INT)NinePatchRect->Y, (INT)(ImgWidth - NinePatchWidth), (INT)(ImgHeight - NinePatchHeight), UnitPixel, &ia);
+
+	DestRect.X = (INT)(RightDst - NinePatchRect->Width);
+	DestRect.Y = (INT)(yDest + NinePatchRect->Y);
+	DestRect.Width = (INT)NinePatchRect->Width;
+	DestRect.Height = (INT)(HeightDst - NinePatchHeight);
+	graphics->DrawImage(pImg, DestRect, (INT)(ImgWidth - NinePatchRect->Width), (INT)NinePatchRect->Y, (INT)NinePatchRect->Width, (INT)(ImgHeight - NinePatchHeight), UnitPixel, &ia);
+
+	DestRect.X = (INT)xDest;
+	DestRect.Y = (INT)(BottomDst - NinePatchRect->Height);
+	DestRect.Width = (INT)NinePatchRect->X;
+	DestRect.Height = (INT)NinePatchRect->Height;
+	graphics->DrawImage(pImg, DestRect, 0, (INT)(ImgHeight - NinePatchRect->Height), (INT)NinePatchRect->X, (INT)NinePatchRect->Height, UnitPixel, &ia);
+
+	DestRect.X = (INT)(xDest + NinePatchRect->X);
+	DestRect.Y = (INT)(BottomDst - NinePatchRect->Height);
+	DestRect.Width = (INT)(WidthDst - NinePatchWidth);
+	DestRect.Height = (INT)(NinePatchRect->Height);
+	graphics->DrawImage(pImg, DestRect, (INT)NinePatchRect->X, (INT)(ImgHeight - NinePatchRect->Height), (INT)(ImgWidth - NinePatchWidth), (INT)NinePatchRect->Height, UnitPixel, &ia);
+
+	DestRect.X = (INT)(RightDst - NinePatchRect->Width);
+	DestRect.Y = (INT)(BottomDst - NinePatchRect->Height);
+	DestRect.Width = (INT)NinePatchRect->Width;
+	DestRect.Height = (INT)NinePatchRect->Height;
+	graphics->DrawImage(pImg, DestRect, (INT)(ImgWidth - NinePatchRect->Width), (INT)(ImgHeight - NinePatchRect->Height), (INT)NinePatchRect->Width, (INT)NinePatchRect->Height, UnitPixel, &ia);
 }
 
 INT NewID()

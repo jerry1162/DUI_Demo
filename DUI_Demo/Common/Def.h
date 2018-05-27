@@ -17,7 +17,7 @@ enum ObjType
 #define MINWNDWIDTH (200)
 #define ICONSIZE_X (16)
 #define ICONSIZE_Y (16)
-#define SHADOWWIDTH (0) //暂时不使用阴影
+//#define SHADOWWIDTH (5) //暂时不使用阴影
 #define INVALID_CONTROLID (-1)
 #define DEF_BORDERWHIDTH (5)
 #define GAP_ICON_TITLE (5)
@@ -52,12 +52,16 @@ enum ObjType
 #define RG_SELECTCHANGE (WM_USER + 108)//当单选框状态改变时，向其单选组发送此消息 wParam是新选中的单选框ID，lParam未用
 #define RG_GROUPCHANGE (WM_USER + 109)//当单选框改变所属单选组时，向其单选组发送此消息 wParam是单选框ID，lParam未用
 
+#define CtrlMsgProc(pCtrl,Msg,W,L) (pCtrl)->MsgProc((pCtrl)->m_ID,Msg,W,L)
+
 #define CM_CREATE (WM_USER + 110) //当组件创建完毕由ControlBase分发给组件，wParam是控件ID，lParam未用
 #define CM_SETCURSOR (WM_USER + 111) //需要设置鼠标指针时发送，wParam是控件ID，lParam未用
 #define CM_MOVE (WM_USER + 112) //当组件位置被移动后发送给控件，也就是由Move发送，wParam是控件ID，lParam未用
 #define CM_SIZE (WM_USER + 113) //当组件大小被改变后发送给控件，也就是由Size发送，wParam是控件ID，lParam未用
 #define CM_PARENTDESTROY (WM_USER + 114) //父组件被销毁前发送给控件，wParam是控件ID，lParam未用
-
+#define CM_NORTIFY (WM_USER + 115)//通知消息，wParam低位是控件ID，高位是通知ID，lParam为通知参数
+	#define NID_SCROLL_X 0
+	#define NID_SCROLL_Y 1
 
 //SizeDirection
 #define SD_LEFT_TOP     0

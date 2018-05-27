@@ -66,7 +66,7 @@ protected:
 	virtual VOID Draw(DUI_Status s = (DUI_Status)-1);
 	VOID ChangeState(DUI_Status s);
 	DUI_Status GetState();
-	BOOL StartAnimate(UINT uElapse = 30, TIMERPROC pCallBack = nullptr);
+	BOOL StartAnimate(UINT uElapse = 30, TIMERPROC pCallBack = nullptr, BOOL bEndPrev = TRUE);
 	BOOL EndAnimate();
 	virtual VOID CALLBACK AnimateProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime);
 	VOID AddCtrl();//处理将this加入到窗口中
@@ -97,5 +97,6 @@ protected:
 	//消息响应函数
 	BOOL OnUpdate(WPARAM wParam, LPARAM lParam);//lParam表示是否更新到窗口上
 	BOOL OnCalcRect(WPARAM wParam = NULL, LPARAM lParam = NULL);
+	BOOL OnNortify(WPARAM wParam, LPARAM lParam);
 };
 

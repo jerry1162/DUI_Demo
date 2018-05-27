@@ -78,7 +78,7 @@ struct AnimArg
 void GdipStartup();
 void GdipShutdown();
 BOOL PtInRect(RectF* rect, PointF* pt);
-VOID DrawShadow(Graphics* graphics, RectF* rect, INT diameter);
+VOID DrawShadow(Graphics* graphics, RectF* rect, INT diameter = 0);
 BOOL DrawPathRoundRect(GraphicsPath* path, REAL left, REAL top, REAL width, REAL height, REAL round);
 Image* ImageFromIDResource(UINT resID, LPCTSTR resType);
 Image* ImageFromBin(LPVOID lpData, UINT uSize);
@@ -86,6 +86,7 @@ VOID DrawShadowText(Graphics* graphics, GdipString* Text, REAL Rate = 5,
 	ARGB ShadowColor = Color::Black, ARGB BorderColor = Color::MakeARGB(100, 50, 50, 50), REAL TextOffsetX = 0, REAL TextOffsetY = 0,
 	REAL ShadowOffsetX = NULL, REAL ShadowOffsetY = NULL);
 VOID DrawBorderedText(Graphics* graphics, GdipString* Text, ARGB BorderColor = Color::MakeARGB(180, 50, 50, 50));
+VOID DrawImgNinePatch(Graphics* graphics, Image* pImg, REAL xDest, REAL yDest, REAL WidthDst, REAL HeightDst, Rect* NinePatchRect, BYTE Alpha);
 INT NewID();
 BOOL IsMouseMsg(UINT uMsg);
 BOOL IsControlMsg(UINT uMsg);

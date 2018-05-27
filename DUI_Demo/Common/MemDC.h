@@ -17,10 +17,11 @@ public:
 	INT SelectClipRgn(HRGN hrgn = NULL);
 	INT SelectRectClipRgn(INT X, INT Y, INT W, INT H);
 	INT SelectRectClipRgn(RectF* pRect);
+	INT SelectRoundRectClipRgn(INT X, INT Y, INT W, INT H, INT R);
+	INT SelectRoundRectClipRgn(RectF* pRect, INT R);
 	HDC GetMemDC();
 	BOOL ReSize(int Width = -1, int Height = -1);
 	VOID Clear();//Clear with transparent color
-	VOID CheckStatus();
 	Graphics* graphics;
 private:
 	HDC m_MemDC;

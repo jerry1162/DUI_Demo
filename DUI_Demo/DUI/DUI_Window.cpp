@@ -40,6 +40,8 @@ DUI_Window::DUI_Window()
 	m_bInited = FALSE;
 	m_bDebug = FALSE;
 	m_MsgProc = nullptr;
+	m_Round = 5;
+	m_ShadowSize = 5;
 
 	for (int i = 0; i < BT_None; i++)
 	{
@@ -169,7 +171,10 @@ VOID DUI_Window::DrawWnd(MemDC* hDC)
 	{
 		hDC = m_BkgDC;
 	}
-	hDC->Clear();
+	if (m_ShadowSize > 0)
+	{
+		hDC->Clear();
+	}
 	DrawWndBkg(hDC);
 	DrawWndFrame(hDC);
 	DrawTitleBar(hDC);
@@ -182,14 +187,29 @@ VOID DUI_Window::DrawWndFrame(MemDC* hDC)
 	{
 		hDC = m_BkgDC;
 	}
+	if (m_ShadowSize > 0)
+	{
+		if (m_BorderStyle.Mode == BM_Normal)
+		{
+			DrawShadow(hDC->graphics, m_ClientRect, 0);
+		}
+		else
+		{
+			DrawShadow(hDC->graphics, m_ClientRect, 5);
+		}
+
+	}
+	//return;
 	//画边框
 	GraphicsPath* pPath;
 	pPath = new GraphicsPath;
 	RectF BorderRect;
-	BorderRect.X = /*m_WndRect->GetLeft()*/0.0 + SHADOWWIDTH;
-	BorderRect.Y = /*m_WndRect->GetTop()*/0.0 + SHADOWWIDTH;
-	BorderRect.Width = m_WndRect->Width - SHADOWWIDTH * 2 - 1;
-	BorderRect.Height = m_WndRect->Height - SHADOWWIDTH * 2 - 1;
+	BorderRect.X = m_ShadowSize > 0 ? m_ShadowSize : 0;
+	BorderRect.Y = m_ShadowSize > 0 ? m_ShadowSize : 0;
+	BorderRect.Width = m_WndRect->Width - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2 - 1;
+	BorderRect.Height = m_WndRect->Height - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2 - 1;
+
+
 	if (m_BorderStyle.Mode == BM_Normal)
 	{
 		pPath->AddRectangle(BorderRect);
@@ -201,7 +221,7 @@ VOID DUI_Window::DrawWndFrame(MemDC* hDC)
 	}
 	if (m_BorderStyle.Color == NULL)
 	{
-		m_BorderStyle.Color = Color::MakeARGB(150, 0, 0, 0);
+		m_BorderStyle.Color = Color::MakeARGB(80, 50, 50, 50);
 	}
 	Color* color = new Color(m_BorderStyle.Color);
 	Pen pen(*color, 1);
@@ -210,7 +230,7 @@ VOID DUI_Window::DrawWndFrame(MemDC* hDC)
 
 	if (m_BorderStyle.DoubleBorder)
 	{
-		color->SetValue(Color::MakeARGB(255 - color->GetA(), 255 - color->GetR(), 255 - color->GetG(), 255 - color->GetB()));//Color::MakeARGB(150, 200, 200, 200)
+		color->SetValue(Color::MakeARGB(100, 255 - color->GetR(), 255 - color->GetG(), 255 - color->GetB()));//Color::MakeARGB(150, 200, 200, 200)
 		pen.SetColor(*color);
 		pPath = new GraphicsPath;
 		BorderRect.X = BorderRect.X + 1;
@@ -246,20 +266,32 @@ VOID DUI_Window::DrawWndBkg(MemDC* hDC)
 	{
 		hDC = m_BkgDC;
 	}
-	if (SHADOWWIDTH != 0)
+	//return;
+	if (m_BorderStyle.Mode == BM_RoundRect)
 	{
-		hDC->graphics->Clear(Color::Transparent);
-		DrawShadow(hDC->graphics, m_ClientRect, 5);
+		GraphicsPath* path;
+		path = new GraphicsPath;
+		DrawPathRoundRect(path, (REAL)m_ClientRect->GetLeft(), (REAL)m_ClientRect->GetTop(), (REAL)m_ClientRect->Width, (REAL)m_ClientRect->Height, 5);
+		DrawPathRoundRect(path, (REAL)m_ClientRect->GetLeft() - 4, (REAL)m_ClientRect->GetTop() - 4, (REAL)m_ClientRect->Width + 8, (REAL)m_ClientRect->Height + 8, 5);
+		hDC->graphics->SetSmoothingMode(SmoothingModeAntiAlias);
+		hDC->graphics->SetClip(path,CombineModeExclude);
+		SafeDelete(path);
 	}
+	
 	SolidBrush Brush(*m_BkgColor);
 	if (m_BkgImg != nullptr)
 	{
-		hDC->graphics->DrawImage(m_BkgImg, /*m_WndRect->GetLeft()*/0.0 + SHADOWWIDTH,
-			/*m_WndRect->GetTop()*/0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH*2, m_WndRect->Height - SHADOWWIDTH*2);
+		hDC->graphics->DrawImage(m_BkgImg, (m_ShadowSize > 0 ? m_ShadowSize : 0),
+			(m_ShadowSize > 0 ? m_ShadowSize : 0), m_WndRect->Width - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2, m_WndRect->Height - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2);
 	}
 	else
 	{
-		hDC->graphics->FillRectangle(&Brush, 0.0 + SHADOWWIDTH, 0.0 + SHADOWWIDTH, m_WndRect->Width - SHADOWWIDTH * 2, m_WndRect->Height - SHADOWWIDTH * 2);
+		hDC->graphics->FillRectangle(&Brush, (m_ShadowSize > 0 ? m_ShadowSize : 0), (m_ShadowSize > 0 ? m_ShadowSize : 0), m_WndRect->Width - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2, m_WndRect->Height - (m_ShadowSize > 0 ? m_ShadowSize : 0) * 2);
+	}
+	if (m_BorderStyle.Mode == BM_RoundRect)
+	{
+		hDC->graphics->ResetClip();
+		hDC->graphics->SetSmoothingMode(SmoothingModeDefault);
 	}
 }
 
@@ -295,16 +327,14 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title)
 
 	//设置默认的边框风格
 	m_BorderStyle.Mode = BM_RoundRect;
-	m_BorderStyle.Color = Color::MakeARGB(150, 50, 50, 50);
+	m_BorderStyle.Color = NULL;//Color::MakeARGB(150, 50, 50, 50);
 	m_BorderStyle.DoubleBorder = TRUE;
 
 	//处理标题结构
 	m_Title = new GdipString;
 	m_Title->string = new CString;
 	//SetTitle(Title);
-	//LPWSTR str = new WCHAR[255];
-	//GetWindowText(m_hWnd, str, 255);
-	//m_Title->string->SetString(Title);  ///////////////////////////
+	m_Title->string->SetString(Title);
 
 	FontFamily fm(L"新宋体");
 	m_Title->font = new Gdiplus::Font(&fm, 10, FontStyleRegular, UnitPoint);
@@ -350,7 +380,7 @@ BOOL DUI_Window::InitDUIWnd(HWND hWnd, LPTSTR Title)
 
 	OnSize(NULL, NULL);
 	OnMove(NULL, NULL);
-	SetTitle(Title);
+	//SetTitle(Title);
 	return TRUE;
 }
 
@@ -434,7 +464,19 @@ BOOL DUI_Window::Create(HWND hWnd, RDBManager* RdbMgr)
 		//MessageBox((HWND)m_ID, _T("加载资源包出错！"), _T("错误:"), MB_ICONINFORMATION);
 		return FALSE;
 	}
-	return InitDUIWnd(hWnd, m_pRdbMgr->GetTextByName(_T("Title")));
+	LONG dwOldStyle = GetClassLong(hWnd, GCL_STYLE);
+	LONG dwNewStyle = dwOldStyle & (~(CS_DBLCLKS));//去掉双击风格
+	SetClassLong(hWnd, GCL_STYLE, dwNewStyle);
+
+	dwOldStyle = GetWindowLong(hWnd, GWL_STYLE);
+	dwNewStyle = dwOldStyle & (~(WS_CAPTION));//去掉双击风格
+	SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
+
+	LPTSTR str = new TCHAR[256];
+	GetWindowText(hWnd, str, 255);
+	BOOL Ret = InitDUIWnd(hWnd, str);
+	delete str;
+	return Ret;
 }
 
 BOOL DUI_Window::Create(INT Width, INT Height, DUI_Window* Parent, RDBManager* RdbMgr)
@@ -636,8 +678,6 @@ BOOL DUI_Window::SetBkgColor(ARGB BackgrdColor)
 
 BOOL DUI_Window::SetTitle(LPTSTR Title, BOOL bInner)
 {
-	//LPWSTR str = new WCHAR[255];
-	//GetWindowText(m_hWnd, str, 255);
 	m_Title->string->SetString(Title);
 	if (bInner)
 	{
@@ -653,12 +693,21 @@ BOOL DUI_Window::SetBorderStyle(BorderStyle bs)
 	HRGN hRgn = NULL;
 	if (m_BorderStyle.Mode == BM_RoundRect)
 	{
-		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 5, 5);
+		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, m_Round, m_Round);
+	}
+	else
+	{
+		m_Round = 0;
 	}
 	SetWindowRgn((HWND)m_ID, hRgn, FALSE);
 	DeleteObject(hRgn);
-	Update();
+	OnSize(NULL, NULL);
 	return TRUE;
+}
+
+BorderStyle DUI_Window::GetBorderStyle()
+{
+	return m_BorderStyle;
 }
 
 BOOL DUI_Window::SetSizeable(BOOL bSizeable)
@@ -760,7 +809,7 @@ BOOL DUI_Window::GetCursorPos(PointF * pt)
 
 RectF * DUI_Window::GetClientRect()
 {
-	return new RectF(2, TITLEBARHEIGHT, m_WndRect->Width - 4, m_WndRect->Height - TITLEBARHEIGHT - 2);
+	return new RectF(2 + (m_ShadowSize > 0 ? m_ShadowSize : 0), TITLEBARHEIGHT + (m_ShadowSize > 0 ? m_ShadowSize : 0), m_WndRect->Width - 4 - 2 * (m_ShadowSize > 0 ? m_ShadowSize : 0), m_WndRect->Height - TITLEBARHEIGHT - 2 - 2 * (m_ShadowSize > 0 ? m_ShadowSize : 0));
 	//return new RectF(2, 2, m_WndRect->Width - 4, m_WndRect->Height - 4);
 }
 
@@ -810,7 +859,7 @@ BOOL DUI_Window::OnLButtonDown(WPARAM wParam, Point* ptMouse)
 	//	m_SysBtn_Close.status = S_Pushed;
 	//	OnUpdate();
 	//}
-	if (ptMouse->Y <= TITLEBARHEIGHT && m_CurCDR == CDR_Normal) //标题栏移动 PtInRect(m_Title->rect, ptMouse)
+	if (ptMouse->Y <= TITLEBARHEIGHT + (m_ShadowSize > 0 ? m_ShadowSize : 0) && m_CurCDR == CDR_Normal && !IsZoomed((HWND)m_ID)) //标题栏移动 PtInRect(m_Title->rect, ptMouse)
 	{
 		SendMessage((HWND)m_ID, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
 		SendMessage((HWND)m_ID, WM_LBUTTONUP, wParam, MAKELPARAM(ptMouse->X, ptMouse->Y));
@@ -890,8 +939,6 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		m_WndRect = new Gdiplus::RectF;
 	}
-
-
 	
 	if (wParam == NULL)
 	{
@@ -913,10 +960,10 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	{
 		m_ClientRect = new Gdiplus::RectF;
 	}
-	m_ClientRect->X = SHADOWWIDTH;
-	m_ClientRect->Y = SHADOWWIDTH;
-	m_ClientRect->Width = m_WndRect->Width - 2 * SHADOWWIDTH - 2;
-	m_ClientRect->Height = m_WndRect->Height - 2 * SHADOWWIDTH - 2;
+	m_ClientRect->X = (m_ShadowSize > 0 ? m_ShadowSize : 0) + 1;
+	m_ClientRect->Y = (m_ShadowSize > 0 ? m_ShadowSize : 0) + 1;
+	m_ClientRect->Width = m_WndRect->Width - 2 * (m_ShadowSize > 0 ? m_ShadowSize : 0) - 2;
+	m_ClientRect->Height = m_WndRect->Height - 2 * (m_ShadowSize > 0 ? m_ShadowSize : 0) - 2;
 
 	if (m_BkgDC == nullptr)
 	{
@@ -940,7 +987,7 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	HRGN hRgn = NULL;
 	if (m_BorderStyle.Mode == BM_RoundRect)
 	{
-		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, 5, 5);
+		hRgn = CreateRoundRectRgn(0, 0, (INT)m_WndRect->Width, (INT)m_WndRect->Height, m_Round, m_Round);
 	}
 	SetWindowRgn((HWND)m_ID, hRgn, FALSE);
 	DeleteObject(hRgn);
@@ -957,8 +1004,8 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 		}
 
 	}
-	m_IconRect->X = m_ClientRect->GetLeft() + ICONOFFSET_X;
-	m_IconRect->Y = m_ClientRect->GetTop() + ICONOFFSET_Y;
+	m_IconRect->X = m_ClientRect->GetLeft() + ICONOFFSET_X + m_ShadowSize;
+	m_IconRect->Y = m_ClientRect->GetTop() + ICONOFFSET_Y + m_ShadowSize;
 	//更新控制按钮的位置
 	INT Size_X;
 	INT Size_Y;
@@ -1035,13 +1082,13 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 			if (m_BorderStyle.DoubleBorder)
 			{
 				m_SysBtn[i]->m_bAutoUpdate = FALSE;
-				m_SysBtn[i]->Move(m_ClientRect->GetRight() - BtnWith - 1, m_ClientRect->GetTop() + 1);
+				m_SysBtn[i]->Move(m_WndRect->Width - BtnWith - m_ShadowSize - 1, m_ShadowSize);
 				m_SysBtn[i]->m_bAutoUpdate = TRUE;
 			}
 			else
 			{
 				m_SysBtn[i]->m_bAutoUpdate = FALSE;
-				m_SysBtn[i]->Move(m_ClientRect->GetRight() - BtnWith + 1, m_ClientRect->GetTop());
+				m_SysBtn[i]->Move(m_WndRect->Width - BtnWith - m_ShadowSize - 1, m_ShadowSize);
 				m_SysBtn[i]->m_bAutoUpdate = TRUE;
 			}
 		}
@@ -1053,15 +1100,15 @@ BOOL DUI_Window::OnSize(WPARAM wParam, LPARAM lParam)
 	}
 	if (m_Icon != nullptr)
 	{
-		m_Title->rect->X = /*m_ClientRect->GetLeft() +*/ m_IconRect->GetRight() + GAP_ICON_TITLE;
-		m_Title->rect->Y = /*m_ClientRect->GetTop() +*/ m_Sizeable ? 3.0f : 0.0f;
+		m_Title->rect->X = m_ClientRect->GetLeft() + m_IconRect->GetRight() + GAP_ICON_TITLE;
+		m_Title->rect->Y = m_ClientRect->GetTop() + (m_Sizeable ? 3.0f : 0.0f);
 		m_Title->rect->Width = m_ClientRect->Width - m_IconRect->GetRight() - GAP_ICON_TITLE - BtnWith - GAP_TITLE_SYSBTN;
 		m_Title->rect->Height = TITLEBARHEIGHT - 5 - 1;
 	}
 	else
 	{
-		m_Title->rect->X = /*m_ClientRect->GetLeft() +*/ 2;
-		m_Title->rect->Y = /*m_ClientRect->GetTop() +*/ m_Sizeable ? 2.0f : 0.0f;
+		m_Title->rect->X = m_ClientRect->GetLeft() + 2;
+		m_Title->rect->Y = m_ClientRect->GetTop() + m_Sizeable ? 2.0f : 0.0f;
 		m_Title->rect->Width = m_ClientRect->Width - BtnWith - 2 - GAP_TITLE_SYSBTN;
 		m_Title->rect->Height = TITLEBARHEIGHT;
 	}
@@ -1191,46 +1238,46 @@ BOOL DUI_Window::OnUpdate(WPARAM wParam, BOOL bUpdate)
 
 BOOL DUI_Window::OnSetCursor(WPARAM wParam, LPARAM lParam)
 {
-	if (m_Sizeable)
+	if (m_Sizeable && !IsZoomed((HWND)m_ID))
 	{
 		PointF ptMouse;
 		GetCursorPos(&ptMouse);
-		if (ptMouse.X <= DEF_BORDERWHIDTH && ptMouse.Y <= DEF_BORDERWHIDTH)
+		if (ptMouse.X <= DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y <= DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENWSE));
 			m_CurCDR = CDR_NWSE;
 		}
-		else if (ptMouse.X > DEF_BORDERWHIDTH && ptMouse.X < m_ClientRect->Width - DEF_BORDERWHIDTH && ptMouse.Y <= DEF_BORDERWHIDTH)
+		else if (ptMouse.X > DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.X < m_ClientRect->Width - DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y <= DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENS));
 			m_CurCDR = CDR_NS;
 		}
-		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH && ptMouse.Y <= DEF_BORDERWHIDTH)
+		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y <= DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENESW));
 			m_CurCDR = CDR_NESW;
 		}
-		else if (ptMouse.X <= DEF_BORDERWHIDTH && ptMouse.Y > DEF_BORDERWHIDTH && ptMouse.Y <= m_ClientRect->Height - DEF_BORDERWHIDTH)
+		else if (ptMouse.X <= DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y > DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y <= m_ClientRect->Height - DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZEWE));
 			m_CurCDR = CDR_WE;
 		}
-		else if (ptMouse.X <= DEF_BORDERWHIDTH && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH)
+		else if (ptMouse.X <= DEF_BORDERWHIDTH+ m_ShadowSize && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH+ m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENESW));
 			m_CurCDR = CDR_NESW2;
 		}
-		else if (ptMouse.X > DEF_BORDERWHIDTH && ptMouse.X <= m_ClientRect->Width - DEF_BORDERWHIDTH && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH)
+		else if (ptMouse.X > DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.X <= m_ClientRect->Width - DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENS));
 			m_CurCDR = CDR_NS2;
 		}
-		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH && ptMouse.Y > DEF_BORDERWHIDTH && ptMouse.Y <= m_ClientRect->Height - DEF_BORDERWHIDTH)
+		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y > DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y <= m_ClientRect->Height - DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZEWE));
 			m_CurCDR = CDR_WE2;
 		}
-		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH)
+		else if (ptMouse.X > m_ClientRect->Width - DEF_BORDERWHIDTH + m_ShadowSize && ptMouse.Y > m_ClientRect->Height - DEF_BORDERWHIDTH + m_ShadowSize)
 		{
 			SetCursor(LoadCursor(NULL, IDC_SIZENWSE));
 			m_CurCDR = CDR_NWSE2;
@@ -1275,8 +1322,11 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 			KillTimer((HWND)m_ID, wParam);
 			m_bAnimate = FALSE;
 			m_bInited = TRUE;
-			m_BorderStyle.Mode = BM_RoundRect;
-			SetBorderStyle(m_BorderStyle);
+			if (m_Round != 0)
+			{
+				m_BorderStyle.Mode = BM_RoundRect;
+				SetBorderStyle(m_BorderStyle);
+			}
 			MsgProc(m_ID, WM_WNDINITED, NULL, NULL);
 		}
 		break;
@@ -1288,8 +1338,11 @@ BOOL DUI_Window::OnTimer(WPARAM wParam, LPARAM lParam)
 			m_Alpha = 1;
 			m_bAllowCtrlUpdate = TRUE;
 			m_bAnimate = FALSE;
-			m_BorderStyle.Mode = BM_RoundRect;
-			SetBorderStyle(m_BorderStyle);
+			if (m_Round != 0)
+			{
+				m_BorderStyle.Mode = BM_RoundRect;
+				SetBorderStyle(m_BorderStyle);
+			}
 		}
 		break;
 	case TID_WND_CNGBKG:
@@ -1313,8 +1366,13 @@ BOOL DUI_Window::OnShowWindow(WPARAM wParam, LPARAM lParam)
 		return TRUE;
 	}
 	m_bAnimate = TRUE;
-	m_BorderStyle.Mode = BM_Normal;
-	SetBorderStyle(m_BorderStyle);
+	if (m_BorderStyle.Mode == BM_RoundRect)
+	{
+		m_BorderStyle.Mode = BM_Normal;
+		INT R = m_Round;
+		SetBorderStyle(m_BorderStyle);
+		m_Round = R;
+	}
 	SetTimer((HWND)m_ID, TID_WND_SHOW, 16, nullptr);
 	return TRUE;
 }
@@ -1449,6 +1507,11 @@ BOOL DUI_Window::SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lPara
 			INT Start;
 			if (IsZoomed((HWND)m_ID))
 			{
+				if (m_ShadowSize < 0)
+				{
+					m_ShadowSize = -m_ShadowSize;
+					//OnSize(NULL, NULL);
+				}
 				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Max_Start"));
 				//117
 				SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_RESTORE, 0);
@@ -1456,6 +1519,11 @@ BOOL DUI_Window::SysBtnClick(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lPara
 			}
 			else
 			{
+				if (m_ShadowSize > 0)
+				{
+					m_ShadowSize = -m_ShadowSize;
+					//OnSize(NULL, NULL);
+				}
 				Start = m_pRdbMgr->GetIntValByName(_T("SysBtn_Restore_Start"));
 				//201
 				SendMessage((HWND)m_ID, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
@@ -1546,6 +1614,7 @@ BOOL DUI_Window::WndAnimProc(AnimArg * pArg, INT AnimType)
 	if (bDone)
 	{
 		SafeDelete(pArg->pDC1);
+		SafeDelete(pArg->pDC2);
 		pArg->Arg_1 = pArg->Arg_2 = 0;
 	}
 	return bDone;
@@ -1715,6 +1784,14 @@ BOOL DUI_Window::OnControl(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if (bInCtrl)
 			{
 				(*it)->MsgProc((*it)->m_ID, CM_SETCURSOR, (*it)->m_ID, NULL);
+				return TRUE;
+			}
+		}
+		else if (uMsg == WM_MOUSEWHEEL)
+		{
+			if (bInCtrl)
+			{
+				(*it)->MsgProc((*it)->m_ID, uMsg, wParam, lParam);
 				return TRUE;
 			}
 		}

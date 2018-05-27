@@ -142,6 +142,10 @@ VOID DUI_ControlBase::Move(REAL Left, REAL Top)
 				m_ParentWnd->m_MemDC->SelectRectClipRgn(ClipRect);
 			}
 		}
+		else if (m_ParentWnd->GetBorderStyle().Mode == BM_RoundRect)
+		{
+			m_ParentWnd->m_MemDC->SelectRoundRectClipRgn((INT)m_ParentWnd->m_ClientRect->X, (INT)m_ParentWnd->m_ClientRect->Y, (INT)m_ParentWnd->m_ClientRect->Width + 1, (INT)m_ParentWnd->m_ClientRect->Height + 1, m_ParentWnd->m_Round - 2);
+		}
 
 		m_ParentWnd->m_BkgDC->BitBlt(m_ParentWnd->m_MemDC, (INT)m_VRect->X, (INT)m_VRect->Y, (INT)m_VRect->Width, (INT)m_VRect->Height);
 		ExcuteAfterPaused(m_ParentWnd->Flush());
@@ -667,6 +671,9 @@ LRESULT DUI_ControlBase::MsgProc(INT ID, UINT uMsg, WPARAM wParam, LPARAM lParam
 		SendMsgToChild(CM_SHOW, NULL, lParam);
 		Update();
 		break;
+	case CM_NORTIFY:
+		OnNortify(wParam, lParam);
+		break;
 	}
 	if (IsMouseMsg(uMsg))
 	{
@@ -774,11 +781,15 @@ RectF * DUI_ControlBase::GetClientRect()
 	return m_Rect->Clone();
 }
 
-BOOL DUI_ControlBase::StartAnimate(UINT uElapse, TIMERPROC pCallBack)
+BOOL DUI_ControlBase::StartAnimate(UINT uElapse, TIMERPROC pCallBack, BOOL bEndPrev)
 {
 	if (pCallBack == nullptr)
 	{
 		pCallBack = m_pAnimateProc;
+	}
+	if (bEndPrev && m_bAnimating)
+	{
+		EndAnimate();
 	}
 	auto Ret = SetTimer(m_ParentWnd->GetHWND(), m_ID, uElapse, pCallBack);
 	if (Ret != NULL)
@@ -926,6 +937,10 @@ BOOL DUI_ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 			m_ParentWnd->m_MemDC->SelectRectClipRgn(ClipRect);
 		}
 	}
+	else if (m_ParentWnd->GetBorderStyle().Mode == BM_RoundRect)
+	{
+		m_ParentWnd->m_MemDC->SelectRoundRectClipRgn((INT)m_ParentWnd->m_ClientRect->X, (INT)m_ParentWnd->m_ClientRect->Y, (INT)m_ParentWnd->m_ClientRect->Width + 1, (INT)m_ParentWnd->m_ClientRect->Height + 1, m_ParentWnd->m_Round - 2);
+	}
 	
 	//PauseWhen(m_ID == 13);
 	m_ParentWnd->m_BkgDC->BitBlt(m_ParentWnd->m_MemDC, (INT)m_VRect->X, (INT)m_VRect->Y, (INT)m_VRect->Width, (INT)m_VRect->Height);
@@ -999,6 +1014,7 @@ BOOL DUI_ControlBase::OnUpdate(WPARAM wParam, LPARAM lParam)
 		else
 		{
 			m_ParentWnd->m_MemDC->AlphaBlend(m_ParentWnd->m_hDC, 0, 0, (INT)m_ParentWnd->m_WndRect->Width, (INT)m_ParentWnd->m_WndRect->Height, 0, 0, (INT)m_ParentWnd->m_WndRect->Width, (INT)m_ParentWnd->m_WndRect->Height, 255);
+			//m_ParentWnd->m_MemDC->AlphaBlend(m_ParentWnd->m_hDC, (INT)m_Rect->X, (INT)m_Rect->Y, (INT)m_Rect->Width, (INT)m_Rect->Height, (INT)m_Rect->X, (INT)m_Rect->Y, (INT)m_Rect->Width, (INT)m_Rect->Height, 255);
 		}
 	}
 	//m_MemDC->AlphaBlend(m_Parent->m_MemDC->GetMemDC(), (int)m_Rect->GetLeft(), (int)m_Rect->GetTop(), (int)m_Rect->Width, (int)m_Rect->Height, 0, 0, (int)m_Rect->Width, (int)m_Rect->Height, m_Alpha);
@@ -1142,6 +1158,24 @@ BOOL DUI_ControlBase::OnCalcRect(WPARAM wParam, LPARAM lParam)
 		m_LogicVRect->Y = m_VRect->Y - m_Parent->GetY();
 		m_LogicVRect->Width = m_VRect->Width;
 		m_LogicVRect->Height = m_VRect->Height;
+	}
+	return TRUE;
+}
+
+BOOL DUI_ControlBase::OnNortify(WPARAM wParam, LPARAM lParam)
+{
+	INT CtrlID = LOWORD(wParam);
+	INT NID = HIWORD(wParam);
+	switch (NID)
+	{
+	case NID_SCROLL_X:
+		SetOffset((REAL)lParam, m_OffsetRect->Y);
+		Update();
+		break;
+	case NID_SCROLL_Y:
+		SetOffset(m_OffsetRect->X, (REAL)lParam);
+		Update();
+		break;
 	}
 	return TRUE;
 }

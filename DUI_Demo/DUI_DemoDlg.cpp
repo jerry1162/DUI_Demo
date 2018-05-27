@@ -58,22 +58,22 @@ BOOL CDUI_DemoDlg::MyBtn(VOID* pThis, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // 		m_ImageBox->MoveWithMouse(!m_ImageBox->MoveWithMouse());
 // 		m_Window->SetDebugMode(!m_Window->GetDebugMode());
 // 		m_Lable->SetText(L"Button");
-// 		static int i = 3;
-// 		i += 1;
-// 		if ((i % 2) == 0)
-// 		{
-// 			m_Window->SetTitle(L"OK");
-// 			m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
-// 			m_Button->SetText(L"Button");
-// 			m_GroupBox->Size(200, 200);
-// 		}
-// 		else
-// 		{
-// 			m_Window->SetTitle(L"Clicked");
-// 			m_Window->SetBorderStyle({ BM_Normal,Color::MakeARGB(125,0,0,0),FALSE });
-// 			m_Button->SetText(L"Clicked");
-// 			m_GroupBox->Size(50, 50);
-// 		}
+		static int i = 4;
+		i += 1;
+		if ((i % 2) == 0)
+		{
+			m_Window->SetTitle(L"OK");
+			m_Window->SetBorderStyle({ BM_RoundRect,NULL,TRUE });
+			m_Button->SetText(L"Button");
+			m_GroupBox->Size(200, 200);
+		}
+		else
+		{
+			m_Window->SetTitle(L"Clicked");
+			m_Window->SetBorderStyle({ BM_Normal,NULL,FALSE });
+			m_Button->SetText(L"Clicked");
+			m_GroupBox->Size(50, 50);
+		}
 // 		DUI_ControlBase* pCtrl = nullptr;// m_Window->FindControlByID(i);
 // 		while (1)
 // 		{
@@ -180,12 +180,6 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	//_CrtSetBreakAlloc(4496);
 	GdipStartup();
 	m_SubWindow = nullptr;
-
-/*
-	HRSRC hRsrc = FindResource(NULL, MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
-	DWORD dwSize = SizeofResource(NULL, hRsrc);
-	HGLOBAL hGlobal = LoadResource(NULL, hRsrc);
-	LPVOID pBuffer = LockResource(hGlobal);*/
 	
 	LPVOID pResDB = GetResAddr(MAKEINTRESOURCE(IDR_RDB), _T("RDB"));
 	m_RdbMgr = new RDBManager;
@@ -217,7 +211,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	m_Lable = new DUI_Lable;
 	m_Lable->Create(m_Window, 120, 120, 200, 25, _T("Lable1"));
 	m_Lable->SetCursor(IDC_IBEAM);
-	//m_Lable->SetPrompt(_T("Lable"));
+	m_Lable->SetPrompt(_T("Lable"));
 
 	m_Button = new DUI_Button;
 	m_Button->Create(m_Window, 60, 20, 76, 26, _T("Õý³£°´Å¥"));
@@ -229,7 +223,7 @@ BOOL CDUI_DemoDlg::OnInitDialog()
 	pImg[1] = ImageFromIDResource(IDB_BTN_2, _T("PNG"));
 	pImg[2] = ImageFromIDResource(IDB_BTN_3, _T("PNG"));
 	m_ImgBtn = new DUI_ImageButton;
-	m_ImgBtn->Create(m_Window, 60, 55, 76, 26, pImg[0], pImg[1], pImg[2], _T("ImageBtn"));
+	m_ImgBtn->Create(m_Window, 60, 50, 80, 35, pImg[0], pImg[1], pImg[2], _T("ImageBtn"), new Rect(5, 5, 5, 5));//76, 26
 	m_ImgBtn->SetCursor(IDC_HAND);
 
 	m_GroupBox = new DUI_GroupBox;
